@@ -1,0 +1,229 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Module: which ore is coming",
+  "titles": {
+    "en": "Module: which ore is coming",
+    "ru": "Модуль «Какая руда идёт»"
+  },
+  "description": "Written by akt-ore every 15 model minutes; layers_l* are JSON strings.",
+  "version": {
+    "model": "1.0.0"
+  },
+  "links": [
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-h-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "next_hard_eta_early_h_l1"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-h-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "next_hard_eta_early_h_l2"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-h-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "next_hard_eta_h_l1"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-h-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "next_hard_eta_h_l2"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-axb-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "next_hard_axb"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h1"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h2"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h3"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h4"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h5"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h6"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h7"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h8"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h9"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h10"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h11"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_tph_h12"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fc_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "layers_l1"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "layers_l2"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "check_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "hit_rate"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "processed_sim_time"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "resend"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "idSimulationRun"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sim_time"
+    }
+  ],
+  "properties": {
+    "_parents": {
+      "type": "string",
+      "title": "Parent thing",
+      "description": "thingId of the parent: the tree and the Telegraf tag parent."
+    },
+    "_isType": {
+      "type": "boolean",
+      "default": false,
+      "description": "false: an instance, not a type (Grafana OpenTwins app)."
+    },
+    "type": {
+      "type": "string",
+      "description": "Thing type, same as the model file name.",
+      "default": "mod-ore"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (Grafana OpenTwins app)."
+    },
+    "name_ru": {
+      "type": "string",
+      "description": "Name in Russian."
+    },
+    "passport": {
+      "type": "object",
+      "description": "Passport: key -> {value, unit, src, note}; src is a key of source."
+    },
+    "source": {
+      "type": "object",
+      "description": "Sources: key -> {doc, page, url, label}; label: fact, vendor, project, analog, assumption, calc."
+    },
+    "feeds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds this thing feeds with material."
+    },
+    "fed_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds feeding this thing (inverse of feeds)."
+    },
+    "supplies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds supplied with power or water."
+    },
+    "ui": {
+      "type": "object",
+      "description": "Layout hints: scheme {col, row, span}."
+    }
+  }
+}

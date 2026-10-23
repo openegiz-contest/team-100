@@ -1,0 +1,94 @@
+{
+ "image": "aktogay_s2.jpg",
+ "width_px": 1720,
+ "height_px": 1220,
+ "pixel_plan_m": 10.0,
+ "bounds_plan_m": {
+  "x0": -7200.0,
+  "y0": -4600.0,
+  "x1": 10000.0,
+  "y1": 7600.0
+ },
+ "bounds_note": "x east, y north, metres of plan.json; x0,y0 = south-west corner of the south-west pixel, x1,y1 = north-east corner of the north-east pixel",
+ "plan_view_m": [
+  -4200.0,
+  -2600.0,
+  7000.0,
+  5600.0
+ ],
+ "svg_image": {
+  "x": -7200.0,
+  "y": -7600.0,
+  "width": 17200.0,
+  "height": 12200.0,
+  "preserveAspectRatio": "none"
+ },
+ "projection": {
+  "plan_frame": "plan.json local frame (web/tools/osm2plan.py): x = (lon - 79.93) * KX, y = (lat - 46.94) * KY, KX = 111320 * cos(46.94 deg), KY = 110574",
+  "origin_lonlat": [
+   79.93,
+   46.94
+  ],
+  "metres_per_deg": [
+   76005.27264812557,
+   110574.0
+  ],
+  "raster_crs": "EPSG:4326 (WGS 84 lon/lat), north up; pixels are 10 x 10 plan metres",
+  "geotransform": [
+   79.83526972999185,
+   0.00013156981945576691,
+   0.0,
+   47.008732251704735,
+   0.0,
+   -9.04371732957077e-05
+  ],
+  "bounds_lonlat": [
+   79.83526972999185,
+   46.89839890028397,
+   80.06156981945577,
+   47.008732251704735
+  ]
+ },
+ "scene": {
+  "id": "S2A_44TMT_20260925_1_L2A",
+  "collection": "sentinel-2-l2a",
+  "stac_item": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_44TMT_20260925_1_L2A",
+  "product_uri": "S2A_MSIL2A_20260925T054251_N0513_R005_T44TMT_20260925T090015.SAFE",
+  "platform": "sentinel-2a",
+  "datetime_utc": "2026-09-25T05:46:00.782000Z",
+  "acquisition_date": "2026-09-25",
+  "mgrs_tile": "MGRS-44TMT",
+  "processing_baseline": "05.13",
+  "eo_cloud_cover_tile_pct": 1.132408,
+  "aoi_scl_pct": {
+   "nodata": 0.0,
+   "cloud": 0.0,
+   "cirrus": 0.0,
+   "cloud_shadow": 0.0,
+   "snow": 0.23,
+   "water": 0.262
+  },
+  "sun_elevation_deg": 40.8132250307645,
+  "asset": "visual (TCI: B04/B03/B02, 8-bit, native 10 m, EPSG:32644)",
+  "asset_href": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/44/T/MT/2026/9/S2A_44TMT_20260925_1_L2A/TCI.tif",
+  "native_gsd_m": 10
+ },
+ "processing": {
+  "software": "GDAL 3.9.2",
+  "container": "ghcr.io/osgeo/gdal:ubuntu-small-3.9.2",
+  "resampling": "cubic",
+  "colour": "TCI as delivered (no stretch)",
+  "jpeg_quality": 90,
+  "jpeg_bytes": 650531,
+  "empty_px": 0,
+  "made_utc": "2026-10-22T06:59Z"
+ },
+ "licence": {
+  "attribution": "Contains modified Copernicus Sentinel data 2026",
+  "attribution_ru": "Содержит изменённые данные Copernicus Sentinel 2026",
+  "terms": "Legal Notice on the use of Copernicus Sentinel Data and Service Information",
+  "terms_url": "https://sentinels.copernicus.eu/documents/247904/690755/Sentinel_Data_Legal_Notice",
+  "doi": "https://doi.org/10.5270/S2_-742ikth",
+  "access": "Earth Search by Element 84 (STAC), sentinel-cogs bucket, AWS Open Data"
+ }
+}

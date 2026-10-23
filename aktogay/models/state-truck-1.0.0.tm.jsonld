@@ -1,0 +1,28 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Haul truck: state",
+  "version": {
+    "model": "1.0.0"
+  },
+  "properties": {
+    "value": {
+      "type": "string",
+      "enum": [
+        "LOADING",
+        "HAUL_FULL",
+        "QUEUE",
+        "DUMP",
+        "RETURN",
+        "DOWN"
+      ],
+      "default": "",
+      "description": "Empty until the first update."
+    },
+    "unit": {
+      "type": "string",
+      "const": "",
+      "default": ""
+    }
+  }
+}

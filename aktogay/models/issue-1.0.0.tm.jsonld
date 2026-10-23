@@ -1,0 +1,205 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Issue",
+  "titles": {
+    "en": "Issue",
+    "ru": "Беда"
+  },
+  "description": "Created by akt-priority as issue-<n>; safety_class S0, S1 or empty. loss_usd_h is the rate once losses run, loss_from the model minute they start (-1: none expected, or a safety issue that is not counted in money). status_ru: the status in Russian words; person: the person twin to call. eta: expected arrival of the called person or crew; escalation: 'not arrived by ETA + 15 min' text (empty when none). States: OPEN, CALLED, IN_WORK, RESOLVED, SNOOZED.",
+  "version": {
+    "model": "1.0.0"
+  },
+  "links": [
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/state-issue-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "status_ru"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "node"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "kind"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "safety_class"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "loss_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "loss_from"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usd-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "loss_shift_usd"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usd-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "delay_cost_usd"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "call_by"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-n-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "rank"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "responsible"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "person"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "eta"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "escalation"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "chain"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "chain_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "choice_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "permit_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "idSimulationRun"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sim_time"
+    }
+  ],
+  "properties": {
+    "_parents": {
+      "type": "string",
+      "title": "Parent thing",
+      "description": "thingId of the parent: the tree and the Telegraf tag parent."
+    },
+    "_isType": {
+      "type": "boolean",
+      "default": false,
+      "description": "false: an instance, not a type (Grafana OpenTwins app)."
+    },
+    "type": {
+      "type": "string",
+      "description": "Thing type, same as the model file name.",
+      "default": "issue"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (Grafana OpenTwins app)."
+    },
+    "name_ru": {
+      "type": "string",
+      "description": "Name in Russian."
+    },
+    "passport": {
+      "type": "object",
+      "description": "Passport: key -> {value, unit, src, note}; src is a key of source."
+    },
+    "source": {
+      "type": "object",
+      "description": "Sources: key -> {doc, page, url, label}; label: fact, vendor, project, analog, assumption, calc."
+    },
+    "feeds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds this thing feeds with material."
+    },
+    "fed_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds feeding this thing (inverse of feeds)."
+    },
+    "supplies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds supplied with power or water."
+    },
+    "ui": {
+      "type": "object",
+      "description": "Layout hints: scheme {col, row, span}."
+    }
+  }
+}

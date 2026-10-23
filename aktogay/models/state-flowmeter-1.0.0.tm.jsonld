@@ -1,0 +1,25 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Reagent flowmeter: state",
+  "version": {
+    "model": "1.0.0"
+  },
+  "properties": {
+    "value": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "DRIFT",
+        "SUSPECT"
+      ],
+      "default": "",
+      "description": "Empty until the first update."
+    },
+    "unit": {
+      "type": "string",
+      "const": "",
+      "default": ""
+    }
+  }
+}

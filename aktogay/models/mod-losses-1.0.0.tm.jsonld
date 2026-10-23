@@ -1,0 +1,457 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Module: where copper is lost",
+  "titles": {
+    "en": "Module: where copper is lost",
+    "ru": "Модуль «Где теряется медь»"
+  },
+  "description": "Written by akt-losses every 5 model minutes; node keys sag-N, cyclones-N, flot-N. suspect_sensors: instruments whose reading the module doubts (thing names). Silent overspends: SAG kWh/t measured against Morrell on the batch estimate (sag-N_e_*, energy_usd_h), collector tank balance against the flowmeter (rougher-N_reagent_*), water balance residual as a leak (water_leak_m3h); silent_text sums them up.",
+  "version": {
+    "model": "1.0.0"
+  },
+  "links": [
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_gap_cu_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_gap_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_sigma"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_status_ru"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_roles"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_gap_cu_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_gap_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_sigma"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_status_ru"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_roles"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-kwht-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_e_meas_kwh_t"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-kwht-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_e_exp_kwh_t"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-1_energy_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-kwht-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_e_meas_kwh_t"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-kwht-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_e_exp_kwh_t"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sag-2_energy_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "rougher-1_reagent_excess_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "rougher-1_reagent_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "rougher-1_reagent_status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "rougher-2_reagent_excess_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "rougher-2_reagent_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "rougher-2_reagent_status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-1_gap_cu_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-1_gap_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-1_sigma"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-1_status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-1_status_ru"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-1_roles"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-2_gap_cu_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-2_gap_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-2_sigma"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-2_status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-2_status_ru"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cyclones-2_roles"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-1_gap_cu_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-1_gap_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-1_sigma"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-1_status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-1_status_ru"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-1_roles"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-2_gap_cu_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-2_gap_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-2_sigma"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-2_status"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-2_status_ru"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "flot-2_roles"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "top_node"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "top_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "suspect_sensors"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "suspect_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cu_residual_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "water_residual_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-m3h-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "water_leak_m3h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-usdh-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "water_leak_usd_h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "silent_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "conc_residual_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-mw-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "power_headroom_mw"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "power_parts_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "processed_sim_time"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "resend"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "idSimulationRun"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sim_time"
+    }
+  ],
+  "properties": {
+    "_parents": {
+      "type": "string",
+      "title": "Parent thing",
+      "description": "thingId of the parent: the tree and the Telegraf tag parent."
+    },
+    "_isType": {
+      "type": "boolean",
+      "default": false,
+      "description": "false: an instance, not a type (Grafana OpenTwins app)."
+    },
+    "type": {
+      "type": "string",
+      "description": "Thing type, same as the model file name.",
+      "default": "mod-losses"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (Grafana OpenTwins app)."
+    },
+    "name_ru": {
+      "type": "string",
+      "description": "Name in Russian."
+    },
+    "passport": {
+      "type": "object",
+      "description": "Passport: key -> {value, unit, src, note}; src is a key of source."
+    },
+    "source": {
+      "type": "object",
+      "description": "Sources: key -> {doc, page, url, label}; label: fact, vendor, project, analog, assumption, calc."
+    },
+    "feeds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds this thing feeds with material."
+    },
+    "fed_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds feeding this thing (inverse of feeds)."
+    },
+    "supplies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds supplied with power or water."
+    },
+    "ui": {
+      "type": "object",
+      "description": "Layout hints: scheme {col, row, span}."
+    }
+  }
+}

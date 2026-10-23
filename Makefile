@@ -1,27 +1,37 @@
-.PHONY: up down ps logs smoke clean example-mine example-mine-stop install uninstall status endpoints upgrade upload-build generate-data copy-build unity-demo check-secrets check-public-host
+.PHONY: up down ps logs smoke clean example-mine example-mine-stop install uninstall status endpoints upgrade upload-build generate-data copy-build unity-demo check-secrets check-public-host akt-check akt-calib
 
 # ---------------------------------------------------------------------------
 # Docker Compose deployment (laptops, CI, contest judges): deploy/compose/
 # ---------------------------------------------------------------------------
 COMPOSE_BASE := docker compose -f deploy/compose/docker-compose.yml
+# The Aktogay stand (aktogay/compose.yml: akt-models, akt-setup, akt-calib,
+# akt-sim, akt-modules, akt-web) is an overlay on the platform. Every compose command
+# loads it, so `up` starts it, `down` stops it and `clean` removes its data.
+AKT_COMPOSE  := aktogay/compose.yml
 # Once `make example-mine` has run, every compose command also loads the mine
 # overlay, so `down` stops its simulator and `up` keeps its Grafana dashboard.
 # `make clean` forgets it.
 MINE_MARKER  := deploy/compose/.example-mine
 MINE_COMPOSE := examples/mine/compose.yml
-COMPOSE := $(COMPOSE_BASE)$(if $(wildcard $(MINE_MARKER)), -f $(MINE_COMPOSE))
+COMPOSE := $(COMPOSE_BASE) -f $(AKT_COMPOSE)$(if $(wildcard $(MINE_MARKER)), -f $(MINE_COMPOSE))
 
 ## Start the whole platform with Docker Compose (first run: generates credentials)
 up:
 	@bash scripts/compose-env.sh
 	@bash scripts/compose-preflight.sh
+	@bash aktogay/scripts/akt-preflight.sh
 	$(COMPOSE) up -d --build --wait --wait-timeout 900
 	@# `--wait` does not wait for one-shot jobs to finish: a running init counts
 	@# as up. Wait for it to exit, then check how.
 	@test "$$(docker wait $$($(COMPOSE) ps -a -q init))" = 0 || { \
 	  echo "ERROR: the init job (policy + Ditto connections) failed:"; $(COMPOSE) logs init; exit 1; }
+	@# Same for akt-setup (Aktogay policy, Thing Models, 127 things): without
+	@# this check the stand would be "up" with no things in it.
+	@test "$$(docker wait $$($(COMPOSE) ps -a -q akt-setup))" = 0 || { \
+	  echo "ERROR: the akt-setup job (Aktogay policy + things) failed:"; $(COMPOSE) logs akt-setup; exit 1; }
 	@bash scripts/compose-wait-ready.sh
 	@bash scripts/compose-urls.sh
+	@bash aktogay/scripts/akt-urls.sh
 
 ## Stop the platform, keep data
 down:
@@ -53,6 +63,23 @@ example-mine-stop:
 clean:
 	$(COMPOSE) down -v --remove-orphans
 	rm -f deploy/compose/.env $(MINE_MARKER)
+
+# ---------------------------------------------------------------------------
+# Aktogay stand (aktogay/): checks on the running stack
+# ---------------------------------------------------------------------------
+
+## Aktogay stand: one "ok / FAIL + evidence" line per claim (containers, things per type in Ditto,
+## InfluxDB points younger than 60 s per thing, web /api/state, module features, validation-calib).
+## Exit 0; STRICT=1: 1 on a failure
+akt-check:
+	@bash aktogay/scripts/akt-check.sh
+
+## Aktogay model calibration (2025 fit, 2024 and 2023 checks without refit, balances) in the
+## simulator image (service akt-calib): prints the table, writes it with the on/off trial
+## summary to the thing validation-calib (?view=calib); exit 0
+akt-calib:
+	$(COMPOSE) run --rm --no-deps -T akt-calib \
+	  || echo "akt-calib: the calibration container did not run (see above)"
 
 # ---------------------------------------------------------------------------
 # Helm deployment (servers): the chart at the repository root

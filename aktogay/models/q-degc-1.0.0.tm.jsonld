@@ -1,0 +1,21 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Air temperature, degC",
+  "version": {
+    "model": "1.0.0"
+  },
+  "properties": {
+    "value": {
+      "type": "number",
+      "default": -1.0,
+      "unit": "degC",
+      "description": "-1 means no value."
+    },
+    "unit": {
+      "type": "string",
+      "const": "degC",
+      "default": "degC"
+    }
+  }
+}

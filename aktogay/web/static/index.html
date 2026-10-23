@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Актогай — цифровой двойник медной фабрики</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<a class="skip" href="#topcard">К беде ①</a>
+<header id="menu">
+  <h1>Актогай<span class="h1-sub"> — цифровой двойник медной фабрики</span></h1>
+  <nav id="nav" aria-label="Виды"></nav>
+  <div id="tools">
+    <span id="err" class="err" role="status" aria-live="polite"></span>
+    <button type="button" id="btn-ask" title="Ответы на вопросы диспетчера по данным двойника">Спросить двойник</button>
+    <button type="button" id="btn-tour" title="Пять шагов: что здесь и что нажимать (клавиша ?)">Как пользоваться</button>
+    <button type="button" id="btn-gloss" title="Словарь терминов (клавиша /)">Словарь</button>
+  </div>
+</header>
+<section id="now" aria-live="polite" aria-atomic="true" aria-label="Что сейчас и что делать">
+  <div class="act"><span class="now-text" id="now-line">Загружаю состояние фабрики…</span></div>
+  <div class="ctx"><span class="ctx-t" id="now-ctx">Медный рудник в Казахстане, фабрика в 2 линии · загружаю состояние фабрики…</span><span id="now-chip"></span><span id="now-offer"></span></div>
+</section>
+<main id="layout">
+  <section id="stage"></section>
+  <aside id="panel" aria-label="Панель диспетчера"></aside>
+</main>
+<script src="/app.js"></script>
+<script src="/ru.js"></script>
+<script src="/help.js"></script>
+<script src="/plan.js"></script>
+<script src="/line.js"></script>
+<script src="/card.js"></script>
+<script src="/views.js"></script>
+<script src="/site.js"></script>
+<script>AKT.start();</script>
+</body>
+</html>

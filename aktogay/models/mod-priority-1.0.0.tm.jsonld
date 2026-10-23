@@ -1,0 +1,193 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Module: queue of issues",
+  "titles": {
+    "en": "Module: queue of issues",
+    "ru": "Модуль «Очередь бед»"
+  },
+  "description": "Written by akt-priority every 5 model minutes; auto_call = {seq, issue, role, sim_time}. Decisions in the queue: hard ore (blend), grid cut (what to shed first and its cost), shortage of return water, fire at the HPGR (S0). Shift handover sheet at 07:30 and 19:30 model time: handover {at, text, issues, snoozed, sensors, ore, crews}, handover_draft_text (what to hand over now); escalations {issue-N: {t, eta, text}}: a called person or crew not arrived by ETA + 15 min. Deviations (grinding media overuse) go to deviations/deviations_text, not to the queue; decisions = calls of the shift against the model's order, review_text = 'what if you had called otherwise' for the handover; tariff = hourly tariff band (assumption). Issue: chain (main -> deputy -> shift head), chain_text, choice_text.",
+  "version": {
+    "model": "1.0.0"
+  },
+  "links": [
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "queue_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "order_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "alarm_order_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "auto_call"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "issue_map"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "handover"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "handover_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "handover_draft_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "escalations"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "processed_sim_time"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "resend"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "deviations"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "deviations_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "decisions"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "review_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "tariff"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "tariff_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "season_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "idSimulationRun"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sim_time"
+    }
+  ],
+  "properties": {
+    "_parents": {
+      "type": "string",
+      "title": "Parent thing",
+      "description": "thingId of the parent: the tree and the Telegraf tag parent."
+    },
+    "_isType": {
+      "type": "boolean",
+      "default": false,
+      "description": "false: an instance, not a type (Grafana OpenTwins app)."
+    },
+    "type": {
+      "type": "string",
+      "description": "Thing type, same as the model file name.",
+      "default": "mod-priority"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (Grafana OpenTwins app)."
+    },
+    "name_ru": {
+      "type": "string",
+      "description": "Name in Russian."
+    },
+    "passport": {
+      "type": "object",
+      "description": "Passport: key -> {value, unit, src, note}; src is a key of source."
+    },
+    "source": {
+      "type": "object",
+      "description": "Sources: key -> {doc, page, url, label}; label: fact, vendor, project, analog, assumption, calc."
+    },
+    "feeds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds this thing feeds with material."
+    },
+    "fed_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds feeding this thing (inverse of feeds)."
+    },
+    "supplies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds supplied with power or water."
+    },
+    "ui": {
+      "type": "object",
+      "description": "Layout hints: scheme {col, row, span}."
+    }
+  }
+}

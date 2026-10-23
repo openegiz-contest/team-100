@@ -1,0 +1,162 @@
+# Aktogay stand: overlay on deploy/compose/docker-compose.yml.
+#   docker compose -f deploy/compose/docker-compose.yml -f aktogay/compose.yml up -d --wait
+# Relative paths resolve from deploy/compose/ (folder of the first file).
+#
+# Networks: the simulator sits on its own network `simnet` and sees only
+# Mosquitto (design section 2: the interface and the modules cannot reach it).
+# Mosquitto keeps the platform's `default` network as well, or Ditto and
+# Telegraf would lose it.
+
+networks:
+  simnet: {}
+
+services:
+  mosquitto:
+    networks:
+      - default
+      - simnet
+
+  # WoT Thing Models: http://akt-models/tm/ inside the network, :8092/tm/ on the host.
+  akt-models:
+    image: docker.io/library/nginx:1.25-alpine
+    restart: unless-stopped
+    mem_limit: 32m
+    ports:
+      - "${OPENEGIZ_BIND:-127.0.0.1}:${AKT_MODELS_PORT:-8092}:80"
+    volumes:
+      - ../../aktogay/models:/usr/share/nginx/html/tm:ro
+      - ../../aktogay/models.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/tm/site-1.0.0.tm.jsonld || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # One shot: policy and things from setup/things.json (create if absent), then exits.
+  akt-setup:
+    image: docker.io/library/python:3.12.11-slim-bookworm
+    restart: "no"
+    mem_limit: 64m
+    command: ["python", "-u", "-I", "/akt/setup/setup.py"]
+    environment:
+      DITTO_URL: http://ditto-nginx:80
+      DITTO_PASSWORD: ${DITTO_PASSWORD}
+    volumes:
+      - ../../aktogay/setup:/akt/setup:ro
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      akt-models:
+        condition: service_healthy
+
+  # One shot after akt-setup: calibration against the annual reports (sim/calib.py --quick,
+  # about 2 min) and the on/off trial summary (sim/data/trial_n100.json) into the thing
+  # validation-calib (state, report_json); ?view=calib shows them. `make up` does not
+  # wait for it; `make akt-calib` runs it again and prints the table. Same image as akt-sim.
+  akt-calib:
+    build:
+      context: ../../aktogay
+      dockerfile: docker/sim.Dockerfile
+    image: aktogay/sim:local
+    restart: "no"
+    mem_limit: 256m
+    command: ["python", "-I", "/akt/run.py", "calib", "--quick", "--publish", "--out", "/tmp/calib.json"]
+    environment:
+      DITTO_URL: http://ditto-nginx:80
+      DITTO_USER: ditto
+      DITTO_PASSWORD: ${DITTO_PASSWORD}
+    depends_on:
+      akt-setup:
+        condition: service_completed_successfully
+
+  # Analysis modules (losses, ore forecast, issue queue): read Ditto HTTP and InfluxDB Flux only,
+  # write mod-losses, mod-ore, mod-priority and issue-* through Ditto merge commands.
+  akt-modules:
+    image: aktogay/modules:local
+    build:
+      context: ../../aktogay
+      dockerfile: docker/modules.Dockerfile
+    restart: unless-stopped
+    mem_limit: 192m
+    environment:
+      DITTO_URL: http://ditto-nginx:80
+      DITTO_USER: ditto
+      DITTO_PASSWORD: ${DITTO_PASSWORD}
+      INFLUX_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUX_ORG: opentwins
+      INFLUX_BUCKET: default
+      POLL_S: "1.0"
+      AKT_AUTO_CALL: ${AKT_AUTO_CALL:-0}
+      AKT_SEED: "42"
+    depends_on:
+      akt-setup:
+        condition: service_completed_successfully
+      influxdb:
+        condition: service_healthy
+      ditto-nginx:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys,time; sys.exit(0 if time.time()-os.path.getmtime('/tmp/akt-modules.alive')<60 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 60s
+
+  # Web interface: static files + /api proxy to Ditto and InfluxDB (credentials stay here).
+  # Reads Ditto and InfluxDB only; writes the control and journal things only.
+  akt-web:
+    build:
+      context: ../../aktogay
+      dockerfile: web/docker/web.Dockerfile
+    image: aktogay/web:local
+    restart: unless-stopped
+    mem_limit: 192m
+    environment:
+      DITTO_URL: http://ditto-nginx:80
+      DITTO_PASSWORD: ${DITTO_PASSWORD}
+      INFLUX_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+    ports:
+      - "${OPENEGIZ_BIND:-127.0.0.1}:${AKT_WEB_PORT:-8000}:8000"
+    # "process alive" only; data readiness is checked by the stand checks, not here.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 180s
+    depends_on:
+      akt-setup:
+        condition: service_completed_successfully
+      influxdb:
+        condition: service_healthy
+
+  # Simulator: the plant in model time -> MQTT telemetry/kz.aktogay/<name>
+  # (command merge, idSimulationRun, sim_time); commands from the Ditto twin
+  # events of control, journal and mod-* on MQTT. Free run x60 from 08:00,
+  # seed 42, after start; see sim/service.py for the variables.
+  akt-sim:
+    build:
+      context: ../../aktogay
+      dockerfile: docker/sim.Dockerfile
+    image: aktogay/sim:local
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      AKT_SEED: ${AKT_SEED:-42}
+      AKT_SPEED: ${AKT_SPEED:-60}
+      AKT_MAX_RATE: ${AKT_MAX_RATE:-20}
+      AKT_RAMP_S: ${AKT_RAMP_S:-120}
+      AKT_BARRIER: ${AKT_BARRIER:-}
+      AKT_BARRIER_TIMEOUT_S: ${AKT_BARRIER_TIMEOUT_S:-60}
+      AKT_FACT_POLICY: ${AKT_FACT_POLICY:-offline}
+    networks:
+      - simnet
+    depends_on:
+      akt-setup:
+        condition: service_completed_successfully
+      mosquitto:
+        condition: service_healthy

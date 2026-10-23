@@ -1,0 +1,119 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Primary gyratory crusher",
+  "titles": {
+    "en": "Primary gyratory crusher",
+    "ru": "Дробилка ЦПД"
+  },
+  "description": "In-pit crushing station; lube_kpa is the oil pressure seen by the trip protection. States: RUN, STOP, SLOW.",
+  "version": {
+    "model": "1.0.0"
+  },
+  "links": [
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/state-crusher-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "state"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "state_ru"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-kw-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "power_kw"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-kpa-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lube_kpa"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "idSimulationRun"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-min-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "sim_time"
+    }
+  ],
+  "properties": {
+    "_parents": {
+      "type": "string",
+      "title": "Parent thing",
+      "description": "thingId of the parent: the tree and the Telegraf tag parent."
+    },
+    "_isType": {
+      "type": "boolean",
+      "default": false,
+      "description": "false: an instance, not a type (Grafana OpenTwins app)."
+    },
+    "type": {
+      "type": "string",
+      "description": "Thing type, same as the model file name.",
+      "default": "crusher"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (Grafana OpenTwins app)."
+    },
+    "name_ru": {
+      "type": "string",
+      "description": "Name in Russian."
+    },
+    "passport": {
+      "type": "object",
+      "description": "Passport: key -> {value, unit, src, note}; src is a key of source."
+    },
+    "source": {
+      "type": "object",
+      "description": "Sources: key -> {doc, page, url, label}; label: fact, vendor, project, analog, assumption, calc."
+    },
+    "responsible": {
+      "type": "object",
+      "description": "Role to call: {role, name_ru, person (thingId of the person twin), person_ru, arrive_min [lo, hi], src, also [{role, name_ru, for_ru}]}."
+    },
+    "feeds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds this thing feeds with material."
+    },
+    "fed_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds feeding this thing (inverse of feeds)."
+    },
+    "supplies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "thingIds supplied with power or water."
+    },
+    "ui": {
+      "type": "object",
+      "description": "Layout hints: scheme {col, row, span}."
+    }
+  }
+}

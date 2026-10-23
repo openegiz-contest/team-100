@@ -1,0 +1,19 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Structured value",
+  "version": {
+    "model": "1.0.0"
+  },
+  "properties": {
+    "value": {
+      "type": "object",
+      "default": {}
+    },
+    "unit": {
+      "type": "string",
+      "const": "",
+      "default": ""
+    }
+  }
+}
