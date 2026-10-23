@@ -12,7 +12,7 @@
 ### Что нужно
 
 - Ubuntu 24.04 (или Windows 11 с WSL2 и Ubuntu 24.04 — `OPENEGIZ.ru.md`, раздел «Windows (WSL2)»).
-- Docker Engine с Compose v2.20+ (`docker version`, `docker compose version`), `git`, `make`.
+- Docker Engine с Compose v2.20+ (`docker version`, `docker compose version`), `git`, `make`, `curl` (для `make akt-check`).
 - Память для Docker: шаблон рекомендует 6 ГБ. Работающий стенд занимает ≈ 3,5 ГиБ (замер
   22.10.2026: 17 контейнеров, 3,48 ГиБ; из них сервисы `akt-*` — около 0,1 ГиБ). При 5–6 ГБ
   `make up` печатает WARNING — это не ошибка.
@@ -25,6 +25,7 @@
 Все команды — из корня репозитория.
 
 ```bash
+git clone https://github.com/openegiz-contest/team-100.git && cd team-100   # если репозиторий ещё не склонирован
 sudo apt-get update && sudo apt-get install -y make   # в чистой Ubuntu make нет; меньше минуты
 make up            # платформа + стенд; в конце печатает адреса и пароли
 make akt-check     # «ok / FAIL + доказательство» по каждой строке; ≈ 15 с
@@ -41,7 +42,7 @@ make akt-calib     # таблица калибровки в терминале; 
 адреса. Повторный `make up` ничего не дублирует: `akt-setup` создаёт только недостающие вещи.
 
 **Сколько ждать** (замеры — Windows 11, Docker Desktop, 4 vCPU, 5 ГиБ; те же команды и скрипты,
-строки `@bash` выполнены в Linux-контейнере; на Ubuntu целиком не замерено):
+строки `@bash` выполнены в Linux-контейнере. На Ubuntu 24.04 с Docker 29.1.3 и Compose 2.40.3 (контейнер в Docker Desktop, 2 vCPU) замерено только: сборка всех образов с нуля — 102 с, юнит-тесты — 78 с; `make up` целиком на Ubuntu не мерили):
 
 | Шаг | Время | Откуда число |
 |---|---|---|
@@ -133,6 +134,20 @@ curl -s -X POST http://127.0.0.1:8000/api/reset -H 'Content-Type: application/js
 опыта «вкл/выкл» в вещь `validation-calib` (меню «Калибровка»). Код выхода 0 при любом исходе.
 Таблица — 62 строки; на коде 22.10.2026 — 38 в допуске, 2 вне допуска (извлечение 2024 г. и
 квартал с перефутеровкой), 22 без допуска. Разбор — `VALIDATION.md`.
+
+### Юнит-тесты
+
+Нужен Python 3.11+ (в Ubuntu 24.04 есть `python3` 3.12), только стандартная библиотека; стенд для них не нужен:
+
+```bash
+python3 -I aktogay/run.py test   # 476 тестов, 3 пропущены (медленные, включаются AKT_SLOW=1); ≈ 1–1,5 мин, в конце «OK»
+```
+
+Без Python на хосте — в образе, который уже скачан для `akt-setup`:
+
+```bash
+docker run --rm -v "$PWD/aktogay:/akt:ro" docker.io/library/python:3.12.11-slim-bookworm python -I -B /akt/run.py test
+```
 
 ### Повторить опыт «вкл/выкл» одной командой
 
