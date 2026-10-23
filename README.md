@@ -1,43 +1,203 @@
-# <Team name>: a digital mine on OpenEgiz
+# Актогай: цифровой двойник сульфидной части рудника на OpenEgiz
 
-> Team Repository of the contest “Digital Mine on OpenEgiz”. **Replace the contents of this file with the instructions for your Submission.** The AI Jury runs the Submission strictly by these instructions, from scratch, in the Judge Environment. Accepted languages: English, Kazakh, Russian.
+## Стенд «Актогай»: запуск и проверка
 
-> **Start with the Concept**, the first section of [SUBMISSION.md](SUBMISSION.md): the Team writes it before any code. What AI agents build from this Template without a Concept is the Default Solution, published on the [contest site](https://openegiz-contest.github.io/) as the low bar: a Submission that does not go beyond it gets low levels in the Rubric. AI agents read [AGENTS.md](AGENTS.md).
+Цифровой двойник сульфидной части Актогая (KAZ Minerals): карьер, две линии фабрики, концентрат,
+вода, энергия и люди смены. Стенд — платформа OpenEgiz v1.0.4 и оверлей `aktogay/compose.yml`
+(сервисы `akt-models`, `akt-setup`, `akt-calib`, `akt-sim`, `akt-modules`, `akt-web`). В платформе
+изменён только `Makefile`: строка `COMPOSE` подключает оверлей, в `up` добавлены проверка портов
+8000 и 8092, ожидание `akt-setup` и печать адресов стенда, добавлены цели `akt-check` и `akt-calib`.
+Что и зачем моделируем — `SUBMISSION.md`.
 
-## Running
+### Что нужно
 
-Requirements (Docker, `make`, Windows/WSL2 setup) are in [OPENEGIZ.md](OPENEGIZ.md) / [OPENEGIZ.ru.md](OPENEGIZ.ru.md).
+- Ubuntu 24.04 (или Windows 11 с WSL2 и Ubuntu 24.04 — `OPENEGIZ.ru.md`, раздел «Windows (WSL2)»).
+- Docker Engine с Compose v2.20+ (`docker version`, `docker compose version`), `git`, `make`.
+- Память для Docker: шаблон рекомендует 6 ГБ. Работающий стенд занимает ≈ 3,5 ГиБ (замер
+  22.10.2026: 17 контейнеров, 3,48 ГиБ; из них сервисы `akt-*` — около 0,1 ГиБ). При 5–6 ГБ
+  `make up` печатает WARNING — это не ошибка.
+- Сеть при первом запуске: Docker Hub (образы платформы, `python:3.12.11-slim-bookworm`,
+  `node:20-slim`, `nginx:1.25-alpine`), GitHub (исходники extended API Ditto), npm (`yarn install`),
+  PyPI (`paho-mqtt==2.1.0` в образе симулятора). Видеокарта не нужна.
+
+### Запуск с чистой Ubuntu 24.04
+
+Все команды — из корня репозитория.
 
 ```bash
-sudo apt install -y make   # if make is missing (clean Ubuntu)
-make up            # the OpenEgiz platform
-make example-mine  # the Example Mine: twins, simulator, dashboard
+sudo apt-get update && sudo apt-get install -y make   # в чистой Ubuntu make нет; меньше минуты
+make up            # платформа + стенд; в конце печатает адреса и пароли
+make akt-check     # «ok / FAIL + доказательство» по каждой строке; ≈ 15 с
+make akt-calib     # таблица калибровки в терминале; 2–4 мин (те же числа уже в меню «Калибровка»)
 ```
 
-Replace these commands with the commands of your Submission. The Submission must start by following these instructions without manual intervention (Rules, clause 6.4); downloading datasets and models and building are also listed here.
+Если `make up` падает с `permission denied ... /var/run/docker.sock`, пользователь не в группе
+`docker`: `sudo usermod -aG docker $USER`, выйти из сеанса, войти снова и повторить `make up`.
 
-## What to open
+Что делает `make up` (порядок рецепта): создаёт `deploy/compose/.env` с новыми паролями, проверяет
+порты и память (`scripts/compose-preflight.sh`, `aktogay/scripts/akt-preflight.sh`), собирает и
+поднимает контейнеры (`up -d --build --wait`), ждёт завершения разовых задач `init` и `akt-setup`
+(политика, модели типов, 127 постоянных вещей), ждёт, пока Ditto стабильно отвечает, и печатает
+адреса. Повторный `make up` ничего не дублирует: `akt-setup` создаёт только недостающие вещи.
 
-- Grafana: the address and login are printed by `make up`.
-- <where to see the mine visualization, which dashboards>
+**Сколько ждать** (замеры — Windows 11, Docker Desktop, 4 vCPU, 5 ГиБ; те же команды и скрипты,
+строки `@bash` выполнены в Linux-контейнере; на Ubuntu целиком не замерено):
 
-## Repository contents
+| Шаг | Время | Откуда число |
+|---|---|---|
+| `make up`, образы уже скачаны, тома пустые | ≈ 3 мин | замер 22.10.2026: 2,6 мин (153,6 с), тогда вещей было 49; сейчас `akt-setup` создаёт 127 и работает дольше |
+| `make up` в первый раз: скачать ≈ 2,3 ГБ образов, собрать extended API и 4 образа стенда | ≈ 8–15 мин при канале ≈ 10 МБ/с | оценка по замерам 18.10.2026 (скачивание 232 с, сборка extended API 85 с) |
+| `akt-calib` сам досчитывает калибровку после `make up` | ещё 2–5 мин | замер 22.10.2026: готово через 4,6 мин от начала `make clean` + `make up` |
+| `make akt-check` | ≈ 15 с | замер 22.10.2026: 13 с |
+| `make akt-calib` | 2–4 мин | замеры 22.10.2026: 106 с на стенде, 226 с на нагруженной машине |
 
-| Path | Contents |
+Стенд начинает работать сам: свободный ход с 08:00 модели, ×60 (минута модели в секунду),
+seed 42. Нажимать ничего не нужно.
+
+### Где открыть
+
+| Адрес | Что там | Логин |
+|---|---|---|
+| http://localhost:8000 | интерфейс стенда. Меню: План · Диорама · Спутник 3D · Линия 1 · Линия 2 · Очередь · Руда · Калибровка · Дерево · Текст · Легенда. Справа панель: часы модели, 6 чисел площадки, очередь бед с кнопками «Принять» / «Не согласен», люди и бригады, кнопки сценариев, потери по узлам, итог смены, журнал | без логина |
+| http://localhost:8000/?view=plan&layer=sat | 2D-план на снимке Sentinel-2 (переключатель «Схема / Спутник» над планом) | без логина |
+| http://localhost:8000/?view=diorama | «Диорама»: весь рудник макетом на подиуме (карьер, отвал, дороги, ЦПД, склады, фабрика, хвостохранилище, подстанция; вещи из Ditto); камеры «Весь рудник / Карьер / Фабрика / Хвосты». Без WebGL показывается 2D-план с пояснением | без логина |
+| http://localhost:8000/?view=site | «Спутник 3D»: 3D-вид площадки на снимке Sentinel-2; камеры «Площадка / Карьер / Фабрика». Без WebGL показывается 2D-план с пояснением | без логина |
+| http://localhost:8000/?view=calib | калибровка по годовым отчётам, балансы, опыт «вкл/выкл» на 100 сменах | без логина |
+| http://localhost:8000/?view=unit&id=kz.aktogay:sag-1 | карточка аппарата: модель типа, паспорт с источниками, признаки, тренд 2 ч, сырой JSON | без логина |
+| http://localhost:8000/?check=1 | режим проверки модели: журнал скрытых причин симулятора и копии модели без сценария (диспетчеру на смене это недоступно) | без логина |
+| http://localhost:8092/tm/ | WoT Thing Models всех типов (`site-1.0.0.tm.jsonld` и др.) | без логина |
+| http://localhost:3000 | Grafana: приложение OpenEgiz → Twins (дерево вещей с корнем `kz.aktogay:site`), история из InfluxDB через Explore | `admin`, пароль печатает `make up` (лежит в `deploy/compose/.env`) |
+| http://localhost:8080/api/2 | Ditto API, например `/api/2/things/kz.aktogay:site` | `ditto`, пароль `DITTO_PASSWORD` из `deploy/compose/.env` |
+
+Все порты слушают только `127.0.0.1`.
+
+| Порт | Сервис | Переменная в `deploy/compose/.env` |
+|---|---|---|
+| 8000 | `akt-web` (интерфейс стенда) | `AKT_WEB_PORT` |
+| 8092 | `akt-models` (модели типов) | `AKT_MODELS_PORT` |
+| 3000 | Grafana | `GRAFANA_PORT` |
+| 8080 | Ditto (nginx) | `DITTO_PORT` |
+| 8085 | extended API Ditto | `EXTENDED_API_PORT` |
+| 8086 | InfluxDB | `INFLUXDB_PORT` |
+| 1883 | Mosquitto (MQTT) | `MQTT_PORT` |
+| 8090 | nginx для сборки Unity (платформа; стенд его не использует) | `UNITY_PORT` |
+
+### Сценарии
+
+Кнопки в правой панели или адрес (параметр `run=1` запускает сценарий один раз и убирается из
+адреса). Каждый запуск — новый прогон: прогрев 06:00 → 08:00 (≈ 15 с, на панели «ПРОГРЕВ»), затем
+сценарий с 08:00 модели. В 20:00 модели — автопауза и итог смены «база / сценарий / разница».
+
+| Сценарий | Кнопка | Адрес |
+|---|---|---|
+| С1: встала дробилка 1 | «С1 Встала дробилка» | http://localhost:8000/?scenario=crusher:1&run=1 |
+| С2: сеть урезала мощность (как отключение ЛЭП 14.08.2026) | «С2 Сеть урезала мощность» | http://localhost:8000/?scenario=grid&run=1 |
+| С3: твёрдая руда на линию 1 | «С3 Твёрдая руда» | http://localhost:8000/?scenario=hard:1&run=1 |
+| С4: перефутеровка SAG-1 | «С4 Перефутеровка SAG» | http://localhost:8000/?scenario=reline:1&run=1 |
+| «Два сразу»: тихая потеря на флотации 1 и дробилка 2, один дежурный КИПиА | «Два сразу» | http://localhost:8000/?preset=fork&run=1 |
+| то же до конца смены за ≈ 1 мин | «Два сразу», затем «×1200 до конца смены» | http://localhost:8000/?preset=fork&run=1&speed=1200 |
+| то же с двумя дежурными КИПиА (для сравнения) | — | http://localhost:8000/?preset=fork&kip=2&run=1&speed=1200 |
+| «Вода»: утечка на водоводе оборотной воды | «Вода» | http://localhost:8000/?scenario=water&run=1 |
+| «Пожар HPGR»: пожар на валковом прессе фабрики 1 (как 09.08.2026) | «Пожар HPGR» | http://localhost:8000/?scenario=hpgr_fire&run=1 |
+| беда безопасности «пьезометр дамбы» через 10 мин модели | — | добавить `&safety=1` к адресу |
+
+Сценарии складываются: `?scenario=hard:1+grid&run=1`.
+
+**Отменить:** кнопка «Отменить» в синем баннере «Сценарий активен» — копия «факт» становится копией
+«база», значки и рамки исчезают. **С начала:** «Сбросить 08:00 (seed 42)» — новый прогон, 08:00,
+свободный ход ×60. Скорость: кнопки ×60, ×300, «×1200 до конца смены», «Пауза».
+
+То же из терминала (интерфейс пишет только в вещи `control` и `journal`):
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/scenario -H 'Content-Type: application/json' -d '{"id":"crusher:1"}'
+curl -s -X POST http://127.0.0.1:8000/api/scenario -H 'Content-Type: application/json' -d '{"id":"fork","preset":"fork","kip":1,"speed":1200}'
+curl -s -X POST http://127.0.0.1:8000/api/cancel
+curl -s -X POST http://127.0.0.1:8000/api/reset -H 'Content-Type: application/json' -d '{"seed":42}'
+```
+
+### Проверки
+
+`make akt-check` — по строке «ok / FAIL + доказательство», ничего не пишет: контейнеры
+`akt-models`, `akt-sim`, `akt-modules`, `akt-web` живы и `akt-setup` завершился с кодом 0; вещи
+`kz.aktogay:*` по типам и политика; модели типов отдаются на :8092 и `validation-setup.tm_fetch_ok`;
+`site.state` и рост `sim_time` за 5 с; `site.degraded` = 0; сколько вещей прислали в InfluxDB
+точки моложе 60 с (нужно не меньше 40); `/healthz` и `/api/state` интерфейса; признаки `mod-losses`, `mod-ore`, `mod-priority` текущего
+прогона; `validation-calib` (готово, число строк калибровки, N опыта «вкл/выкл»). Код выхода 0
+всегда; `make akt-check STRICT=1` — код 1, если есть FAIL. Строки FAIL в первые 20 с после
+`make up` или после сброса — норма (модули ещё не прошли первый такт): повторить через минуту.
+
+`make akt-calib` — запускает образ симулятора (`calib --quick --publish`): подгонка 2025 г.,
+проверка 2024 и 2023 гг. без подгонки, квартал с перефутеровкой, кварталы против константы,
+балансы. Печатает таблицу «модель / отчёт / отклонение / допуск / ok» и пишет её вместе с итогом
+опыта «вкл/выкл» в вещь `validation-calib` (меню «Калибровка»). Код выхода 0 при любом исходе.
+Таблица — 62 строки; на коде 22.10.2026 — 38 в допуске, 2 вне допуска (извлечение 2024 г. и
+квартал с перефутеровкой), 22 без допуска. Разбор — `VALIDATION.md`.
+
+### Повторить опыт «вкл/выкл» одной командой
+
+100 парных смен (seed 1001–1100) с 2–3 бедами: копии «двойник, порядок по $», «двойник, порядок по
+громкости», «как сейчас» (без двойника) и «база». Печатает средние с 95 % ДИ (бутстрэп BCa), доли
+смен без разницы и хуже базы с интервалами Уилсона, тест Уилкоксона и срезы. Нужен Python 3.11+
+(в Ubuntu 24.04 есть `python3` 3.12), только стандартная библиотека:
+
+```bash
+python3 -I -B aktogay/run.py trial --n 100 --seed0 1001 --no-twin --jobs 3 --out trial.json
+```
+
+≈ 3–5 мин (22.10.2026: 219 с на 4 процессах — поле `seconds` в `aktogay/sim/data/trial_n100.json`). Те же seed дают те же числа: повтор на коде
+22.10.2026 совпал во всех статистиках с `aktogay/sim/data/trial_n100.json`, который показывает меню
+«Калибровка»: двойник против «как сейчас» +1,26 т Cu за смену с бедами [95 % ДИ +1,06; +1,52]
+[оценка на модели]. Последние строки вывода — сводка; весь результат — в `trial.json`.
+Без Python на хосте — тот же расчёт в образе, который уже скачан для `akt-setup`:
+
+```bash
+docker run --rm -v "$PWD/aktogay:/akt:ro" -v "$PWD:/out" docker.io/library/python:3.12.11-slim-bookworm \
+  python -I -B /akt/run.py trial --n 100 --seed0 1001 --no-twin --jobs 3 --out /out/trial.json
+```
+
+Ключи для чувствительности: `--set sens_lab_delay_h=0` или `=4` (лаборатория отвечает через 2 или
+6 ч вместо 4), `--kip 2` (два дежурных КИПиА), `--sigma-ln 0.7` (разброс ремонта), `--miss 0.3`
+(двойник пропускает 30 % тихих бед), `--detect-min 120` (находит позже), `--hidden-mult 2` (тихих
+бед вдвое больше), `--asis-notice 30` (смена без двойника решает через 30 мин), `--price 10000`
+(цена меди, $/т), `--no-asis` (старая база, где без двойника решений не принимает никто).
+
+### Если что-то не так
+
+| Симптом | Что делать |
 |---|---|
-| `team/` | Directory for the Team's code. Using it is optional: any part may be changed, including the platform core |
-| `SUBMISSION.md` | Description of the Submission: **required** |
-| `presentation.pdf` | Presentation: **required**, in the repository root |
-| `AGENTS.md`, `CLAUDE.md` | Instructions for your AI agents (Codex, Claude Code and others read them automatically) |
-| `examples/mine/` | The Example Mine: shows how a digital mine is built on OpenEgiz. It is not a basis for the Submission |
-| `OPENEGIZ.md`, `OPENEGIZ.ru.md` | Documentation of the OpenEgiz platform v1.0.4 |
+| `make: command not found` | `sudo apt-get install -y make` |
+| `permission denied` на `/var/run/docker.sock` | `sudo usermod -aG docker $USER`, перелогиниться |
+| `Ports already in use: AKT_WEB_PORT=8000` (или `AKT_MODELS_PORT=8092`, или порт платформы) | порт занят чужой программой: остановить её или задать другой порт в `deploy/compose/.env` (например `AKT_WEB_PORT=8001`) и снова `make up` |
+| WARNING про память Docker | стенд работает и при 5 ГиБ для Docker; при постоянных перезапусках контейнеров дать Docker 6 ГБ |
+| `ERROR: the akt-setup job ... failed` | `make logs S=akt-setup`; обычно Ditto ещё не поднялся — повторить `make up` (повтор безопасен) |
+| `make up` падает на сборке (`failed to solve`, `yarn`, `pip`) | нет доступа к Docker Hub, GitHub, npm или PyPI; проверить сеть и повторить `make up` |
+| На панели «ПРОГРЕВ» | идёт прогрев 06:00 → 08:00 нового прогона, ≈ 15 с |
+| На панели «ПАУЗА», часы стоят на 20:00 | автопауза в конце смены сценария: «Сбросить 08:00» или кнопка ×60 |
+| «Калибровка» пишет, что калибровка считается | `akt-calib` ещё считает (2–5 мин после `make up`); `make logs S=akt-calib`; можно запустить `make akt-calib` |
+| На видах «Диорама» и «Спутник 3D» — 2D-план и пояснение | в браузере нет WebGL; всё то же видно на плане, переключатель «Спутник» над планом |
+| `make akt-check`: FAIL у `mod-*` | модули ещё не прошли такт нового прогона; повторить через минуту; `make logs S=akt-modules` |
+| Всё остальное | `make ps`, `make logs S=<сервис>`; с чистого листа — `make clean && make up` (удаляет данные и пароли) |
 
-The Submission is the `main` branch at the moment of the Freeze; other branches are not evaluated.
+`make example-mine` на этом стенде не запускать: он создаёт маркер `deploy/compose/.example-mine`,
+и каждый следующий `make up` поднимает ещё и симулятор примера рудника. Убрать — `make clean`.
 
-## License
+### Где что в репозитории
 
-The Submission is distributed under the MIT license, see [LICENSE](LICENSE). Copyright belongs to the Team: add the line `Copyright (c) 2026 <Team members>` to `LICENSE`.
+| Путь | Что там |
+|---|---|
+| `aktogay/compose.yml` | оверлей стенда: сервисы `akt-*`, сеть `simnet` (симулятор видит только Mosquitto) |
+| `aktogay/setup/things.json`, `aktogay/models/` | двойники: библиотека типов (42 типа) и вещи площадки; WoT Thing Models (102 файла) |
+| `aktogay/sim/site_aktogay.py` | паспорт площадки: люди смены, самосвалы по моделям, экскаваторы, буровые, бульдозеры, забои, дороги, приборы, кто за что отвечает |
+| `aktogay/sim/` | модель фабрики, сервис `akt-sim`, калибровка `calib.py`, опыт «вкл/выкл» `trial.py`, таблица параметров `params.py` |
+| `aktogay/modules/` | модули «Где теряется медь», «Какая руда идёт», «Очередь бед» (`akt-modules`) |
+| `aktogay/web/` | интерфейс `akt-web`; `web/static/vendor/three-0.160.0/` — three.js (MIT); `web/static/sat/` — снимок Sentinel-2 |
+| `aktogay/PARAMETERS.md` | все числа модели и модулей: значение, минимум, максимум, единица, метка, источник |
+| `SUBMISSION.md`, `VALIDATION.md`, `DATA_LICENSES.md`, `PARAMETERS.md` | описание решения; калибровка и проверки; источники и лицензии; как читать таблицу параметров |
+| `presentation.pdf` | презентация |
+| `OPENEGIZ.md`, `OPENEGIZ.ru.md` | документация платформы OpenEgiz v1.0.4 (без изменений) |
+| `AGENTS.md`, `CLAUDE.md`, `examples/mine/`, `team/` | файлы шаблона организаторов (без изменений); `examples/mine/` и `team/` стендом не используются |
 
----
+### Лицензия
 
-Platform: [aleka07/openegiz](https://github.com/aleka07/openegiz). If the platform was useful to you, support the project with a star on GitHub.
+MIT, см. [LICENSE](LICENSE).
