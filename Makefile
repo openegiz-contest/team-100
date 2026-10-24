@@ -20,7 +20,12 @@ up:
 	@bash scripts/compose-env.sh
 	@bash scripts/compose-preflight.sh
 	@bash aktogay/scripts/akt-preflight.sh
-	$(COMPOSE) up -d --build --wait --wait-timeout 900
+	@# Network fetches during the build (e.g. the extended API sources from GitHub) can drop;
+	@# retry only the build, then start once.
+	@for i in 1 2 3; do $(COMPOSE) build && break; \
+	  if [ $$i = 3 ]; then echo "ERROR: build failed 3 times"; exit 1; fi; \
+	  echo "build failed (attempt $$i of 3), retrying in 15 s"; sleep 15; done
+	$(COMPOSE) up -d --wait --wait-timeout 900
 	@# `--wait` does not wait for one-shot jobs to finish: a running init counts
 	@# as up. Wait for it to exit, then check how.
 	@test "$$(docker wait $$($(COMPOSE) ps -a -q init))" = 0 || { \

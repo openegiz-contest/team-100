@@ -54,7 +54,7 @@ make akt-calib     # таблица калибровки в терминале; 
 
 Если `make up` падает с `permission denied ... /var/run/docker.sock`, пользователь не в группе
 `docker`: `sudo usermod -aG docker $USER`, выйти из сеанса, войти снова и повторить `make up`.
-Если `make up` оборвался на выдаче исходников с GitHub (`early EOF`, `RPC failed`), повторите `make up`: скачанные образы остаются в кеше, повтор идёт быстрее.
+Сбои сети при сборке (например, обрыв выдачи исходников с GitHub: `early EOF`, `RPC failed`) `make up` повторяет сам, до трёх раз; если сборка всё же не прошла, повторите `make up` — скачанное остаётся в кеше.
 
 Что делает `make up` (порядок рецепта): создаёт `deploy/compose/.env` с новыми паролями, проверяет
 порты и память (`scripts/compose-preflight.sh`, `aktogay/scripts/akt-preflight.sh`), собирает и
