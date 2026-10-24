@@ -64,6 +64,18 @@ SOURCES = {
         "doc": "ABB application note, pH/ORP in copper flotation, p. 3: slurry abrasion and lime scale (vendor requirement)",
         "page": "3", "label": "vendor",
         "url": "https://library.e.abb.com/public/ce5cb93e495f4eafb1b60f98308a7203/AD_ANAINST_001-EN%20Rev%20A.pdf"},
+    "kaz_ar2020": {
+        "doc_ru": "KAZ Minerals, годовой отчёт 2020, с. 61: самосвал 793D Актогая с облегчённым кузовом, 236 т",
+        "doc": "KAZ Minerals annual report 2020, p. 61: Aktogay 793D haul truck with lightweight tray, 236 t payload",
+        "page": "61", "label": "fact", "url": "https://www.kazminerals.com/media/22033/kaz-minerals-ar-2020.pdf"},
+    "specalog793d": {
+        "doc_ru": "Caterpillar, Specalog 793D (AEHQ5600-01), с. 1 и 20: мощность 1 801 кВт, масса 383,7 т, подъём кузова 20,25 с, опускание 17,51 с",
+        "doc": "Caterpillar 793D Specalog AEHQ5600-01, pp. 1 and 20: 1 801 kW, 383.7 t, body raise 20.25 s, power down 17.51 s",
+        "page": "1, 20", "label": "vendor", "url": "https://www.vost-tech.ru/files/catalog/OHT/793d_specalog.pdf"},
+    "stand_map": {
+        "doc_ru": "Карта стенда (OpenStreetMap, ODbL): карьер way/773805067, дробилка way/773805064; съезд нарисован нами. Длина откатки — расчёт по карте",
+        "doc": "Stand map (OpenStreetMap, ODbL): quarry way/773805067, crusher way/773805064; the ramp is drawn by us. Haul length: calculated on the map",
+        "page": "", "label": "calc", "url": ""},
     "roster": {
         "doc_ru": "Состав смены по ролям: допущение стенда (открытых данных нет); в карьере за смену "
                   "больше 500 человек и больше 100 машин (Вести Семей, 06.06.2024)",

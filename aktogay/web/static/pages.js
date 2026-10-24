@@ -46,7 +46,7 @@
   const trainSvc = d => {
     const n = d.line || 0;
     const f = AKT.fc && AKT.fc.data(), r = n && f && f.stock && f.stock.lines && f.stock.lines[String(n)];
-    const hours = n ? (r && r.hours >= 0 ? r.hours : AKT.num(`stockpile-${n}`, 'hours_left')) : null;
+    const hours = n ? (r && r.hours >= 0 ? r.hours : AKT.hoursLeft(`stockpile-${n}`)) : null;
     const cu = n ? AKT.num(`line-${n}`, 'cu_tph') : AKT.num('site', 'cu_tph');
     return { n, hours, cu };
   };
@@ -221,7 +221,7 @@ ${sec('Что передать следующей смене', hd ? `<ul>${hd}</
     build(stage) {
       const d = doc(stage, 'economics');
       d.innerHTML = `<h2>Экономика: что даёт двойник</h2>
-<p class="lead">Сколько меди и денег сберегает двойник против работы «как сейчас». Всё — <b>оценка на модели</b>, не замер на фабрике. Числа берутся из опыта «вкл/выкл» от 24.10.2026 на 100 парных сменах (файл <code>exp23.json</code>, VALIDATION.md 8.6–8.8), а не из этой страницы.</p>
+<p class="lead">Сколько меди и денег сберегает двойник против работы «как сейчас». Всё — <b>оценка на модели</b>, не замер на фабрике. Числа берутся из опыта «вкл/выкл» от 24.10.2026 на 100 парных сменах с симметричной базой — двойник добавлен к людям и не видит громкую беду раньше них (файл <code>exp23.json</code>, VALIDATION.md 8.6–8.8 и 8.17), а не из этой страницы.</p>
 <div id="ec-big"><p class="empty dash">Загружаю итог опыта…</p></div><h3>Главное сравнение и повтор</h3><div id="ec-main"></div>
 <h3>Из чего складывается</h3><div id="ec-parts"></div><h3>Сколько стоит задержка вызова</h3><div id="ec-delay"></div>
 <h3>Новичок и двойник</h3><div id="ec-novice"></div>
@@ -238,7 +238,7 @@ ${sec('Что передать следующей смене', hd ? `<ul>${hd}</
       if (tw) {
         const ci = tw.ci95_mean_bca, m = tw.mean, mm = j.main;
         const col = (title, mult, note) => `<div class="ec-card"><div class="ec-t">${title}</div><div class="ec-v">+${f2(m * mult)} т Cu</div><div class="ec-s">≈ ${esc(AKT.money(m * mult * price))}</div><div class="ec-n">${note}</div></div>`;
-        setHtml('ec-big', `<div class="ec-row">${col('За смену (12 ч)', 1, `среднее по ${fmt(tw.n)} сменам; 95 % ДИ +${f2(ci[0])}…+${f2(ci[1])} т — нижняя граница +${f2(ci[0])} т ≈ ${esc(AKT.money(ci[0] * price))}`)}${col('За сутки (2 смены)', 2, 'расчёт: 2 × среднее за смену')}${col(`За опыт (${fmt(tw.n)} смен)`, tw.n, `сумма опыта; лучше в ${fmt(100 * (tw.p_plus || 0))} % смен, хуже — в ${fmt(100 * (tw.p_minus || 0))} %`)}
+        setHtml('ec-big', `<div class="ec-row">${col('За смену (12 ч)', 1, `среднее по ${fmt(tw.n)} сменам; 95 % ДИ +${f2(ci[0])}…+${f2(ci[1])} т — нижняя граница +${f2(ci[0])} т ≈ ${esc(AKT.money(ci[0] * price))}${mm.without_top ? `; медиана +${f2(mm.median)}, без смены-выброса (seed ${mm.top_seed}) +${f2(mm.without_top.mean)}` : ''}`)}${col('За сутки (2 смены)', 2, 'расчёт: 2 × среднее за смену')}${col(`За опыт (${fmt(tw.n)} смен)`, tw.n, `сумма опыта; лучше в ${fmt(100 * (tw.p_plus || 0))} % смен, хуже — в ${fmt(100 * (tw.p_minus || 0))} %`)}
 <div class="ec-card"><div class="ec-t">Простой</div><div class="ec-v">−${fmt(Math.abs(mm.down_min.mean))} мин</div><div class="ec-s">за смену, обе линии</div><div class="ec-n">95 % ДИ ${fmt(Math.abs(mm.down_min.ci95[1]))}…${fmt(Math.abs(mm.down_min.ci95[0]))} мин</div></div>
 <div class="ec-card"><div class="ec-t">Энергия</div><div class="ec-v">−${fmt(Math.abs(mm.kwh_per_t_cu.mean))} кВт·ч</div><div class="ec-s">на т Cu</div><div class="ec-n">95 % ДИ ${fmt(Math.abs(mm.kwh_per_t_cu.ci95[1]))}…${fmt(Math.abs(mm.kwh_per_t_cu.ci95[0]))}</div></div></div>
 <p class="note">$ = т Cu × 95,5 % оплаты × LME ${fmt(AKT.cuPrice())} $/т (цена на 15.10.2026; диапазон 10–15 тыс. $/т) — без затрат на ремонт и работу людей. В опыте $ посчитаны по ценам модели: ≈ $${fmt(mm.usd.mean / 1000, 1)} тыс. за смену. Текущий прогон стенда — ниже.</p>`);
@@ -255,12 +255,12 @@ ${sec('Что передать следующей смене', hd ? `<ul>${hd}</
       setHtml('ec-run', res ? `<p>Сравнение копий текущего прогона:</p>${AKT.shiftTable(res)}` : `<p class="note">${AKT.noCompareText()} Сейчас в этом прогоне двойник советует: открытых бед ${fmt(AKT.issues().length)}, потери по ним ${AKT.issues().some(AKT.lossNow) ? '≈ ' + esc(AKT.usd(AKT.issues().filter(AKT.lossNow).reduce((a, i) => a + (AKT.num(i, 'loss_usd_h') || 0), 0))) + '/ч' : 'нет'}.</p>`);
       const low = tw ? f2(tw.ci95_mean_bca[0]) : '—';
       setHtml('ec-cav', `<ul class="cav"><li><b>Оценка на модели, не замер.</b> Фабрика с двойником и без него в одно время не работала; выгода — разница двух прогонов модели с одними бедами и шумом.</li>
-<li><b>Нижняя граница.</b> Для решений брать нижний край интервала (+${low} т за смену), не среднее. На повторе с новыми seed 2001–2100 интервал шире: ${j ? ci2(j.replication.cu.ci95) : '—'}.</li>
+<li><b>Нижняя граница и выброс.</b> Для решений брать нижний край интервала (+${low} т за смену), не среднее. Среднее тянет одна смена (seed ${j && j.main.top_seed ? j.main.top_seed : '—'}: две защиты на одном КИПиА в одну минуту, двойник переставляет вызовы); медиана и среднее без неё — выше в этой строке. На повторе с новыми seed 2001–2100: ${j ? ci2(j.replication.cu.ci95) : '—'}.</li>
 <li><b>Беды заданы опытом.</b> В каждой смене 2–3 беды из библиотеки (в среднем ${j ? fmt(j.main.troubles_per_shift, 2) : '—'}); реальная частота и размер бед на Актогае не опубликованы [допущение]. Годовое число из этой выгоды получить нельзя — это масштаб, не прогноз.</li>
-<li><b>Допущения опыта:</b> двойник находит скрытую беду через 75 мин, совет по тихой беде ждёт человека 30 мин, смена выполняет советы полностью; при 50 % выполненных советов польза +0,76 т, при времени находки 150 мин — +0,97 т.</li>
+<li><b>Допущения опыта (симметричная база, VALIDATION 8.17):</b> громкую беду двойник видит в ту же минуту, что смена (тревога через 5–15 мин; урезание сети и перефутеровка — через 10 мин) [допущение; Errington 2005, с. 3: у аварий, видимых по тревоге, разницы нет]; находку засора циклона и недодачи собирателя задаёт измерение модуля (медианы 95 и 110 мин) плюс чтение карточки 5–15 мин [допущение]; твёрдую руду «как сейчас» узнаёт при выемке (≈ 2 ч) или только на SAG (≈ 4 ч) — граница решает результат, оба края показаны выше; совет по тихой беде ждёт человека 30 мин, смена выполняет советы полностью. Торнадо и цена часа задержки посчитаны на прежней базе (<code>--twin-human none</code>).</li>
 <li><b>Новичок задан числами других отраслей.</b> Время увидеть беду ×1,66 — лабораторный макет [аналог]; промахи диагноза и шага — симулятор атомной станции, 20 и 17 наблюдений диагноза [аналог]; множитель стресса — THERP; число шагов и цена промаха — [допущение]. Это оценка на модели, а не вывод о людях Актогая; при нижней границе параметров цена неопытности не отличима от нуля. Проверка — журналы реальных смен.</li>
 <li><b>Не учтено:</b> затраты на ремонт, ложные вызовы, оплата труда, цена обучения; считается только медь и энергия/вода по ценам стенда.</li>
-<li><b>Прежний результат.</b> Опыт 22.10.2026 с прежней библиотекой бед давал +1,26 т Cu за смену [+1,06; +1,52]; он сохранён как история и главным не считается.</li>
+<li><b>Прежние результаты.</b> Опыт 22.10.2026 с прежней библиотекой бед давал +1,26 т Cu за смену [+1,06; +1,52], опыт 24.10.2026 на прежней несимметричной базе (двойник видит громкую беду в её начале) +1,07 [+0,89; +1,31]; оба сохранены как история и главными не считаются.</li>
 <li>Метки: ≈ — расчёт модели; (д) — допущение; цена меди — факт LME; доля оплаты 95,5 % — расчёт по отчётам KAZ Minerals 2023–2025 (0,9549–0,9552).</li></ul>`);
     },
   };
@@ -293,7 +293,7 @@ ${sec('Что передать следующей смене', hd ? `<ul>${hd}</
     ['Перегрев тормозов самосвала HT141 (CAT 793D, 236 т) — беда S0, порог с выдержкой времени; числа CAT не использованы, пороги — допущения; кого звать — сменного механика', 'queue', 'Сценарии → «Перегрев тормозов самосвала HT141» → Все беды', 'KAZ Minerals, AR 2020, с. 61; Peterson CAT 793F (аналог); сценарий brake; tests/test_tier_t.py'],
     ['Натяжение гусениц экскаватора EX3600 — давление растёт до автостопа хода; экскаватор не переходит к следующему забою; уровень автостопа не опубликован', 'queue', 'Сценарии → «Натяжение гусениц EX01» → Все беды; карточка вещи EX01', 'Hitachi, проспект EX3600-6, с. 7; сценарий track; tests/test_tier_t.py'],
     ['Новичок задан числами открытых работ (время увидеть ×1,66, промахи диагноза и шага): цена неопытности в т Cu и до какого уровня двойник поднимает новичка', 'economics', 'Экономика → «Новичок и двойник»; Калибровка → главное сравнение, строки про новичка', 'arXiv 2509.06657; NRC ML24151A634 (SHEEP); THERP, EPRI/NRC ML19212A732; VALIDATION.md 8.9–8.10, оценка на модели'],
-    ['Смены, где двойник хуже опытного: какие seed, какие беды и почему', 'economics', 'Экономика → под таблицей главного сравнения', 'sim/data/experiment_23.json (worse_shifts); VALIDATION.md 8.11'],
+    ['Смены, где двойник хуже «как сейчас»: какие seed, какие беды и почему', 'economics', 'Экономика → под таблицей главного сравнения', 'sim/data/experiment_24.json (worse_shifts); VALIDATION.md 8.11, 8.17'],
     ['У каждой беды в карточке есть цена часа задержки вызова по опыту на модели', 'queue', 'Все беды → карточка беды → «Подробнее» → «Цена часа задержки вызова по опыту»', 'sim/data/exp23/delaykind_*.json; VALIDATION.md 8.8'],
     ['Крупный помол оценён по наклону Бозшаколя (диапазон, не одно число); в модели стенда наклон другой, это сказано в карточке', 'queue', 'Пульт модели → «Канатирование циклонов» (после него P80 растёт) → карточка беды «помол крупнее нормы»', 'Satbayev University, регрессия по суточным данным Бозшаколя: −1,95 п.п. на +10 мкм, лаборатория 0,8–1,2; [аналог]'],
     ['Лавина тревог сводится к одной беде: события-тревоги смены → беды в очереди → одна на главном экране; ориентир ANSI/ISA-18.2', 'howto', 'Как проверить → «Лавина тревог и одна беда»; Отчёт смены → «Тревоги и беды»', 'modules/flood.py; tests/test_flood.py; нижняя оценка по состояниям узлов'],
@@ -332,12 +332,16 @@ ${sec('Что передать следующей смене', hd ? `<ul>${hd}</
 <p class="lead">Утверждение → где его посмотреть на стенде → на чём оно стоит. Каждая строка ведёт на экран, где число видно и откуда оно взято.</p>
 <table class="kv" id="ht-tab"><tr><th>Утверждение</th><th>Где посмотреть</th><th>Источник</th></tr>${CLAIMS.map(c => `<tr><td>${esc(c[0])}</td><td><a href="${AKT.href('?view=' + c[1])}">${esc(c[2])}</a></td><td>${esc(c[3])}</td></tr>`).join('')}</table>
 <h3 id="ht-flood-h">Лавина тревог и одна беда</h3><div id="ht-flood"></div>
+<h3 id="ht-verify-h">Ожидаемый итог сценариев</h3><div id="ht-verify"><p class="empty dash">Загружаю заранее посчитанные итоги…</p></div>
+<h3 id="ht-claims-h">Откуда числа в описании: опыт, проверка</h3><div id="ht-claims"><p class="empty dash">Загружаю реестр чисел…</p></div>
 <h3>Модули: живой статус</h3><div id="ht-mods"><p class="empty dash">Загружаю список модулей…</p></div>
 <h3>Повторить расчёт</h3>
 <p>Таблица калибровки: <code>make akt-calib</code> или <code>python -I aktogay/run.py calib --quick</code> (≈ 2,5 мин); проверка по кварталам: <code>python -I aktogay/run.py backtest</code> (≈ 3 мин); опыт «вкл/выкл»: <code>python -I aktogay/run.py trial --n 100 --no-twin</code> (≈ 3 мин); тесты: <code>python -I -m unittest discover -s aktogay/tests -t aktogay</code>. Те же seed — те же числа.</p>
 <h3>Путь внедрения: беда → сигнал на реальной фабрике → откуда данные</h3><div id="ht-ready"><p class="empty dash">Загружаю карточки готовности…</p></div>
 <div id="ht-live"></div>`;
       AKT.exp23.load(() => this.update());
+      AKT.verify.load(() => this.update());
+      fetch('/claims.json', { cache: 'no-store' }).then(r => r.json()).then(d => { this.claims = d; this.update(); }).catch(() => { /* optional */ });
       fetch('/readiness.json', { cache: 'no-store' }).then(r => r.json()).then(d => { this.ready = d.items || []; this.update(); }).catch(() => { /* optional */ });
       fetch('/modules.json', { cache: 'no-store' }).then(r => r.json()).then(d => { this.mods = d.modules || []; this.update(); }).catch(() => { /* optional */ });
     },
@@ -377,6 +381,22 @@ ${sec('Что передать следующей смене', hd ? `<ul>${hd}</
 <details><summary>Вход, выход и тесты каждого модуля полностью</summary>${full}</details>
 <p class="note">То же — в <code>aktogay/web/API.md</code> (его пишет <code>modules/apidoc.py</code>, тест сверяет). Статус читается из самих вещей Ditto: время такта в модельном времени и возраст записи.</p>`;
     },
+    /* the registry of headline numbers (web/static/claims.json, scripts/check_numbers.py): every number of the description is tied to an experiment */
+    claimsHtml() {
+      const d = this.claims, how = { auto: 'пересчитано из файла результатов', history: 'прежний код, запись; сверено, где файл сохранён', manual: 'оговорено', literature: 'другая работа' };
+      const ex = Object.entries(d.experiments).map(([id, e]) => {
+        const cs = d.claims.filter(c => c.experiment === id);
+        return `<tr><td><b>${esc(e.title)}</b><br><span class="p-sub">${esc(e.what)}</span></td><td>${esc(e.kind)}</td><td>${esc(e.ci)}</td><td class="n">${fmt(cs.length)}</td><td><code>${esc(e.command)}</code></td></tr>`;
+      }).join('');
+      const rows = d.claims.map(c => {
+        const e = d.experiments[c.experiment];
+        const live = (c.experiment === 'scen_seed42' && AKT.verify.data) ? 'посчитано заранее, seed ' + AKT.verify.data.seed : '';
+        return `<tr><td class="n"><b>${esc(c.text)}</b>${c.ci_text ? `<br><span class="p-sub">[${esc(c.ci_text.join('; '))}]</span>` : ''}</td><td>${esc(c.meaning)}</td><td>${esc(e ? e.title : c.experiment)}</td><td>${esc(how[c.check] || c.check)}${live ? `<br><span class="p-sub">${esc(live)}</span>` : ''}${c.note ? `<br><span class="p-sub">${esc(c.note)}</span>` : ''}</td></tr>`;
+      }).join('');
+      return `<p class="lead">Одно и то же слово («вклад порядка», «раннее обнаружение») в разных местах описания — это числа разных опытов, а не противоречие: здесь каждое число названо с опытом, в котором оно получено. Проверка автоматическая: <code>python -I aktogay/scripts/check_numbers.py</code> падает, если в README, описании или презентации есть число «+N,NN т» без записи в реестре.</p>
+<table class="kv"><tr><th>Опыт</th><th>Вид</th><th>Интервал</th><th>Чисел</th><th>Как повторить</th></tr>${ex}</table>
+<details><summary>Все ${fmt(d.claims.length)} чисел реестра</summary><table class="kv" id="ht-claims-t"><tr><th>Число</th><th>Что это</th><th>Опыт</th><th>Как проверено</th></tr>${rows}</table></details>`;
+    },
     /* events of the shift against the issues of the queue and the one on the main screen (modules/flood.py), live and from the experiment */
     floodHtml() {
       const f = AKT.val('mod-priority', 'alarm_flood'), st = AKT.exp23 && AKT.exp23.data && AKT.exp23.data.alarms;
@@ -388,6 +408,8 @@ ${sec('Что передать следующей смене', hd ? `<ul>${hd}</
     },
     update() {
       setHtml('ht-flood', this.floodHtml(), false);
+      setHtml('ht-verify', AKT.verify.table());
+      if (this.claims) setHtml('ht-claims', this.claimsHtml());
       if (this.mods) setHtml('ht-mods', this.modsHtml());
       if (this.ready) setHtml('ht-ready', readyHtml(this.ready));
       const raw = AKT.val('validation-calib', 'report_json');

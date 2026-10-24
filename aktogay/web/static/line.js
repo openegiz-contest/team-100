@@ -18,7 +18,7 @@
   function spec(N) {
     const n = s => s.replace('N', N);
     return {
-      [n('stockpile-N')]: { t: 'Склад руды', at: [0, 0], sub: s => { const h = AKT.num(s, 'hours_left'); return [`${fmt(AKT.num(s, 'level_t'))} т`, h != null && h <= 48 ? `хватит на ${hShort(h)}` : 'запас > 2 суток']; }, bar: s => [AKT.num(s, 'level_t'), AKT.pass(s, 'live_t') || 40000], title: s => `Склад руды ${N}: ${fmt(AKT.num(s, 'level_t'))} т · приход ${fmt(AKT.num(s, 'in_tph'))} · расход ${fmt(AKT.num(s, 'out_tph'))} т/ч` },
+      [n('stockpile-N')]: { t: 'Склад руды', at: [0, 0], sub: s => { const h = AKT.hoursLeft(s); return [`${fmt(AKT.num(s, 'level_t'))} т`, h != null && h <= 48 ? `хватит на ${hShort(h)}` : 'запас > 2 суток']; }, bar: s => [AKT.num(s, 'level_t'), AKT.pass(s, 'live_t') || 40000], title: s => `Склад руды ${N}: ${fmt(AKT.num(s, 'level_t'))} т · приход ${fmt(AKT.num(s, 'in_tph'))} · расход ${fmt(AKT.num(s, 'out_tph'))} т/ч` },
       [n('sag-N')]: { t: `Мельница SAG-${N}`, at: [0, 1], sub: s => [`${f1(AKT.num(s, 'power_kw') / 1000)} из ${fmt(AKT.num(s, 'power_limit_kw') / 1000)} МВт`, `${fmt(AKT.num(s, 'feed_tph'))} т/ч руды`], bar: s => [AKT.num(s, 'power_kw'), AKT.num(s, 'power_limit_kw')], title: s => `Мельница SAG-${N}: мощность ${f1(AKT.num(s, 'power_kw') / 1000)} из ${fmt(AKT.num(s, 'power_limit_kw') / 1000)} МВт (из сети ≈ ${f1(AKT.gridFromShaft(AKT.num(s, 'power_kw') / 1000))}) · ${fmt(AKT.num(s, 'feed_tph'))} т/ч · загрузка ${f1(AKT.num(s, 'load_pct'))} % · удельная энергия ${f2(AKT.num(s, 'e_kwh_t'))} кВт·ч/т` },
       [n('pebble-N')]: { t: 'Дробление гали', at: [0.5, 1], sub: s => [`${fmt(AKT.num(s, 'feed_tph'))} из ${fmt(AKT.num(s, 'limit_tph'))} т/ч`, `загрузка ${fmt(AKT.num(s, 'load_pct'))} %`], bar: s => [AKT.num(s, 'feed_tph'), AKT.num(s, 'limit_tph')], title: s => `Дробление гали (крупных окатышей, пресс HPGR): ${fmt(AKT.num(s, 'feed_tph'))} из ${fmt(AKT.num(s, 'limit_tph'))} т/ч` },
       [n('cyclones-N')]: { t: 'Гидроциклоны', at: [0, 2], sub: s => [`помол ${fmt(AKT.num(s, 'p80_um'))} мкм`, `в работе ${fmt(AKT.num(s, 'open_count'))} из ${fmt(AKT.pass(s, 'units'))}`], title: s => `Гидроциклоны: крупность помола (P80) ${fmt(AKT.num(s, 'p80_um'))} мкм · циклонов в работе ${fmt(AKT.num(s, 'open_count'))} из ${fmt(AKT.pass(s, 'units'))} · давление ${fmt(AKT.num(s, 'pressure_kpa'))} кПа` },
@@ -112,7 +112,7 @@
       const fx = xOf(0) - NW / 2 - 10, fw = xOf(1) - xOf(0) + NW + 20;
       this.frame = E('rect', { x: fx, y: yB - NH / 2 - 12, width: fw, height: NH + 12 + 50, class: 'frame', rx: 6 }, svg);
       this.frameT = T(svg, fx, yB + NH / 2 + 66, `Флотация ${N}`, { class: 'frame-t' });
-      T(svg, M, 18, 'Помол', { class: 'frame-t' });
+      T(svg, M, 18, 'Подача, помол и классификация', { class: 'frame-t' });
       for (const name in S) {
         const sp = S[name];
         const x = xOf(sp.at[1]), y = yOf(sp.at[0]);

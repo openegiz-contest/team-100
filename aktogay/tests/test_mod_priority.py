@@ -83,8 +83,8 @@ class PriorityTest(unittest.TestCase):
         self.assertIn("оценка на модели", by_node["flot-1"]["text"])
         self.assertIn("Порядок устойчив", feats["queue_text"])
         self.assertIn("по громкости", feats["alarm_order_text"])
-        self.assertIn("Дробилка 2 → Флотация 1", feats["alarm_order_text"])
-        self.assertIn("Флотация 1 → Дробилка 2", feats["order_text"])
+        self.assertIn("Дробилка ЦПД-2 → Флотация 1", feats["alarm_order_text"])
+        self.assertIn("Флотация 1 → Дробилка ЦПД-2", feats["order_text"])
         self.assertNotIn(":stop", feats["order_text"] + feats["alarm_order_text"])
         self.assertEqual(feats["auto_call"], {})          # no automatic calls by default
 

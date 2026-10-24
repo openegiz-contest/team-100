@@ -80,11 +80,12 @@ class TestInitialState(unittest.TestCase):
         self.assertAlmostEqual(ln.pebble.feed_tph, 578, delta=1)
         self.assertEqual(len(ln.balls), 2)
         self.assertEqual(self.st.fleet.trucks_ready, 31)           # 37 x 0.85
-        # ore trucks 17 x 240 + 6 x 136 = 4 896 t per cycle x 0.85 ready x 2 trips/h = 8323 t/h,
-        # above the 7706 t/h both lines need
-        haul = 4896.0 * self.p["fleet_kio"] * 60.0 / self.p["fleet_trip_min"]
+        # ore trucks 17 x 236 + 6 x 136 = 4 828 t per cycle x 0.85 ready x 60 / the cycle of their route
+        # (sim/haul.py, mean 30 min as in the 2025 fit) = about 8 200 t/h, above the 7706 t/h both lines need
+        from sim import haul as hl
+        haul = sum(t.payload_t * 60.0 / hl.cycle_min(self.p, t.line) for t in self.st.trucks if t.duty == "ore") * self.p["fleet_kio"]
         self.assertAlmostEqual(self.st.fleet.haul_tph, haul, delta=1e-6)
-        self.assertAlmostEqual(haul, 8323, delta=1)
+        self.assertAlmostEqual(haul, 8200, delta=60)
         self.assertGreater(haul, 2 * self.p["cal_line_tph"])
         # site passport: people, trucks by model, faces, roads, stripping excavators
         self.assertEqual(len(self.st.people), 13)

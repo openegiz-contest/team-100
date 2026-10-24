@@ -1298,7 +1298,7 @@ class PriorityModule:
     @staticmethod
     def _node_ru(node: str) -> str:
         names = {"sag": "Мельница SAG-{n}", "cyclones": "Гидроциклоны {n}", "flot": "Флотация {n}",
-                 "crusher": "Дробилка {n}", "conveyor": "Конвейер {n}", "pebble": "Дробление гали {n}",
+                 "crusher": "Дробилка ЦПД-{n}", "conveyor": "Конвейер {n}", "pebble": "Дробление гали {n}",
                  "ball": "Шаровая {n}", "filter": "Фильтр {n}", "thick": "Сгуститель {n}",
                  "rougher": "Реагенты флотации {n}", "exc": "Экскаватор EX0{n}", "ph": "pH-метр {n}"}
         if node in ("pit", "fleet", "water", "power", "conc-stock"):

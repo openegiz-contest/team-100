@@ -120,12 +120,13 @@ class TestCalendar(unittest.TestCase):
         by_kind = {}
         for r in RELINE_CALENDAR:
             by_kind.setdefault(r.kind, []).append((r.line, r.year, r.month))
-        # the reports name exactly one SAG reline: line 2, August 2025 (Q3 2025 report, p. 3)
-        self.assertEqual(by_kind["reline"], [(2, 2025, 8)])
+        # the reports name two SAG relines: line 1 in Q1 2024 ("including a SAG mill reline", the quarter is the report's, month and day
+        # are assumed) and line 2, August 2025 (Q3 2025 report, p. 3)
+        self.assertEqual(by_kind["reline"], [(1, 2024, 3), (2, 2025, 8)])
         # planned SAG maintenance named for line 2 in October 2024 (Q4 2024 report, p. 3)
         self.assertEqual(by_kind["sag_service"], [(2, 2024, 10)])
-        # planned maintenance without the kind of work: line 1 in H1 2024 (quarter assumed), both lines Dec 2025
-        self.assertEqual(sorted(by_kind["stop"]), [(1, 2024, 3), (1, 2025, 12), (2, 2025, 12)])
+        # planned maintenance without the kind of work: both lines Dec 2025
+        self.assertEqual(sorted(by_kind["stop"]), [(1, 2025, 12), (2, 2025, 12)])
         for r in RELINE_CALENDAR:
             self.assertTrue(r.day_assumed)
             self.assertIn("http", r.source)
@@ -133,7 +134,8 @@ class TestCalendar(unittest.TestCase):
             if r.kind != "reline":
                 self.assertIn("assum", r.source)     # the reline is our assumption for these stops
         q1 = [r for r in RELINE_CALENDAR if r.line == 1 and r.year == 2024][0]
-        self.assertEqual(q1.label, "assumption")
+        self.assertEqual((q1.label, q1.kind), ("fact", "reline"))             # the quarter is the report's; month and day stay assumed (day_assumed)
+        self.assertIn("quarter is the report's", q1.source)
         self.assertEqual([r.label for r in RELINE_CALENDAR if r.year == 2025], ["fact"] * 3)
 
 
@@ -294,9 +296,11 @@ class TestDerived(unittest.TestCase):
         self.assertAlmostEqual(self.v("stock2_t0") / q, 7.79, delta=0.02)          # fork: 7 h 47 min
 
     def test_reline_hours_not_from_the_check_quarter(self):
-        """Reline downtime is an assumption; the whole Q3/Q2 rate drop is only its upper bound."""
+        """Reline downtime is an analog (Minera Chinalco, 84 h, 24.10.2026; it was an assumption of 96 h); the whole Q3/Q2 rate drop is only its upper bound."""
         r = TABLE["liner_reline_h"]
-        self.assertEqual(r.label, "assumption")
+        self.assertEqual(r.label, "analog")
+        self.assertEqual(r.value, 84)
+        self.assertIn("Chinalco", r.source)
         whole = self.v("tgt_q3_2025_hours") - (1 + self.v("tgt_reline_q_pct") / 100) * self.v("tgt_q2_2025_hours")
         self.assertAlmostEqual(r.max, whole, places=6)
         self.assertLess(r.value, r.max)

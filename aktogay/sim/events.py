@@ -547,6 +547,48 @@ def draw_pebble_stops(seed: int, line: int, t0_min: float, t1_min: float,
     return out
 
 
+def draw_crusher_stops(seed: int, line: int, t0_min: float, t1_min: float,
+                       prm: ParamSet) -> tuple[list[float], list[tuple[float, float]]]:
+    """Own stops of the primary crusher in [t0, t1), model minutes (calib run): (planned starts, short stops).
+
+    Counted from the model origin, so the draws do not depend on t0:
+      planned maintenance: crush_plan_h of work per crush_plan_every_d days; the list holds the time it falls due (random
+        inside its period); the plant does it while the mill of the line stands (crush_plan_wait_d);
+      short stoppages: Poisson stream crush_stop_per_day per day, each crush_stop_min: (start, end).
+    The liner change of the crusher (crush_mantle_h, once a year) is not drawn here: it goes into the SAG reline of the line.
+    """
+    t0, t1 = float(t0_min), float(t1_min)
+    planned: list[float] = []
+    shorts: list[tuple[float, float]] = []
+    if t1 <= t0:
+        return planned, shorts
+    stream = f"crw-{line}"
+    per = prm["crush_plan_every_d"] * MIN_PER_DAY
+    dur = prm["crush_plan_h"] * MIN_PER_H
+    if per > 0.0 and dur > 0.0:
+        k = int(max(0.0, t0 - per - MIN_PER_DAY) // per)
+        while k * per < t1:
+            a = k * per + (per - dur) * u01(seed, k, stream, 0)
+            if a + MIN_PER_DAY > t0 and a < t1:
+                planned.append(a)
+            k += 1
+    rate = prm["crush_stop_per_day"]
+    length = prm["crush_stop_min"]
+    if rate > 0.0 and length > 0.0:
+        mean_gap = MIN_PER_DAY / rate
+        t = 0.0
+        k = 0
+        while t < t1:
+            a = t - mean_gap * math.log(u01(seed, k, stream, 2))
+            if a >= t1:
+                break
+            if a + length > t0:
+                shorts.append((a, a + length))
+            t = a + length
+            k += 1
+    return planned, shorts
+
+
 def _merge(windows: list[tuple[float, float]]) -> list[tuple[float, float]]:
     """Sorted union of windows (overlapping ones joined; touching ones kept apart)."""
     out: list[tuple[float, float]] = []

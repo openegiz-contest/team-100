@@ -289,7 +289,7 @@ class ModulesTest(unittest.TestCase):
                            "stockpile-2": {"hours_left": 3.0}})
         pm, f, issues = self.issues_of(ov)
         i = next(x for x in issues.values() if x["node"] == "crusher-2")
-        self.assertIn("занят по наряду-допуску на Дробилка 1 до", i["chain_text"])
+        self.assertIn("занят по наряду-допуску на Дробилка ЦПД-1 до", i["chain_text"])
         self.assertIn("п. 12, 63", i["chain_text"])
         self.assertIn("заместитель Механик фабрики", i["chain_text"])
         self.assertEqual(i["chain"]["via"], "deputy")
@@ -324,7 +324,7 @@ class ModulesTest(unittest.TestCase):
         self.assertIn("[оценка на модели]", txt)
         # the cheaper first call is the one ranked first (the stock of line 2 ends sooner)
         self.assertLess(b["rank"], a["rank"])
-        self.assertIn("Сначала «Дробилка 2»", txt)
+        self.assertIn("Сначала «Дробилка ЦПД-2»", txt)
         # a trouble that needs another crew has no choice text
         ov2 = dict(ov)
         ov2["crusher-1"] = {"state": "RUN"}
@@ -365,7 +365,7 @@ class ModulesTest(unittest.TestCase):
         feats_, issues = pm.compute(t, seed=3)
         txt = feats_["review_text"]
         self.assertIn("А если бы позвали иначе?", txt)
-        self.assertIn("позвали «Дробилка 1» первой, по модели лучше «Дробилка 2»", txt)
+        self.assertIn("позвали «Дробилка ЦПД-1» первой, по модели лучше «Дробилка ЦПД-2»", txt)
         self.assertIn("т Cu", txt)
         self.assertIn("[оценка на модели]", txt)
         self.assertIn("не оценка людей", txt)

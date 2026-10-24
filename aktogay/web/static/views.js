@@ -69,7 +69,7 @@
         .map(e => ({ sim_time: e.t, action: e.action, issue: e.issue, role: '', text: e.text, run: AKT.run }));
       const jr = r => `<tr><td>${AKT.clock(r.sim_time)}</td><td>${esc(JR_RU[r.action] || r.action)}</td><td>${esc(AKT.things[r.issue] && (!r.run || r.run === AKT.run) ? AKT.nameRu(AKT.issueNode(r.issue) || r.issue) : (/^issue-(\d+)$/.test(r.issue || '') ? 'беда ' + r.issue.slice(6) : (r.issue || '')))}</td><td>${esc(r.role ? AKT.roleAcc(r.role) : '')}</td><td>${esc(r.text || '')}</td></tr>`;
       const head = '<tr><th>время модели</th><th>действие</th><th>беда</th><th>кто</th><th>комментарий</th></tr>';
-      const mine = AKT.journal.filter(r => !r.run || r.run === AKT.run).concat(esc_rows).sort((a, b) => (b.sim_time || 0) - (a.sim_time || 0)), old = AKT.journal.filter(r => r.run && r.run !== AKT.run);
+      const mine = AKT.shiftJournal(), old = AKT.journal.filter(r => r.run && r.run !== AKT.run);
       setHtml('q-jr', (mine.length ? `<table class="kv">${head}${mine.map(jr).join('')}</table>` : '<p class="empty dash">В этой смене действий ещё не было.</p>')
         + (old.length ? `<details><summary>Прошлые прогоны (${fmt(old.length)})</summary><table class="kv">${head}${old.map(jr).join('')}</table></details>` : ''), false);
     },
@@ -155,18 +155,23 @@
       const d = doc(stage, 'calib');
       d.innerHTML = `<h2>Калибровка и проверка модели</h2>
 <p class="lead" id="cb-lead">Загружаю итог проверки…</p>
+<h3>Проверка правдоподобия: балансы, пределы и диапазоны по живому состоянию</h3><div id="cb-plaus"><p class="empty dash">Загружаю список проверок…</p></div>
 <h3>Опыт «вкл/выкл» от 24.10.2026 — главный результат</h3><div id="cb-exp"><p class="empty dash">Загружаю итог опыта…</p></div>
 <h3>Прежний опыт 22.10.2026 (для истории): очередь «по деньгам» против очереди «кто громче»</h3>
 <div id="cb-chart"></div><div id="cb-trial"></div>
 <h3>Калибровка по годовым отчётам</h3><div id="cb-report"></div>
 <h3>Сверка с фактом KAZ Minerals: вода, энергия, CO₂</h3><div id="cb-facts"></div>
 <h3>Проверка по кварталам</h3><div id="cb-bt"></div>
+<h3>Правдоподобие по прогонам модели: доступность, реальные остановки, прогноз вперёд, извлечение, разброс руды</h3><div id="cb-fid"><p class="empty dash">Загружаю итоги прогонов…</p></div>
 <h3>На чём стоят числа модели</h3><div id="cb-params"><p class="empty dash">Загружаю сводку меток…</p></div>
+<h3>Допущения, влияющие на вывод, и остальные</h3><div id="cb-infl"><p class="empty dash">Загружаю классификацию…</p></div>
 <h3>Чего модель не умеет</h3><div id="cb-limits"></div>
 <h3>Балансы сейчас</h3><div id="cb-bal"></div>
 <h3>Сравнение с ходом без сценария</h3><div id="cb-base"></div>
 <p class="note" id="cb-state"></p>`;
       AKT.exp23.load(() => this.update());
+      if (AKT.plaus) AKT.plaus.load(() => this.update());
+      if (AKT.fidelity) AKT.fidelity.load(() => this.update());
       fetch('/params_summary.json', { cache: 'no-store' }).then(r => r.json()).then(j => { this.params = j; this.update(); }).catch(() => { /* optional */ });
     },
     update() {
@@ -178,6 +183,8 @@
 <p class="note">Подгоняют по отчётам ${fmt(j.fitted_rows)} чисел; остальные взяты из источника или заданы нами с диапазоном правдоподобия. Полная таблица с источником у каждой строки — <code>${esc(j.files.table)}</code>. Уровень S (зимняя дорога, канатирование, pH-метр, ВВД, броня, масло): ${fmt(j.tier_s.assumptions)} из ${fmt(j.tier_s.rows)} новых строк — допущения (${esc(j.tier_s.source)}).</p>`, false);
         setHtml('cb-limits', `<ul class="cav">${j.limits.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="note">Подробно — раздел «Чего модель не умеет» в <code>VALIDATION.md</code>.</p>`, false);
       }
+      if (AKT.plaus) { AKT.plaus.tick(); setHtml('cb-plaus', AKT.plaus.render(), false); }
+      if (AKT.fidelity) { setHtml('cb-fid', AKT.fidelity.renderFidelity(), false); setHtml('cb-infl', AKT.fidelity.renderInfluence(), false); }
       const raw = AKT.val('validation-calib', 'report_json');
       let rep = null, bad = '';
       if (typeof raw === 'string' && raw.trim()) { try { rep = JSON.parse(raw); } catch (e) { bad = raw; } }
@@ -370,8 +377,9 @@ ${cuts ? `<details><summary>Срезы: разница к 20:00 по типам 
     const mv = (x, d) => x && x.model != null ? fmt(x.model, d) : '—';
     const en = AKT.exp23 && AKT.exp23.data && AKT.exp23.data.energy;
     const sc2 = 2308 / 379.9;
+    const instKwh = () => { const mw = AKT.num('site', 'power_mw'), tph = AKT.num('site', 'tph'); return mw != null && tph > 0 ? `${fmt(mw * 1000 / tph, 1)} кВт·ч/т (${fmt(mw)} МВт ÷ ${fmt(tph)} т/ч)` : 'нет данных'; };
     return `<table class="kv"><tr><th>Величина</th><th class="n">Модель</th><th class="n">Факт</th><th>Как получен факт</th><th>Оговорка</th></tr>
-<tr><td>Электроэнергия на т сульфидной руды, кВт·ч/т</td><td class="n">${mv(e, 1)}</td><td class="n">34,9</td><td>7,32 ПДж ÷ 3,6 ÷ 58,306 Мт [расчёт; отчёт KAZ Minerals по устойчивому развитию 2024, с. 37; отчёт IV кв. 2024, с. 3]</td><td>в числителе вся электроэнергия площадки (карьер, окисленная линия, фабрика), в знаменателе только сульфидная руда: оценка на тонну руды, не удельная энергоёмкость обогащения. «Прочая нагрузка» модели подогнана на электроэнергию 2024 г., поэтому совпадение — проверка согласованности, не независимое предсказание</td></tr>
+<tr><td>Электроэнергия на т сульфидной руды, кВт·ч/т</td><td class="n">${mv(e, 1)}</td><td class="n">34,9</td><td>7,32 ПДж ÷ 3,6 ÷ 58,306 Мт [расчёт; отчёт KAZ Minerals по устойчивому развитию 2024, с. 37; отчёт IV кв. 2024, с. 3]</td><td>в числителе вся электроэнергия площадки (карьер, окисленная линия, фабрика), в знаменателе только сульфидная руда: оценка на тонну руды, не удельная энергоёмкость обогащения. «Прочая нагрузка» модели подогнана на электроэнергию 2024 г., поэтому совпадение — проверка согласованности, не независимое предсказание Модель — среднее за год вместе с простоями и ремонтами; в работе без простоев мощность площадки ÷ руда на линиях даёт больше (мгновенное значение, не годовое): сейчас ${instKwh()}.</td></tr>
 <tr><td>Забор воды на т руды, м³/т</td><td class="n">${mv(w, 3)}</td><td class="n">0,60</td><td>34 852 Мл ÷ 58,306 Мт = 0,598 [расчёт; страница Water на kazminerals.com, 2024]</td><td>интенсивность забора по группе; испарение модели подогнано на воду 2024 г.</td></tr>
 <tr><td>CO₂ по электроэнергии на т Cu, т</td><td class="n">${en ? fmt(en.co2_t_per_t_cu.by_value, 1) : '—'}</td><td class="n">${fmt(sc2, 1)}</td><td>Scope 2 группы 2 308 тыс. т ÷ 379,9 тыс. т Cu [расчёт; отчёт по устойчивому развитию 2024, с. 40]. Полные выбросы группы (Scope 1 + 2) — 7,8 т CO₂-экв. на т Cu [факт]</td><td>группа, не один Актогай; модель — смена с бедами, электроэнергия площадки на т Cu</td></tr>
 <tr><td>Коэффициент выброса, т CO₂ на МВт·ч</td><td class="n">${en ? fmt(en.co2_t_per_mwh, 2) : '—'}</td><td class="n">0,64</td><td>Scope 2 группы 2 308 тыс. т ÷ электроэнергия группы 13,06 ПДж ÷ 3,6 [расчёт]</td><td>подразумеваемый коэффициент всей группы, не сети Казахстана; коэффициент модели взят из этой же строки, поэтому это не сверка, а источник</td></tr></table>
@@ -485,6 +493,7 @@ ${notes ? `<details><summary>Пояснения к строкам</summary><ul c
 <p>${ico('<circle cx="13" cy="10" r="7" fill="none" stroke="#5c4300" stroke-width="3"/>')} Кольцо уровня у узла беды; у беды ① оно пульсирует, а рядом — подпись с ценой: «час промедления ≈ $…» или «позвать до ЧЧ:ММ».</p></div>
 <div class="lg-card"><h4>≈ и (д)</h4><p><b>≈</b> — расчёт модели, не измерение (деньги, потери, прогнозы, слои склада).</p><p><b>(д)</b> или надстрочная «д» — допущение: числа нет в открытых источниках, принято разумное значение.</p><p>Числа без знака измерены и пришли из двойника, обновление раз в 2 с.</p></div>
 <div class="lg-card"><h4>Учебный сценарий</h4><p>${ico('<rect x="3" y="3" width="20" height="14" rx="2" fill="#e3ecfa" stroke="#1f5fbf" stroke-width="2" stroke-dasharray="3 2"/>')} Синяя пунктирная рамка и слово «сценарий» — это сделала учебная поломка из «Пульта модели», а не жизнь. Синий цвет больше нигде не используется.</p></div>
+<div class="lg-card"><h4>Число → число при сценарии</h4><p>Слева — копия модели без сценария <b>в ту же минуту</b>, справа — факт, с пометкой «эффект» — их разность. Колебание руды вычтено: оно есть и в базе. Без копии без сценария (свободный ход) стоит пара «до сценария → сейчас» с оговоркой.</p></div>
 <div class="lg-card"><h4>Руда</h4><p><span class="badge" style="background:var(--ore-soft);color:var(--ink)">М — мягкая, A×b ≥ 38</span> <span class="badge" style="background:var(--ore-mid);color:#fff">С — средняя</span> <span class="badge" style="background:var(--ore-hard);color:#fff">Т — твёрдая, A×b &lt; 30</span></p><p>Один тон, темнее — твёрже, и всегда буква. Слой «Руда» на карте показывает партии у экскаваторов, на лентах и слои складов.</p></div>
 <div class="lg-card"><h4>Потоки и движение</h4><p>${ico('<line x1="2" y1="10" x2="24" y2="10" stroke="#3a3f47" stroke-width="6"/><line x1="2" y1="10" x2="24" y2="10" stroke="#b9a27a" stroke-width="3" stroke-dasharray="3 6"/>')} Ширина ленты ∝ т/ч, бегущая руда — скорость ∝ т/ч. Стоящая лента — красный пунктир.</p><p>${ico('<circle cx="8" cy="10" r="3" fill="#3a3f47" stroke="#fff"/><circle cx="18" cy="10" r="3" fill="#6b5a3a" stroke="#fff"/>')} Точки на дорогах карьера — самосвалы (тёмные — гружёные), место на дороге — схема движения между обновлениями.</p></div>
 <div class="lg-card"><h4>Люди</h4><p>${ico('<circle cx="13" cy="6" r="3" fill="#fff" stroke="#454b53"/><path d="M7.5 17 C7.5 9.5 18.5 9.5 18.5 17 Z" fill="#454b53"/>')} Фигурка с короткой ролью. В пути — пунктир от места к месту и «будет ≈ ЧЧ:ММ». Слой «Люди» включается сам, когда кого-то позвали.</p></div>

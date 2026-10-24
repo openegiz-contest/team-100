@@ -366,7 +366,7 @@
       return L.length ? li(L.map(x => esc(x.replace(/\s*\[оценка на модели\]/g, ' (≈)').replace(/\s*\[допущение\]/g, ' (д)')))) : P('Отклонений от нормы (шары, энергия) модуль сейчас не видит.');
     },
     stock() {
-      const sp = n => { const h = AKT.num(`stockpile-${n}`, 'hours_left'), lvl = AKT.num(`stockpile-${n}`, 'level_t'); return `Склад ${n}: ${fmt(lvl)} т, ${h != null && h <= 48 ? `кончится через ${AKT.durH(h)}` : (AKT.num(`stockpile-${n}`, 'in_tph') || 0) >= (AKT.num(`stockpile-${n}`, 'out_tph') || 0) ? 'приход не меньше расхода' : 'хватит больше чем на 2 суток'}; дробилка ${n} — ${esc(AKT.stOf(`crusher-${n}`))}, ${fmt(AKT.num(`crusher-${n}`, 'tph'))} т/ч.`; };
+      const sp = n => { const h = AKT.hoursLeft(`stockpile-${n}`), lvl = AKT.num(`stockpile-${n}`, 'level_t'); return `Склад ${n}: ${fmt(lvl)} т, ${h != null && h <= 48 ? `кончится через ${AKT.durH(h)}` : (AKT.num(`stockpile-${n}`, 'in_tph') || 0) >= (AKT.num(`stockpile-${n}`, 'out_tph') || 0) ? 'приход не меньше расхода' : 'хватит больше чем на 2 суток'}; дробилка ${n} — ${esc(AKT.stOf(`crusher-${n}`))}, ${fmt(AKT.num(`crusher-${n}`, 'tph'))} т/ч.`; };
       const hf = AKT.num('conc-stock', 'hours_to_full');
       return li([sp(1), sp(2), `Склад концентрата: ${fmt(AKT.num('conc-stock', 'stock_t'))} из ${fmt(AKT.pass('conc-stock', 'capacity_t'))} т${hf != null && hf < 48 ? `, заполнится через ${AKT.durH(hf)}` : ''}; отгрузка поездом в 06:00 и 18:00.`]);
     },

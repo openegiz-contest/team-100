@@ -589,6 +589,13 @@ def _b_cleaner(c: _Snap, tid, cl):
     if c.m:
         d["conc_cu"] = c.lines[n].analyzer.conc_cu   # final concentrate = analyser conc stream
         d["conc_tph"] = c.conc[n]
+        # stage recovery from the published noisy grades (feed = the rougher concentrate as published, tail, concentrate):
+        # two-product formula; it is below 100 % whenever conc > feed > tail > 0, where a noisy copy of the true value was
+        # clamped at 100 (24.10.2026)
+        rc = c.lines[n].rougher
+        f_pub = c.rel(rc.rconc_cu, "sens_an_conc_sigma", f"rougher-{n}-rconc_cu") if rc is not None else NO_VALUE
+        rec, _y = two_product(f_pub, d["tail_cu"], d["conc_cu"])
+        d["stage_recovery"] = rec if f_pub != NO_VALUE and _valid(d["tail_cu"]) and d["tail_cu"] > 0.0 and d["conc_cu"] > f_pub > d["tail_cu"]             else c.pct(cl.stage_recovery, "sens_an_conc_sigma", f"{tid}-stage_recovery")
     else:
         d["conc_cu"] = cl.conc_cu
         d["conc_tph"] = cl.conc_tph

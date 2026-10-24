@@ -9,7 +9,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # aktogay/:
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from sim import ore
+from sim import haul, ore
 from sim.state import NO_VALUE, OreProps, Parcel, initial_state
 from tests.support import needs_impl, prm
 
@@ -373,21 +373,21 @@ class TestPath(unittest.TestCase):
         ready = []
         self.assertEqual(len(st.trucks), 37)                # 2 CAT 777 + 18 CAT 785 + 17 CAT 793 (fact)
         self.assertEqual(sum(1 for t in st.trucks if t.duty == "ore"), 23)
-        # ore trucks carry 17 x 240 + 6 x 136 t per cycle = the former aggregate 36 x 136 t
-        self.assertAlmostEqual(sum(t.payload_t for t in st.trucks if t.duty == "ore"), 36 * 136.0)
+        # ore trucks carry 17 x 236 + 6 x 136 t per cycle (793D payload 236 t, annual report 2020 p. 61)
+        self.assertAlmostEqual(sum(t.payload_t for t in st.trucks if t.duty == "ore"), 17 * 236.0 + 6 * 136.0)
         for h in range(500):
             st.clock.t_min = h * 60.0
             ore.fleet_step(st, p)
             ready.append(st.fleet.trucks_ready)
             self.assertEqual(st.fleet.trucks_ready, sum(1 for t in st.trucks if t.ready))
             # ready ore trucks x their payload x trips per hour (waste trucks haul no ore)
-            want = sum(t.payload_t for t in st.trucks if t.ready and t.duty == "ore") * 60.0 / p["fleet_trip_min"]
+            want = sum(t.payload_t * 60.0 / haul.cycle_min(p, t.line) for t in st.trucks if t.ready and t.duty == "ore")
             self.assertAlmostEqual(st.fleet.haul_tph, want)
         self.assertAlmostEqual(sum(ready) / len(ready), 37 * 0.85, delta=0.6)
         # a closed ramp of line 1 makes its ore trucks take the detour
         st.roads["ramp-1"].state = "CLOSED"
         ore.fleet_step(st, p)
-        want = sum(t.payload_t * 60.0 / (p["fleet_trip_min"] * (p["pit_road_detour"] if t.line == 1 else 1.0))
+        want = sum(t.payload_t * 60.0 / (haul.cycle_min(p, t.line) * (p["pit_road_detour"] if t.line == 1 else 1.0))
                    for t in st.trucks if t.ready and t.duty == "ore")
         self.assertAlmostEqual(st.fleet.haul_tph, want)
 

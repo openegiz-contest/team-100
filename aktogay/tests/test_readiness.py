@@ -76,7 +76,7 @@ class CardsTest(unittest.TestCase):
 
     def test_written_copies_equal_the_code(self):
         self.assertEqual(read(ROOT, "web", "static", "readiness.json"), readiness.json_text())
-        self.assertEqual(read(os.path.dirname(ROOT), "READINESS.md"), readiness.md_text())
+        self.assertEqual(read(os.path.dirname(ROOT), "final_docs", "READINESS.md"), readiness.md_text())
 
     def test_the_page_shows_the_table(self):
         pages = read(ROOT, "web", "static", "pages.js")

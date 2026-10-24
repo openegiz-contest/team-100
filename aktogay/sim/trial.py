@@ -25,7 +25,9 @@ Common random numbers: repair, arrival and notice times come from
 (seed, step): every copy of a seed sees the same draws.
 
 Copies of one seed (same plant, same scenario):
-  by_value  the twin finds a hidden trouble detect_min after its start
+  by_value  the twin finds a hidden trouble: dose and cyclone at the finding time measured on the module (MODULE_FIND, from
+            detect_eval.json; --twin-human same, the default) or detect_min after the start (--twin-human none); the other
+            hidden kinds detect_min after the start
             (unless missed with probability miss, drawn from (seed, issue));
             every tact (5 model minutes) the known, unbooked troubles are
             booked in the order of policy.rank(troubles, now, prm) from
@@ -42,11 +44,20 @@ Copies of one seed (same plant, same scenario):
             the tails alarm. The operating decisions are taken as people take
             them today, only when they see the trouble (controller "asis"):
             a grid cut and a reline are visible at once (alarm, plan) and called
-            asis_notice_min (10) after the start; hard ore is seen when it
-            reaches the SAG (scen_hard_lead_h after the start) plus
-            asis_notice_min. --no-asis gives the old baseline where nobody takes
+            asis_notice_min (10) after the start; hard ore is acted on when
+            digging of the block starts (scen_hard_lead_h after the start, sim/ore.py
+            inject_block) plus asis_notice_min (--asis-hard dig, the default), or only
+            when the block feeds the SAG (--asis-hard sag, an upper edge of the people's delay).
+            --no-asis gives the old baseline where nobody takes
             those decisions without the twin (it overstated the gain).
   base      no troubles (gives the absolute loss of each copy).
+
+Symmetric people / twin base (VALIDATION 8.17, --twin-human same, the default): the twin is added to the people. A loud
+trouble reaches its queue at the people's own minute (alarm U(5; 15) min, plan 10 min), hard ore after the same notice, a mantle
+change at the plant alarm, roping / pH drift / HPGR at the minute the people see them; only the dose and cyclone finding is the
+module's own (measured, MODULE_FIND) plus a read of the card like an alarm. The twin is never later than the people (min); every copy
+works with the 1-minute cycle then (the twin books at the people's minute, not up to 5 minutes after it).
+--twin-human none is the asymmetric base of 8.8 (the twin sees a loud trouble at its start); both are written to the result.
 
 Grid call: a call made before the automatic shedding has no effect at once; it
 is repeated at the next tact until the SAG of the shed line gets the headroom
@@ -129,6 +140,12 @@ LIBRARY: tuple[tuple[str, tuple[str, ...], float], ...] = (
     ("reline", ("reline",), 0.1),
 )
 HIDDEN = ("dose", "cyclone")
+# Symmetric base (VALIDATION 8.17, --twin-human same, default): the twin is added to the people and sees no earlier than they do,
+# except where the module's finding time was measured. Median and P90 of the module's finding time, min after the start, from
+# web/static/detect_eval.json (by_cause_magnitude: dose 0.4 = hc_dose_drop, cyclone 1 = hc_cyclone_n) [оценка на модели].
+MODULE_FIND = {"dose": (110.0, 125.0), "cyclone": (95.0, 126.5)}
+Z_P90 = 1.2815515655446004       # standard normal quantile of 0.90: the lognormal of the finding time has P90 = median x exp(Z_P90 x s)
+IMMEDIATE = ("crusher", "trip", "grid", "reline")   # alarm on the DCS or a plan the people have in front of them: no earlier view for the twin
 # Tier S of 23.10.2026 (opt-in, cfg["library"] = "tier_s"; the default library and so every draw of the N = 100 trial are
 # unchanged): cyclone roping with ball mill overload (decision of the grinding operator), pH electrode drift (I&C), uneven
 # HPGR feed on line 2 (mill crew), planned mantle change of a crusher (crew-cpd). Not added: icy and fatigue (S0, no money),
@@ -142,7 +159,7 @@ LIBRARY_TIER_S: tuple[tuple[str, tuple[str, ...], float], ...] = (
 HIDDEN_TIER_S = ("roping", "phdrift", "hpgr")           # found by the module (circulating load, grab sample, skew), not by an alarm
 # Without the twin: when people see them (min after the start): operators read the circulating load / skew on the screens,
 # the grab sample of pH comes every sens_ph_lab_every_h hours, the metal detector trips after peb_hpgr_tramp_after_h (assumptions).
-ASIS_SEE_MIN = {"roping": 45.0, "mantle": 10.0}
+ASIS_SEE_KEY = {"roping": "asis_rope_see_min", "mantle": "asis_mantle_see_min"}      # rows of the parameter table (assumptions)
 DECISION = ("hard", "grid", "reline", "roping")   # no crew: the call changes operation (blend, headroom, excavators, feed)
 
 DEFAULTS = {
@@ -153,6 +170,10 @@ DEFAULTS = {
     # experiment of 24.10.2026 (VALIDATION 8.6); every default keeps the 22.10 behaviour and numbers
     "copies": None, "crews": None, "call_delay_min": 0.0, "delay_kinds": None, "compliance": 1.0,
     "fine_tact_min": 1.0, "seeds": None,
+    # symmetric base of 24.10.2026 (VALIDATION 8.17): twin_human "same" = the twin is added to the people (no unsourced head start),
+    # "none" = the base of 8.8 (the twin sees a loud trouble at its start); asis_hard "dig" = without the twin the shift sees hard ore
+    # when digging starts, "sag" = only when the block reaches the SAG
+    "twin_human": "same", "asis_hard": "dig",
     # alarm flood of the shift (modules/flood.py): copies whose states are looked at every 5 model minutes
     "alarms": None,
 }
@@ -165,7 +186,10 @@ FINE_MODES = ("novice", "value_nd") + NOVICE_DATA + ("novice_twin",)   # these a
 NOTES = (
     "D = Cu(by_value) - Cu(by_loud), t Cu; positive = the money order gained [model estimate].",
     "no_twin = 'as now': operators take the hard-ore, grid and reline decisions when they see them "
-    "(asis_notice_min after the alarm; hard ore when it reaches the SAG); --no-asis: nobody takes them.",
+    "(asis_notice_min after the alarm; hard ore when digging of the block starts, --asis-hard sag: when it reaches the SAG); "
+    "--no-asis: nobody takes them.",
+    "twin_human same: the twin is added to the people (loud troubles at the people's minute; dose and cyclone at the module's "
+    "measured finding time plus a read of the card); none: the twin sees a loud trouble at its start (VALIDATION 8.8).",
     "A grid call is repeated until the shed line's SAG gets the headroom (the plant latches it too).",
     "Oxidised ore is not in the library: a preset oxide cause has no crew in the plant model and never ends.",
     "Shared crew = two troubles of the shift need the same crew; only there can the order matter.",
@@ -207,6 +231,17 @@ class ShiftSpec:
         return len(crews) != len(set(crews))
 
 
+def found_min(seed: int, cfg: dict, tr: Trouble) -> float:
+    """Model minute the twin's module finds a hidden trouble. Symmetric base: dose and cyclone follow the finding time measured on the
+    module (MODULE_FIND: lognormal with the stated median and P90, one draw per (seed, issue), the same in every copy); the other
+    hidden kinds, and every kind with --twin-human none, keep start + detect_min."""
+    if cfg.get("twin_human", DEFAULTS["twin_human"]) == "same" and tr.kind in MODULE_FIND:
+        med, p90 = MODULE_FIND[tr.kind]
+        s = math.log(p90 / med) / Z_P90
+        return tr.t_start_min + med * math.exp(s * normal(seed, 0, "det:" + tr.issue))
+    return tr.t_start_min + cfg["detect_min"]
+
+
 def draw_shift(seed: int, cfg: dict) -> ShiftSpec:
     """Troubles and parameter overrides of one shift from (seed, 0, "trial"); deterministic."""
     rng = rng_at(seed, 0, "trial")
@@ -233,7 +268,7 @@ def draw_shift(seed: int, cfg: dict) -> ShiftSpec:
         tr = Trouble(issue, kind, line, node, crew, float(start), hidden)
         if hidden:
             tr.missed = u01(seed, 0, "trial-miss:" + issue) < cfg["miss"]
-            tr.t_found_min = NO_VALUE if tr.missed else start + cfg["detect_min"]
+            tr.t_found_min = NO_VALUE if tr.missed else found_min(seed, cfg, tr)
         troubles.append(tr)
     troubles.sort(key=lambda t: t.t_start_min)
     ov: dict[str, float] = {"crew_sigma_ln": float(cfg["sigma_ln"])}
@@ -272,7 +307,7 @@ def draw_shift(seed: int, cfg: dict) -> ShiftSpec:
                     nodes2.add(node)
                     tr = Trouble(issue, kind, line, node, crew, float(start), True)
                     tr.missed = u01(seed, 0, "trial-miss:" + issue) < cfg["miss"]
-                    tr.t_found_min = NO_VALUE if tr.missed else start + cfg["detect_min"]
+                    tr.t_found_min = NO_VALUE if tr.missed else found_min(seed, cfg, tr)
                     added.append(tr)
                     break
         if any(t.kind == "dose" for t in added) and "flot_dose_pp" not in ov:
@@ -463,6 +498,7 @@ class Controller:
         self.booked: dict[str, dict] = {}
         self._nov_ready: dict[str, float] = {}           # novice from data: minute the call is made, drawn once per trouble
         self.period = float(cfg["tact_min"])            # run_shift lowers it to fine_tact_min when a minute-level copy is present
+        self._sag_min: dict[str, float] = {}             # asis_hard "sag": first minute the hard block feeds the SAG of its line
 
     def delay_of(self, tr: Trouble) -> float:
         """Call delay of the sweep (B1), min; zero for the kinds outside cfg["delay_kinds"]."""
@@ -483,12 +519,45 @@ class Controller:
             return self.asis_at(tr)
         return tr.t_start_min + ev.notice_delay_min(self.seed, tr.issue, self.plant.prm)
 
+    @property
+    def symmetric(self) -> bool:
+        """--twin-human same: the twin is added to the people (VALIDATION 8.17)."""
+        return self.cfg.get("twin_human", DEFAULTS["twin_human"]) == "same"
+
+    def _same_core(self, tr: Trouble) -> float:
+        """Symmetric base: the minute the twin has the trouble in its queue, before the people's own view is taken into account.
+
+        loud kinds of IMMEDIATE: the alarm / the plan, the people's minute (Errington 2005, p. 3: no difference in response on
+        faults localised by alarms); mantle change: the plant alarm; hard ore: the pit plan, the people act after the same notice;
+        dose and cyclone: the module's finding time (MODULE_FIND, measured) plus a read of the card like an alarm (U(5; 15) min,
+        an assumption: the Rockwell band is a design norm, not a measurement); roping, pH drift, HPGR: the minute the people see
+        them (the module's latency for these is not measured)."""
+        d = self.delay_of(tr)
+        if tr.kind in IMMEDIATE:
+            return self.seen_at(tr) + d
+        if tr.kind == "mantle":
+            return tr.t_start_min + ev.notice_delay_min(self.seed, tr.issue, self.plant.prm) + d
+        if tr.kind == "hard":
+            return tr.t_start_min + float(self.cfg.get("asis_notice_min", 10.0)) + d
+        if tr.kind in MODULE_FIND:
+            if tr.t_found_min == NO_VALUE:
+                return math.inf
+            return tr.t_found_min + d + ev.notice_delay_min(self.seed, tr.issue, self.plant.prm)
+        return self.seen_at(tr) + d
+
     def known_at(self, tr: Trouble) -> float:
-        """Model minute the twin knows the trouble: a loud one right after its start, a hidden one when found."""
+        """Model minute the twin knows the trouble. Symmetric base (default): the twin is added to the people, so never later than
+        the people's own minute (`seen_at`); what it adds is the measured finding time of the module for dose and cyclone.
+        --twin-human none: a loud trouble right after its start, a hidden one when found (the base of VALIDATION 8.8)."""
         if self.mode == "value_nd":
             return self.seen_at(tr)                     # no early detection: only what the people have seen
         if self.mode == "value" and not self.followed(tr):
             return self.seen_at(tr)                     # advice not carried out: the shift handles it as it does today
+        if self.symmetric and self.mode in ("value", "loud", "novice_twin"):
+            base = min(self._same_core(tr), self.seen_at(tr))
+            if self.mode == "novice_twin" and base != math.inf:
+                return self._nov_ready.get(tr.issue, base)
+            return base
         if not tr.hidden:
             base = tr.t_start_min + EPS + self.delay_of(tr)
         else:
@@ -505,8 +574,8 @@ class Controller:
         notice = float(self.cfg.get("asis_notice_min", 10.0))
         if tr.kind in HIDDEN:
             return 0.0
-        if tr.kind in ASIS_SEE_MIN:
-            return ASIS_SEE_MIN[tr.kind] + notice
+        if tr.kind in ASIS_SEE_KEY:
+            return float(p[ASIS_SEE_KEY[tr.kind]]) + notice
         if tr.kind in DECISION or tr.kind in HIDDEN_TIER_S:
             return notice
         return ev.notice_delay_min(self.seed, tr.issue, p)
@@ -578,21 +647,40 @@ class Controller:
         """Without the twin: operators take the same operating decision, but only when they see it.
 
         Grid cut and reline are visible at once (alarm, plan), so the call comes asis_notice_min
-        after the start. Hard ore is seen only when it reaches the SAG (after the forecast lead
-        scen_hard_lead_h), plus asis_notice_min. Crew troubles stay with the plant's own alarm
+        after the start. Hard ore: asis_hard "dig" (default) - the shift acts when digging of the
+        block starts, scen_hard_lead_h after the start (sim/ore.py inject_block), plus asis_notice_min;
+        asis_hard "sag" - only when the block feeds the SAG of its line (batch tracking), plus
+        asis_notice_min, never when it has not arrived. Crew troubles stay with the plant's own alarm
         and laboratory handling, as before.
         """
         notice = float(self.cfg.get("asis_notice_min", 10.0))
         if tr.kind == "hard":
+            if self.cfg.get("asis_hard", DEFAULTS["asis_hard"]) == "sag":
+                t = self.hard_at_sag(tr)
+                return t + notice if t != math.inf else math.inf
             return tr.t_start_min + self.plant.prm["scen_hard_lead_h"] * MIN_PER_H + notice
-        if tr.kind in ASIS_SEE_MIN:
-            return tr.t_start_min + ASIS_SEE_MIN[tr.kind] + notice
+        if tr.kind in ASIS_SEE_KEY:
+            return tr.t_start_min + float(self.plant.prm[ASIS_SEE_KEY[tr.kind]]) + notice
         if tr.kind == "phdrift":                        # the next grab sample shows it
             p = self.plant.prm
             return tr.t_start_min + u01(self.seed, 0, "asis-ph:" + tr.issue) * p["sens_ph_lab_every_h"] * MIN_PER_H + notice
         if tr.kind == "hpgr":                           # seen when the metal detector trips
             return tr.t_start_min + self.plant.prm["peb_hpgr_tramp_after_h"] * MIN_PER_H + notice
         return tr.t_start_min + notice
+
+    def hard_at_sag(self, tr: Trouble) -> float:
+        """First model minute the line's stockpile feed batch is the hard block (batch tracking); inf until then. The minute is
+        kept once seen, so it is probed at every tact."""
+        if tr.issue in self._sag_min:
+            return self._sag_min[tr.issue]
+        st = self.plant.state
+        ln = st.lines[tr.line - 1]
+        fb = ln.stockpile.feed_batch if ln.stockpile is not None else ""
+        b = st.batches.get(fb)
+        if b is not None and b.tag == "hard" and self.plant.t_min >= tr.t_start_min:
+            self._sag_min[tr.issue] = float(self.plant.t_min)
+            return self._sag_min[tr.issue]
+        return math.inf
 
     def _silence_alarm(self, only_delayed: bool) -> None:
         """The controller books these loud crew troubles itself: the plant's own call at the alarm is switched off."""
@@ -613,6 +701,10 @@ class Controller:
             self._book(seen[0], t)
 
     def tact(self, t: float) -> None:
+        if self.cfg.get("asis_hard", DEFAULTS["asis_hard"]) == "sag":
+            for tr in self.troubles:
+                if tr.kind == "hard":
+                    self.hard_at_sag(tr)
         if self.mode == "novice":
             self._tact_novice(t)
             return
@@ -621,10 +713,10 @@ class Controller:
             return
         if self.mode == "novice_twin":
             self._prepare_novice_twin(t)
-        if self.mode == "value_nd":
-            self._silence_alarm(False)
-        elif float(self.cfg.get("call_delay_min") or 0.0) > 0.0:
-            self._silence_alarm(True)
+        if self.mode == "value_nd" or (self.mode == "value" and self.symmetric):
+            self._silence_alarm(False)          # the controller books the loud crew troubles itself, at the people's minute, in its order
+        elif float(self.cfg.get("call_delay_min") or 0.0) > 0.0 and self.mode != "asis":
+            self._silence_alarm(True)           # the copy "as now" keeps the plant's own call: the delay is the twin's, not the people's
         if self.mode == "asis":
             for tr in self.troubles:
                 if tr.issue not in self.booked and tr.kind in DECISION + HIDDEN_TIER_S + ("mantle",)                         and t + EPS >= self.asis_at(tr):
@@ -723,7 +815,9 @@ def run_shift(args: tuple[int, dict]) -> dict:
         if name in MODE_OF and not (name == "no_twin" and not cfg.get("asis", True)):
             ctrl[name] = Controller(copies[name], shift.troubles, MODE_OF[name], cfg, seed, rank_fn)
     bookings: dict[str, dict[str, dict]] = {name: {} for name in copies}
-    fine = any(MODE_OF.get(n) in FINE_MODES for n in names)
+    # the symmetric base needs the people's minute: with a 5-minute cycle the twin copy books a loud trouble up to 5 minutes after the people
+    # (and the plant's own alarm) do, which would put it behind them by construction (seed 1001: +0.16 against +0.81 at 1 minute)
+    fine = any(MODE_OF.get(n) in FINE_MODES for n in names) or cfg.get("twin_human", DEFAULTS["twin_human"]) == "same"
     step_min = min(float(cfg["tact_min"]), float(cfg["fine_tact_min"])) if fine else float(cfg["tact_min"])
     for k in ctrl.values():
         k.period = step_min
@@ -1016,7 +1110,8 @@ def format_report(doc: dict) -> str:
     out = [
         f"on/off trial: N {doc['n']} (seeds {doc['seeds'][0]}-{doc['seeds'][1]}), kip {c['kip']}, sigma_ln "
         f"{c['sigma_ln']}, detect {c['detect_min']:.0f} min, miss {c['miss']:.2f}, loud react "
-        f"{c['loud_react_min']:.0f} min, tact {c['tact_min']:.0f} min, bootstrap {c['boot']}",
+        f"{c['loud_react_min']:.0f} min, tact {c['tact_min']:.0f} min, bootstrap {c['boot']}, twin-human "
+        f"{c.get('twin_human', 'same')}, asis-hard {c.get('asis_hard', 'dig')}",
         f"policy: {doc['policy']}",
         "D = Cu(by value) - Cu(by loudness) at 20:00, t Cu [model estimate]",
     ]
@@ -1515,6 +1610,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="old baseline: without the twin nobody takes the hard/grid/reline decisions")
     ap.add_argument("--asis-notice", type=float, default=10.0,
                     help="minutes from seeing a decision trouble to the call, without the twin")
+    ap.add_argument("--twin-human", choices=("same", "none"), default=DEFAULTS["twin_human"],
+                    help="same: the twin is added to the people, never earlier than they see a loud trouble (VALIDATION 8.17); "
+                         "none: the asymmetric base of 8.8")
+    ap.add_argument("--asis-hard", choices=("dig", "sag"), default=DEFAULTS["asis_hard"],
+                    help="without the twin the shift acts on hard ore when digging starts (dig) or when it reaches the SAG (sag)")
     ap.add_argument("--library", choices=("base", "tier_s"), default="base",
                     help="trouble library: base (the N = 100 trial) or tier_s (+ roping, pH drift, HPGR, mantle change)")
     ap.add_argument("--copies", default=None, help="comma list of copies: " + ",".join(ALL_COPIES))
@@ -1543,7 +1643,8 @@ def main(argv: list[str] | None = None) -> int:
     cfg = {"n": a.n, "seed0": a.seed0, "kip": a.kip, "sigma_ln": a.sigma_ln, "miss": a.miss,
            "detect_min": a.detect_min, "loud_react_min": a.loud_react, "price": a.price, "no_twin": a.no_twin,
            "boot": a.boot, "jobs": a.jobs, "set": sets, "hidden_mult": a.hidden_mult, "mag": a.mag,
-           "asis": not a.no_asis, "asis_notice_min": a.asis_notice, "est_sigma": a.est_sigma}
+           "asis": not a.no_asis, "asis_notice_min": a.asis_notice, "est_sigma": a.est_sigma,
+           "twin_human": a.twin_human, "asis_hard": a.asis_hard}
     if a.copies:
         cfg["copies"] = [x.strip() for x in a.copies.split(",") if x.strip()]
     if a.crews:

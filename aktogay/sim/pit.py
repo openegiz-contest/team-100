@@ -5,10 +5,11 @@ ready and gives the ore haul in t/h from the ready ore trucks; this module only
 names what each truck, face and road is doing, so the twins of the pit show
 the same picture as the aggregated rates.
 
-Truck cycle (fleet_trip_min, x pit_road_detour on a closed ramp), phases in order:
+Truck cycle (sim/haul.py: load + haul loaded + queue + dump + return from the map distance of the route, x
+pit_road_detour on a closed ramp), phases in order:
   LOADING fleet_load_min at the face, HAUL_FULL on the road, QUEUE fleet_queue_min
-  and DUMP fleet_dump_min at the crusher (ore) or the dump end of the waste road,
-  RETURN on the road; haul and return share the rest of the cycle equally.
+  and DUMP (body raise + lower + positioning) at the crusher (ore) or the dump end of the waste road,
+  RETURN on the road; haul and return share the rest of the cycle in the proportion of the route (loaded_share).
   A truck not ready this hour is DOWN; an ore truck whose line digs nothing
   (pit.target_tph 0: crusher stopped, stockpile full) waits in QUEUE at its crusher.
 Faces: ACTIVE while their excavator digs, block and block-model grade and
@@ -25,6 +26,7 @@ dozers have their own hourly draws (streams "drill", "dozer"), so no other draw 
 """
 from __future__ import annotations
 
+from . import haul
 from .params import ParamSet
 from .state import MIN_PER_H, NO_VALUE, PlantState, u01
 from .ore import route_mult
@@ -34,12 +36,14 @@ _EPS = 1e-9
 PHASES = ("LOADING", "HAUL_FULL", "QUEUE", "DUMP", "RETURN")
 
 
-def truck_phase(t_min: float, phase_min: float, cycle_min: float, prm: ParamSet) -> str:
-    """Phase of a running truck at t_min in a cycle of cycle_min minutes starting at -phase_min."""
-    load, queue, dump = prm["fleet_load_min"], prm["fleet_queue_min"], prm["fleet_dump_min"]
-    road = max(0.0, cycle_min - load - queue - dump) / 2.0
+def truck_phase(t_min: float, phase_min: float, cycle_min: float, prm: ParamSet, loaded_share: float = 0.5) -> str:
+    """Phase of a running truck at t_min in a cycle of cycle_min minutes starting at -phase_min.
+
+    loaded_share: part of the driving time spent loaded (0.5: both ways equal, the former rule)."""
+    load, queue, dump = prm["fleet_load_min"], prm["fleet_queue_min"], haul.dump_min(prm)
+    road = max(0.0, cycle_min - load - queue - dump)
     x = (t_min + phase_min) % cycle_min if cycle_min > 0.0 else 0.0
-    for name, length in zip(PHASES, (load, road, queue, dump, road)):
+    for name, length in zip(PHASES, (load, road * loaded_share, queue, dump, road * (1.0 - loaded_share))):
         if x < length - _EPS:
             return name
         x -= length
@@ -67,7 +71,6 @@ def _face_of_line(st: PlantState, line: int) -> str:
 
 def pit_step(st: PlantState, prm: ParamSet, t_min: float) -> None:
     """Trucks, stripping excavators, faces and roads at t_min (after ore.dig_step)."""
-    trip = prm["fleet_trip_min"]
     # roads: a closure ends by itself
     for rd in st.roads.values():
         if rd.state == "CLOSED" and rd.closed_until_min != NO_VALUE and t_min >= rd.closed_until_min - _EPS:
@@ -80,8 +83,10 @@ def pit_step(st: PlantState, prm: ParamSet, t_min: float) -> None:
     waste_haul = 0.0
     wi = 0
     rm = {n: route_mult(st, n, prm) for n in set(tr.line for tr in st.trucks)}      # once per step, not per truck
+    base = {n: haul.cycle_min(prm, n) for n in rm}
+    share = {n: haul.loaded_share(prm, n) for n in rm}
     for tr in st.trucks:
-        cycle = trip * rm[tr.line]
+        cycle = base[tr.line] * rm[tr.line]
         tr.cycle_min = cycle
         if not tr.ready:
             tr.state, tr.location, tr.load_t = "DOWN", "", 0.0
@@ -97,7 +102,7 @@ def pit_step(st: PlantState, prm: ParamSet, t_min: float) -> None:
             if st.pit.target_tph.get(tr.line, 0.0) <= 0.0:
                 tr.state, tr.location, tr.load_t = "QUEUE", end, 0.0
                 continue
-        ph = truck_phase(t_min, tr.phase_min, cycle, prm)
+        ph = truck_phase(t_min, tr.phase_min, cycle, prm, share[tr.line])
         tr.state = ph
         road = roads.get(tr.line if tr.duty == "ore" else 0, "")
         if ph == "LOADING":

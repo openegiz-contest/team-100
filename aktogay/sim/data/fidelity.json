@@ -1,0 +1,471 @@
+{
+ "kind": "akt-fidelity",
+ "version": 1,
+ "generated": "2026-10-24",
+ "seed": 42,
+ "dt_min": 30.0,
+ "fit": {
+  "cal_avail": 0.9298,
+  "sag_k": 0.4872,
+  "flot_rinf0_pct": 93.3408
+ },
+ "backtest_summary": {
+  "n": 28,
+  "rec_bias_pp": 1.1088,
+  "rec_mae_pp": 1.7535,
+  "rec_max_pp": 6.5497,
+  "const_bias_pp": 0.3,
+  "const_mae_pp": 1.4,
+  "const_max_pp": 6.3,
+  "cu_bias_kt": 0.4987,
+  "cu_mae_kt": 0.8233,
+  "cu_max_kt": 2.4011,
+  "cu_bias_pct": 1.7087,
+  "cu_mae_pct": 2.2928,
+  "cu_max_pct": 7.6315,
+  "corr_grade_rec_rep": -0.0061,
+  "corr_grade_rec_mod": 0.9934,
+  "rec_rep_mean": 86.9,
+  "rec_mod_mean": 88.0088,
+  "cu_const_bias_pct": 0.3398,
+  "cu_const_mae_pct": 1.6556,
+  "rec_ok": 4,
+  "cu_ok": 22,
+  "beats_const": 9,
+  "blind_cu_mae_pct": 29.6238,
+  "blind_cu_max_pct": 91.7831,
+  "blind_ore_mae_pct": 27.4674,
+  "ore_not_reached": 0
+ },
+ "availability": {
+  "year": 2025,
+  "steps": 17520,
+  "units": {
+   "crusher": {
+    "avail_pct": 96.1558,
+    "run_pct": 80.7677,
+    "lit_lo": 70.0,
+    "lit_hi": 75.0,
+    "ok": null,
+    "delta_pp": null,
+    "class": "requirement",
+    "run_pct_range": [
+     70.2328,
+     80.7677
+    ],
+    "cap_tph_range": [
+     4386.0,
+     5043.9
+    ],
+    "required_rates_tph": [
+     4386.0,
+     4544.2571,
+     5043.9
+    ],
+    "required_hours_pct": [
+     80.8144,
+     78.0,
+     70.2734
+    ],
+    "design_hours_pct": 65.0685,
+    "state_run_pct": 92.9424,
+    "breakdown_pct": {
+     "crushing_at_rated_rate": 80.7677,
+     "waiting_for_ore_or_trucks": 12.268,
+     "stockpile_full": 3.1201,
+     "stopped": 3.8442
+    }
+   },
+   "grinding": {
+    "avail_pct": 92.9766,
+    "run_pct": 91.9235,
+    "lit_lo": 91.0,
+    "lit_hi": 92.0,
+    "ok": null,
+    "delta_pp": 0.4235,
+    "class": "fit"
+   },
+   "flotation": {
+    "avail_pct": 92.2717,
+    "run_pct": 91.7152,
+    "lit_lo": 91.0,
+    "lit_hi": 92.0,
+    "ok": true,
+    "delta_pp": 0.2152,
+    "class": "check"
+   }
+  },
+  "source": "Ausenco, Constancia: дробление 70,0 %, измельчение и флотация 91,3 % (проектная доступность, таблица 3); Ausenco, «Designing Circuits for High Availability»: цель 75 % для первичного дробления и 92 % для мельниц",
+  "design_crush_h": 5700.0,
+  "fit_cal_avail": 0.9298,
+  "note": "«В работе» у мельниц и флотации — доля шагов в состоянии RUN (полная работа); допуск проверки ±2 п.п. к вилке литературы. У дробилки — часы работы по счётчику: переработанная руда / темп участка крупного дробления (crush_cap_tph); остальное время агрегат ждёт руду или самосвалы, ждёт места на складе или стоит. 4 386–5 044 т/ч (ОВОС, с. 26) — проектный темп участка с коэффициентом неравномерности 1,15, а не паспорт дробилки, и какая из границ верна для руды Актогая, не сказано. Строка дробилки — требование отчётного тоннажа к оборудованию (80,8 / 78,0 / 70,3 % часов года при 4 386 / 4 544 / 5 044 т/ч против 65,1 % часов по проекту ОВОС: 285 сут × 2 смены × 10 ч), вердикта допуска у неё нет. Измельчение следует из готовности линии, подогнанной на руду 2025 г. (подгонка, не проверка); проверкой остаётся только флотация. Собственные простои дробилки в годовом прогоне: короткие остановки, плановое обслуживание (пока стоит мельница линии), замена брони внутри перефутеровки SAG. Доля шагов в состоянии RUN (state_run_pct) показывает только «не стоит», а не работу."
+ },
+ "relines": {
+  "events": [
+   {
+    "id": "2023Q4-S1",
+    "quarter": "2023Q4",
+    "line": 1,
+    "ref": "2023Q3",
+    "what": "Sulphide 1: плановая перефутеровка SAG перенесена с августа на октябрь (отчёт Q3 2023); «reline moved from Q3» (Q4 2023)",
+    "date_assumed": "15.10.2023",
+    "obs_drop_pct": -5.3151,
+    "obs_drop_per_day_pct": -5.3151,
+    "pred_drop_pct": -5.522,
+    "ore_rep_kt": 7001.0,
+    "ore_ref_kt": 7394.0,
+    "ore_with_kt": 6719.8831,
+    "ore_without_kt": 7112.6443,
+    "err_with_pct": -4.0154,
+    "err_without_pct": 1.5947,
+    "url": "https://www.kazminerals.com/media/23062/q4-2023-production-report-final.pdf",
+    "page": "PDF p.3 / printed p.3",
+    "better_with": false,
+    "diff_pp": -0.2069,
+    "diff_per_day_pp": -0.2069
+   },
+   {
+    "id": "2023Q4-S2",
+    "quarter": "2023Q4",
+    "line": 2,
+    "ref": "2023Q3",
+    "what": "Sulphide 2: «also due to a SAG mill reline in Q4» (Q4 2023); день допущен",
+    "date_assumed": "15.11.2023",
+    "obs_drop_pct": -3.8725,
+    "obs_drop_per_day_pct": -3.8725,
+    "pred_drop_pct": -5.1849,
+    "ore_rep_kt": 6603.0,
+    "ore_ref_kt": 6869.0,
+    "ore_with_kt": 6738.9787,
+    "ore_without_kt": 7107.4949,
+    "err_with_pct": 2.0593,
+    "err_without_pct": 7.6404,
+    "url": "https://www.kazminerals.com/media/23062/q4-2023-production-report-final.pdf",
+    "page": "PDF p.3 / printed p.3",
+    "better_with": true,
+    "diff_pp": -1.3124,
+    "diff_per_day_pp": -1.3124
+   },
+   {
+    "id": "2024Q4-S2",
+    "quarter": "2024Q4",
+    "line": 2,
+    "ref": "2024Q3",
+    "what": "Sulphide 2: плановое обслуживание SAG в октябре 2024 (Q4 2024)",
+    "date_assumed": "15.10.2024",
+    "obs_drop_pct": -4.3317,
+    "obs_drop_per_day_pct": -4.3317,
+    "pred_drop_pct": -5.5539,
+    "ore_rep_kt": 7244.0,
+    "ore_ref_kt": 7572.0,
+    "ore_with_kt": 6828.4955,
+    "ore_without_kt": 7230.0469,
+    "err_with_pct": -5.7358,
+    "err_without_pct": -0.1926,
+    "url": "https://www.kazminerals.com/media/23240/q4-2024-production-report_final.pdf",
+    "page": "PDF p.3 / printed p.3",
+    "better_with": false,
+    "diff_pp": -1.2222,
+    "diff_per_day_pp": -1.2222
+   },
+   {
+    "id": "2025Q1-S1",
+    "quarter": "2025Q1",
+    "line": 1,
+    "ref": "2024Q4",
+    "what": "Sulphide 1: перефутеровка SAG и шаровой в январе 2025 (Q1 2025)",
+    "date_assumed": "15.01.2025",
+    "obs_drop_pct": -6.0023,
+    "obs_drop_per_day_pct": -3.9134,
+    "pred_drop_pct": -5.2899,
+    "ore_rep_kt": 7423.0,
+    "ore_ref_kt": 7897.0,
+    "ore_with_kt": 7086.0992,
+    "ore_without_kt": 7481.8827,
+    "err_with_pct": -4.5386,
+    "err_without_pct": 0.7932,
+    "url": "https://www.kazminerals.com/media/23282/q1-2025-production-report_final.pdf",
+    "page": "PDF p.3 / printed p.3",
+    "better_with": false,
+    "diff_pp": 0.7124,
+    "diff_per_day_pp": -1.3764
+   },
+   {
+    "id": "2025Q3-S2",
+    "quarter": "2025Q3",
+    "line": 2,
+    "ref": "2025Q2",
+    "what": "Sulphide 2: перефутеровка SAG в августе 2025, −5 % к Q2 (Q3 2025)",
+    "date_assumed": "15.08.2025",
+    "obs_drop_pct": -4.7047,
+    "obs_drop_per_day_pct": -5.7405,
+    "pred_drop_pct": -5.8085,
+    "ore_rep_kt": 7697.0,
+    "ore_ref_kt": 8077.0,
+    "ore_with_kt": 7419.541,
+    "ore_without_kt": 7877.0808,
+    "err_with_pct": -3.6048,
+    "err_without_pct": 2.3396,
+    "url": "https://www.kazminerals.com/app/uploads/2025/12/q3-2025-production-report_final.pdf",
+    "page": "PDF p.3 / printed p.3",
+    "better_with": false,
+    "diff_pp": -1.1038,
+    "diff_per_day_pp": -0.068
+   }
+  ],
+  "reline_h": 84.0,
+  "sensitivity_reline_h": {
+   "72": {
+    "mean_pred_pct": -4.8755,
+    "mean_obs_pct": -4.8453,
+    "mae_drop_pp": 0.7373
+   },
+   "84": {
+    "mean_pred_pct": -5.4718,
+    "mean_obs_pct": -4.8453,
+    "mae_drop_pp": 0.9115
+   }
+  },
+  "mean_obs_pct": -4.8453,
+  "mean_pred_pct": -5.4718,
+  "mean_obs_per_day_pct": -4.6347,
+  "mean_diff_per_day_pp": -0.8372,
+  "n_model_deeper_per_day": 5,
+  "mae_with_pct": 3.9908,
+  "mae_without_pct": 2.5121,
+  "mae_drop_pp": 0.9115,
+  "n": 5,
+  "n_better_with": 1,
+  "note": "падение руды линии в квартале события: модель (то же квартальное состояние, окно перефутеровки 84 ч сверх случайных остановок опорного квартала) против отчёта (квартал к опорному). В отчётном падении есть и другие причины (марка руды, прочие остановки), поэтому совпадение — ориентир, не точное измерение."
+ },
+ "forward_2026": {
+  "quarters": [
+   {
+    "q": "2026Q1",
+    "ore_rep": 15594.0,
+    "grade_rep": 0.41,
+    "cu_rep": 55.3,
+    "rec_implied": 86.4936,
+    "rec_implied_pm": 1.0548,
+    "rec_model": 87.1332,
+    "rec_const": 87.2,
+    "cu_model": 55.9732,
+    "cu_const": 55.7517,
+    "cu_err_model_pct": 1.2173,
+    "cu_err_const_pct": 0.8168,
+    "avail_solved": 0.947,
+    "ore_reached": true,
+    "blind_ore": 15310.0516,
+    "blind_ore_err_pct": -1.8209,
+    "blind_cu": 54.9277,
+    "blind_cu_err_pct": -0.6732,
+    "persist_same_q_pct": -2.7767,
+    "persist_mean_pct": -0.4505,
+    "tol_cu_pct": 3.2195,
+    "url": "https://www.kazminerals.com/app/uploads/2026/05/Q1-2026-Production-report_FINAL.pdf",
+    "page": "PDF p.4 / printed p.4 (Appendix 1)"
+   },
+   {
+    "q": "2026Q2",
+    "ore_rep": 16179.0,
+    "grade_rep": 0.41,
+    "cu_rep": 58.4,
+    "rec_implied": 88.0394,
+    "rec_implied_pm": 1.0737,
+    "rec_model": 87.0291,
+    "rec_const": 87.2,
+    "cu_model": 57.6293,
+    "cu_const": 57.8432,
+    "cu_err_model_pct": -1.3197,
+    "cu_err_const_pct": -0.9535,
+    "avail_solved": 0.9553,
+    "ore_reached": true,
+    "blind_ore": 15746.9753,
+    "blind_ore_err_pct": -2.6703,
+    "blind_cu": 56.293,
+    "blind_cu_err_pct": -3.6079,
+    "persist_same_q_pct": -2.8988,
+    "persist_mean_pct": -4.05,
+    "tol_cu_pct": 3.2195,
+    "url": "https://www.kazminerals.com/app/uploads/2026/08/KAZ-Minerals_-Q2-2026-Production-Report_ENG.pdf",
+    "page": "PDF p.4 / printed p.4 (Appendix 1)"
+   }
+  ],
+  "note": "Q1 и Q2 2026 — данные, которых модель не видела (подгонка на 2025 г.). В отчётах 2026 нет разбивки по фабрикам и нет извлечения: оно получено как медь в концентрате / (руда × содержание) и несёт ошибку округления содержания (±0,005 % Cu, около ±1,2 п.п.). Квартал 3 2026 (пожар ВВД 09.08, отключение сети 14.08): отчёта ещё нет, оценки потерь в открытых источниках нет — сравнить с нашими сценариями hpgr_fire и grid нечем."
+ },
+ "recovery": {
+  "variants": [
+   {
+    "train": "single",
+    "n_train": 15,
+    "d_slope": 1.3806,
+    "d_level_pp": -2.243,
+    "slope_refit": 5.4736,
+    "slope_analog": 4.093,
+    "train_mean_rec": 86.5933,
+    "mae_refit": 2.2428,
+    "mae_const_train_mean": 1.0806,
+    "refit_rows": [
+     {
+      "q": "2023Q1",
+      "rec_mod": 85.9997,
+      "rec_rep": 86.6
+     },
+     {
+      "q": "2023Q2",
+      "rec_mod": 86.0696,
+      "rec_rep": 88.9
+     },
+     {
+      "q": "2023Q3",
+      "rec_mod": 85.7625,
+      "rec_rep": 87.2
+     },
+     {
+      "q": "2023Q4",
+      "rec_mod": 85.6541,
+      "rec_rep": 88.3
+     },
+     {
+      "q": "2024Q1",
+      "rec_mod": 85.2783,
+      "rec_rep": 87.8
+     },
+     {
+      "q": "2024Q2",
+      "rec_mod": 85.3377,
+      "rec_rep": 88.2
+     },
+     {
+      "q": "2024Q3",
+      "rec_mod": 85.0908,
+      "rec_rep": 87.7
+     },
+     {
+      "q": "2024Q4",
+      "rec_mod": 84.9779,
+      "rec_rep": 87.8
+     },
+     {
+      "q": "2025Q1",
+      "rec_mod": 85.0306,
+      "rec_rep": 86.8
+     },
+     {
+      "q": "2025Q2",
+      "rec_mod": 84.9986,
+      "rec_rep": 89.1
+     },
+     {
+      "q": "2025Q3",
+      "rec_mod": 85.0108,
+      "rec_rep": 86.1
+     },
+     {
+      "q": "2025Q4",
+      "rec_mod": 84.9762,
+      "rec_rep": 86.6
+     }
+    ]
+   },
+   {
+    "train": "single+ramp",
+    "n_train": 20,
+    "d_slope": 1.8179,
+    "d_level_pp": -2.1676,
+    "slope_refit": 5.9109,
+    "slope_analog": 4.093,
+    "train_mean_rec": 86.535,
+    "mae_refit": 2.1293,
+    "mae_const_train_mean": 1.1292,
+    "refit_rows": [
+     {
+      "q": "2023Q1",
+      "rec_mod": 86.1809,
+      "rec_rep": 86.6
+     },
+     {
+      "q": "2023Q2",
+      "rec_mod": 86.2504,
+      "rec_rep": 88.9
+     },
+     {
+      "q": "2023Q3",
+      "rec_mod": 85.917,
+      "rec_rep": 87.2
+     },
+     {
+      "q": "2023Q4",
+      "rec_mod": 85.7999,
+      "rec_rep": 88.3
+     },
+     {
+      "q": "2024Q1",
+      "rec_mod": 85.3869,
+      "rec_rep": 87.8
+     },
+     {
+      "q": "2024Q2",
+      "rec_mod": 85.4455,
+      "rec_rep": 88.2
+     },
+     {
+      "q": "2024Q3",
+      "rec_mod": 85.1883,
+      "rec_rep": 87.7
+     },
+     {
+      "q": "2024Q4",
+      "rec_mod": 85.0653,
+      "rec_rep": 87.8
+     },
+     {
+      "q": "2025Q1",
+      "rec_mod": 85.1192,
+      "rec_rep": 86.8
+     },
+     {
+      "q": "2025Q2",
+      "rec_mod": 85.0755,
+      "rec_rep": 89.1
+     },
+     {
+      "q": "2025Q3",
+      "rec_mod": 85.0768,
+      "rec_rep": 86.1
+     },
+     {
+      "q": "2025Q4",
+      "rec_mod": 85.0427,
+      "rec_rep": 86.6
+     }
+    ]
+   }
+  ],
+  "mae_model_2025fit": 0.812,
+  "mae_const_2025": 0.8417,
+  "n_test": 12,
+  "n_test_2023_24": 8,
+  "mae_model_2023_24": 0.6975,
+  "mae_const_2023_24": 0.7625,
+  "wins_model_2023_24": 5,
+  "mae_model_all28": 1.7535,
+  "mae_const_all28": 1.4,
+  "verdict": "refit_worse",
+  "kept": "2025fit"
+ },
+ "spread": {
+  "reported_sd_dln": 0.052,
+  "reported_n": 27,
+  "reported_mean_dln": -0.0144,
+  "reported_rec_sd_pp": 1.4036,
+  "reported_rec_sd_change_pp": 1.7032,
+  "reported_rec_n": 23,
+  "model_off_sd_dln": 0.005,
+  "model_off_rec_sd_pp": 0.0626,
+  "model_on_sd_dln": 0.0488,
+  "model_on_rec_sd_pp": 1.7081,
+  "rec_note": "разброс извлечения между 12 независимыми кварталами модели (разные зёрна) при одном содержании; в отчётах — разброс уровня и квартального изменения 23 кварталов без разгона второй фабрики"
+ },
+ "seconds": 263.8
+}

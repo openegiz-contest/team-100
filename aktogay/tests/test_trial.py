@@ -1,4 +1,5 @@
 """On/off trial (sim/trial.py): shift design, stand-in policy, statistics, one paired shift."""
+import json
 import math
 import os
 import random
@@ -9,12 +10,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
+from sim import events as ev  # noqa: E402
 from sim import trial  # noqa: E402
 from sim.params import default  # noqa: E402
 from sim.state import NO_VALUE  # noqa: E402
 from tests.support import prm  # noqa: E402
 
 CFG = dict(trial.DEFAULTS, n=1, jobs=1, boot=200)
+CFG_NONE = dict(CFG, twin_human="none")          # the asymmetric base of VALIDATION 8.8 (the twin sees a loud trouble at its start)
 
 
 class TestDesign(unittest.TestCase):
@@ -27,11 +30,14 @@ class TestDesign(unittest.TestCase):
             counts[len(s.troubles)] += 1
             nodes = [t.node for t in s.troubles]
             self.assertEqual(len(nodes), len(set(nodes)), nodes)
-            for t in s.troubles:
+            old = trial.draw_shift(seed, CFG_NONE)
+            self.assertEqual([t.issue for t in old.troubles], [t.issue for t in s.troubles])      # same draw, only the finding time differs
+            for t, t_old in zip(s.troubles, old.troubles):
                 self.assertTrue(8 * 60 <= t.t_start_min <= 18 * 60)
                 self.assertEqual(t.hidden, t.kind in trial.HIDDEN)
                 if t.hidden:
-                    self.assertAlmostEqual(t.t_found_min, t.t_start_min + CFG["detect_min"])
+                    self.assertGreater(t.t_found_min, t.t_start_min)       # the module's finding time (symmetric base)
+                    self.assertAlmostEqual(t_old.t_found_min, t.t_start_min + CFG["detect_min"])     # --twin-human none: start + detect_min
                 if t.kind in ("crusher", "trip"):
                     self.assertIn(f"stock{t.line}_t0", s.overrides)
             self.assertEqual(s.overrides["crew_sigma_ln"], 0.4)
@@ -266,7 +272,7 @@ class TestNoviceFromData(unittest.TestCase):
         self.assertEqual(_controller("novice_twin").nov_slip_min(tr, 700.0, False) >= 0.0, True)
 
     def test_twin_with_a_novice_has_no_diagnosis_slip(self):
-        k = _controller("novice_twin")
+        k = _controller("novice_twin", twin_human="none")
         tr = _trouble("crusher", 600.0)
         for seed in range(1, 600):
             k.seed = seed
@@ -276,7 +282,7 @@ class TestNoviceFromData(unittest.TestCase):
             ready = k._nov_ready[tr.issue]
             self.assertTrue(abs(ready - (600.0 + trial.EPS)) < 1e-9 or 620.0 - 1e-6 < ready < 640.0 + 1e-6, ready)   # a step slip only: +20..40 min
         # the same draw as in the novice: a step skipped is skipped on any path
-        a, b = _controller("novice_r"), _controller("novice_twin")
+        a, b = _controller("novice_r"), _controller("novice_twin", twin_human="none")
         for seed in range(1, 300):
             a.seed = b.seed = seed
             self.assertEqual(a.nov_slip_min(tr, 700.0, False), b.nov_slip_min(tr, 700.0, False))
@@ -289,7 +295,7 @@ class TestNoviceFromData(unittest.TestCase):
         self.assertEqual(booked, [])
 
     def test_a_shift_with_the_new_copies_keeps_the_expert_and_the_twin_unchanged(self):
-        base = dict(CFG, library="tier_s")
+        base = dict(CFG_NONE, library="tier_s")        # the twin that sees a loud trouble at its start: it calls before both
         seed = 1004                                                    # hard ore and a protection trip
         a = trial.run_shift((seed, dict(base, copies=["base", "by_value", "no_twin", "novice"])))       # the same 1-minute cycle as with the new copies
         b = trial.run_shift((seed, dict(base, copies=["base", "by_value", "no_twin", "nov_det", "nov_err", "nov_r", "nov_twin"])))
@@ -326,24 +332,29 @@ class TestAlarmFloodInTrial(unittest.TestCase):
 
 class TestExperiment23(unittest.TestCase):
     def test_defaults_keep_the_22_10_behaviour(self):
+        """Everything of the experiment of 24.10 stays at its default except the base: since 24.10 evening the default is the
+        symmetric one (twin_human same, VALIDATION 8.17); --twin-human none gives the 8.8 behaviour back."""
         d = trial.DEFAULTS
         self.assertIsNone(d["copies"])
         self.assertIsNone(d["crews"])
         self.assertEqual(d["call_delay_min"], 0.0)
         self.assertEqual(d["compliance"], 1.0)
-        k = _controller("value")
+        self.assertEqual((d["twin_human"], d["asis_hard"]), ("same", "dig"))
+        k = _controller("value", twin_human="none")
         tr = _trouble()
         self.assertAlmostEqual(k.known_at(tr), 600.0 + trial.EPS)
         self.assertEqual(k.delay_of(tr), 0.0)
 
     def test_call_delay_applies_to_the_chosen_kinds_only(self):
-        k = _controller("value", call_delay_min=60.0, delay_kinds=["dose"])
+        k = _controller("value", call_delay_min=60.0, delay_kinds=["dose"], twin_human="none")
         self.assertEqual(k.delay_of(_trouble("crusher")), 0.0)
         dose = _trouble("dose", hidden=True)
         self.assertEqual(k.delay_of(dose), 60.0)
         self.assertAlmostEqual(k.known_at(dose), 600.0 + 75.0 + 60.0)
-        k_all = _controller("value", call_delay_min=30.0)
+        k_all = _controller("value", call_delay_min=30.0, twin_human="none")
         self.assertAlmostEqual(k_all.known_at(_trouble("crusher")), 600.0 + 30.0 + trial.EPS)
+        ks = _controller("value", call_delay_min=60.0, delay_kinds=["dose"])        # symmetric base: the card is read after the delay, too
+        self.assertAlmostEqual(ks.known_at(dose), 600.0 + 75.0 + 60.0 + ev.notice_delay_min(ks.seed, dose.issue, ks.plant.prm))
 
     def test_no_detection_copy_sees_what_people_see(self):
         k = _controller("value_nd")
@@ -462,6 +473,178 @@ class TestExperiment23(unittest.TestCase):
         doc = trial.run_trial(dict(cfg, n=1, seed0=1001))
         self.assertEqual(doc["summary"], {})
         self.assertIn("no by_value", trial.format_report(doc))
+
+
+def _shift_tr(kind, start=600.0, hidden=False, found=None, line=1):
+    issue, node, crew = ev.issue_for(kind, line)
+    return trial.Trouble(issue, kind, 0 if kind in ev.SITE_KINDS else line, node, crew, start, hidden,
+                         t_found_min=NO_VALUE if found is None else found)
+
+
+class TestSymmetricBase(unittest.TestCase):
+    """VALIDATION 8.17: the twin is added to the people. With --twin-human same (default) it sees no earlier than they do,
+    except where the module's finding time was measured; --twin-human none keeps the base of 8.8."""
+
+    SEEDS = range(1001, 1011)
+
+    def test_constants_come_from_the_module_evaluation(self):
+        with open(os.path.join(ROOT, "web", "static", "detect_eval.json"), encoding="utf-8") as f:
+            d = json.load(f)
+        for kind, mag in (("dose", "0.4"), ("cyclone", "1.0")):
+            row = d["by_cause_magnitude"][kind][mag]
+            self.assertEqual(trial.MODULE_FIND[kind], (row["latency_median_min"], row["latency_p90_min"]), kind)
+        self.assertEqual(set(trial.MODULE_FIND), {"dose", "cyclone"})
+        p = default()                                                  # the magnitudes the numbers were measured at are the defaults of the trial
+        self.assertAlmostEqual(p["hc_dose_drop"], 0.4)
+        self.assertEqual(p["hc_cyclone_n"], 1)
+        self.assertEqual(trial.IMMEDIATE, ("crusher", "trip", "grid", "reline"))
+        self.assertEqual(trial.DEFAULTS["twin_human"], "same")
+        self.assertEqual(trial.DEFAULTS["asis_hard"], "dig")
+
+    def test_finding_time_follows_the_measured_median_and_p90(self):
+        for kind, (med, p90) in trial.MODULE_FIND.items():
+            tr = _shift_tr(kind, 600.0, True)
+            xs = sorted(trial.found_min(seed, CFG, tr) - 600.0 for seed in range(1, 2001))
+            self.assertAlmostEqual(xs[1000], med, delta=2.0, msg=kind)
+            self.assertAlmostEqual(xs[1799], p90, delta=3.0, msg=kind)
+            self.assertEqual(trial.found_min(7, CFG, tr), trial.found_min(7, CFG, tr))        # one draw per (seed, issue)
+            self.assertEqual(trial.found_min(7, CFG_NONE, tr), 600.0 + CFG["detect_min"])
+        other = _shift_tr("roping", 600.0, True)                                              # not measured: start + detect_min
+        self.assertEqual(trial.found_min(7, CFG, other), 600.0 + CFG["detect_min"])
+
+    def test_loud_kinds_are_known_at_the_people_minute(self):
+        for kind in trial.IMMEDIATE:
+            tr = _shift_tr(kind)
+            for mode in ("value", "loud"):
+                for seed in self.SEEDS:
+                    k = _controller(mode)
+                    k.seed = seed
+                    self.assertEqual(k.known_at(tr), k.seen_at(tr), (kind, mode, seed))
+                    if kind in ("crusher", "trip"):
+                        self.assertAlmostEqual(k.known_at(tr), 600.0 + ev.notice_delay_min(seed, tr.issue, k.plant.prm))
+                    else:
+                        self.assertAlmostEqual(k.known_at(tr), 610.0)                          # asis_notice_min after the start
+
+    def test_the_twin_is_never_later_than_the_people(self):
+        cfg = dict(CFG, library="tier_s")
+        n = 0
+        for seed in self.SEEDS:
+            shift = trial.draw_shift(seed, cfg)
+            k = trial.Controller(_FakePlant(), shift.troubles, "value", cfg, seed, None)
+            for tr in shift.troubles:
+                self.assertLessEqual(k.known_at(tr), k.seen_at(tr) + 1e-9, (seed, tr.issue))
+                n += 1
+        self.assertGreater(n, 20)
+
+    def test_roping_ph_drift_and_hpgr_are_seen_with_the_people(self):
+        for kind in ("phdrift", "hpgr", "roping"):
+            tr = _shift_tr(kind, 600.0, True, found=675.0, line=2 if kind == "hpgr" else 1)
+            for seed in self.SEEDS:
+                k = _controller("value")
+                k.seed = seed
+                self.assertEqual(k.known_at(tr), k.seen_at(tr), (kind, seed))
+                self.assertTrue(math.isfinite(k.known_at(tr)))
+
+    def test_mantle_hard_ore_dose_and_cyclone(self):
+        prm = default()
+        for seed in self.SEEDS:
+            k = _controller("value")
+            k.seed = seed
+            mantle = _shift_tr("mantle")
+            self.assertAlmostEqual(k.known_at(mantle), 600.0 + ev.notice_delay_min(seed, mantle.issue, prm))      # the plant alarm
+            self.assertLess(k.known_at(mantle), k.seen_at(mantle))
+            hard = _shift_tr("hard")
+            self.assertAlmostEqual(k.known_at(hard), 610.0)                                                      # the same notice
+            self.assertAlmostEqual(k.seen_at(hard), 600.0 + prm["scen_hard_lead_h"] * 60.0 + 10.0)              # the people act at the dig
+            for kind in ("dose", "cyclone"):
+                tr = _shift_tr(kind, 600.0, True, found=trial.found_min(seed, CFG, _shift_tr(kind, 600.0, True)))
+                self.assertAlmostEqual(k.known_at(tr), tr.t_found_min + ev.notice_delay_min(seed, tr.issue, prm))   # the card is read like an alarm
+                missed = _shift_tr(kind, 600.0, True)
+                self.assertEqual(k.known_at(missed), math.inf)                                                   # missed by the module
+
+    def test_none_keeps_the_base_of_8_8(self):
+        for mode in ("value", "loud"):
+            k = _controller(mode, twin_human="none")
+            for kind in ("crusher", "trip", "grid", "reline", "mantle", "hard"):
+                self.assertAlmostEqual(k.known_at(_shift_tr(kind)), 600.0 + trial.EPS, msg=kind)
+            self.assertAlmostEqual(k.known_at(_shift_tr("dose", 600.0, True, found=675.0)), 675.0)
+        k = _controller("value", twin_human="none")
+        self.assertLess(k.known_at(_shift_tr("trip")), k.seen_at(_shift_tr("trip")))
+
+    def test_the_plant_alarm_is_silenced_for_the_twin_copy_only(self):
+        tr = _shift_tr("crusher")
+        for human, mode, left in (("same", "value", 0), ("none", "value", 1), ("same", "loud", 1), ("same", "asis", 1)):
+            k = _controller(mode, twin_human=human)
+            k.troubles = [tr]
+            k.plant._loud = {tr.issue: 1.0}
+            k.tact(tr.t_start_min - 1.0)                               # nothing is known yet: only the silencing is looked at
+            self.assertEqual(len(k.plant._loud), left, (human, mode))
+        # the delay of the twin's call is not the people's: the copy "as now" keeps its alarm (E14)
+        k = _controller("asis", call_delay_min=10.0)
+        k.troubles = [tr]
+        k.plant._loud = {tr.issue: 1.0}
+        k.tact(tr.t_start_min - 1.0)
+        self.assertEqual(len(k.plant._loud), 1)
+        k = _controller("loud", call_delay_min=10.0)
+        k.troubles = [tr]
+        k.plant._loud = {tr.issue: 1.0}
+        k.tact(tr.t_start_min - 1.0)
+        self.assertEqual(len(k.plant._loud), 0)                        # the twin's copy with a delay still books the call itself
+
+    def test_the_call_delay_does_not_silence_the_copy_as_now(self):
+        """E14: with --call-delay 10 the copy "как сейчас" silenced its own alarm and never called (seed 1001, trip:2: 198.8 t Cu
+        against 318.1 t). The delay belongs to the twin's call; the people's call is the same with and without it."""
+        cfg = dict(CFG, copies=["base", "no_twin"])
+        a = trial.run_shift((1001, cfg))
+        b = trial.run_shift((1001, dict(cfg, call_delay_min=10.0)))
+        self.assertIn("trip:2", a["bookings"]["no_twin"])
+        self.assertIn("trip:2", b["bookings"]["no_twin"])
+        self.assertEqual(a["bookings"]["no_twin"]["trip:2"], b["bookings"]["no_twin"]["trip:2"])
+        self.assertEqual(a["cu_t_2000"]["no_twin"], b["cu_t_2000"]["no_twin"])
+
+    def test_hard_ore_seen_at_the_sag_is_never_before_the_dig(self):
+        for seed, library in ((1001, "base"), (1004, "tier_s")):
+            cfg = dict(CFG, copies=["base", "no_twin"], library=library)
+            dig = trial.run_shift((seed, dict(cfg, asis_hard="dig")))
+            sag = trial.run_shift((seed, dict(cfg, asis_hard="sag")))
+            hard = [t["issue"] for t in dig["troubles"] if t["kind"] == "hard"]
+            self.assertTrue(hard, seed)
+            for issue in hard:
+                self.assertIn(issue, dig["bookings"]["no_twin"])
+                if issue in sag["bookings"]["no_twin"]:                # finite: the block reached the SAG inside the window
+                    self.assertGreaterEqual(sag["bookings"]["no_twin"][issue]["t_call_min"],
+                                            dig["bookings"]["no_twin"][issue]["t_call_min"], (seed, issue))
+            self.assertLessEqual(sag["cu_t_2000"]["no_twin"], dig["cu_t_2000"]["no_twin"] + 1e-6)     # seeing it later is not better
+
+    def test_the_symmetric_base_runs_on_a_one_minute_cycle(self):
+        """With a 5-minute cycle the twin copy would book a loud trouble up to 5 minutes after the people (and the plant's alarm) do,
+        i.e. behind them by construction (seed 1001: +0.16 against +0.81 t Cu at 1 minute). `--twin-human same` therefore forces the
+        cycle of `fine_tact_min`, whatever `tact_min` says; with `none` the twin is ahead of the people anyway."""
+        cfg = dict(CFG, copies=["base", "by_value", "no_twin"], library="tier_s", tact_min=5.0)
+        self.assertEqual(cfg.get("twin_human", trial.DEFAULTS["twin_human"]), "same")
+        for seed in (1001, 1004):
+            row = trial.run_shift((seed, cfg))
+            n = 0
+            for issue, ex in row["bookings"]["no_twin"].items():
+                tw = row["bookings"]["by_value"].get(issue)
+                if tw is None or issue.split(":")[0] not in trial.IMMEDIATE:
+                    continue
+                n += 1
+                self.assertLessEqual(tw["t_call_min"], ex["t_call_min"] + 1e-6, (seed, issue))      # never behind the people
+            self.assertGreater(n, 0, seed)
+
+    def test_options_reach_the_result_config(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            out = os.path.join(d, "t.json")
+            self.assertEqual(trial.main(["--n", "1", "--jobs", "1", "--boot", "200", "--twin-human", "none", "--asis-hard", "sag",
+                                         "--copies", "base,by_value,no_twin", "--out", out]), 0)
+            with open(out, encoding="utf-8") as f:
+                doc = json.load(f)
+        self.assertEqual((doc["config"]["twin_human"], doc["config"]["asis_hard"]), ("none", "sag"))
+        doc = trial.run_trial(dict(CFG, copies=["base", "by_value", "no_twin"]))
+        self.assertEqual((doc["config"]["twin_human"], doc["config"]["asis_hard"]), ("same", "dig"))
+        self.assertIn("twin-human same", trial.format_report(doc))
 
 
 if __name__ == "__main__":

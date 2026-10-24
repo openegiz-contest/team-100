@@ -43,6 +43,7 @@
 <button type="button" class="primary" data-go="${esc(s.id)}">Да, запустить</button><button type="button" data-no>Отмена</button></div>
 <dl class="sc-dl"><dt>Что должно произойти</dt><dd>${esc(s.what)}</dd>
 <dt>Какая беда первая</dt><dd>${esc(s.first)}</dd>
+<dt>Когда видно</dt><dd>${esc(s.when)}</dd>
 <dt>Как проверить</dt><dd><ol>${s.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></dd>
 <dt>Кого звать</dt><dd>${esc(s.who)}${s.backup ? `; запасной: ${esc(s.backup)}` : ''}</dd>
 <dt>Закроется</dt><dd>${esc(s.closure)}</dd></dl>

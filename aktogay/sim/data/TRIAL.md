@@ -1,6 +1,6 @@
 # Опыт «вкл/выкл» на модели: прогоны 22.10.2026
 
-Все числа ниже — [оценка на модели], а не измерение на фабрике. Код опыта — `aktogay/sim/trial.py`,
+Все числа ниже — [оценка на модели], а не измерение на фабрике. **Эти прогоны получены на базе 22.10.2026, где двойник видит громкую беду в её первую минуту; с 24.10.2026 вечером эта база — флаг `--twin-human none`, а по умолчанию действует симметричная база (последний раздел).** Код опыта — `aktogay/sim/trial.py`,
 порядок вызовов — `aktogay/modules/policy.py` (тот же, что у очереди бед на стенде).
 
 ## Что меряли
@@ -60,11 +60,11 @@
 4 процессах; от `--jobs` результат не зависит.
 
 ```
-python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --jobs 4 --out aktogay\sim\data\trial_n100.json
-python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --jobs 4 --set sens_lab_delay_h=0 --out aktogay\sim\data\sens_lab_2h.json
-python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --jobs 4 --set sens_lab_delay_h=2 --out aktogay\sim\data\sens_lab_4h.json
-python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --jobs 4 --set sens_lab_delay_h=4 --out aktogay\sim\data\sens_lab_6h.json
-python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --jobs 4 --hidden-mult 0 --out aktogay\sim\data\trial_n100_hidden0.json
+python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --twin-human none --jobs 4 --out aktogay\sim\data\trial_n100.json
+python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --twin-human none --jobs 4 --set sens_lab_delay_h=0 --out aktogay\sim\data\sens_lab_2h.json
+python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --twin-human none --jobs 4 --set sens_lab_delay_h=2 --out aktogay\sim\data\sens_lab_4h.json
+python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --twin-human none --jobs 4 --set sens_lab_delay_h=4 --out aktogay\sim\data\sens_lab_6h.json
+python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --twin-human none --jobs 4 --hidden-mult 0 --out aktogay\sim\data\trial_n100_hidden0.json
 ```
 
 Сводку `trial_n100.json` сервис `akt-calib` публикует в вещь `validation-calib` (в интерфейсе —
@@ -72,8 +72,31 @@ python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --jobs 
 
 ## Опыт как исследование, 24.10.2026
 
-План записан до прогона в `VALIDATION.md`, 8.6; отклонения — 8.7; результаты — 8.8 [оценка на модели]. Прогоны `trial_n100.json`,
+План записан до прогона в `final_docs/VALIDATION.md`, 8.6; отклонения — 8.7; результаты — 8.8 [оценка на модели]. Прогоны `trial_n100.json`,
 `sens_lab_*.json` и `trial_n100_hidden0.json` выше не менялись (их читают страницы «Калибровка» и повтор смены). Новые прогоны лежат в
 `exp23/*.json` (строки по сменам), свод — `experiment_23.json`. Новые флаги `trial`: `--copies`, `--crews`, `--call-delay`, `--delay-kinds`,
 `--compliance`, `--est-sigma`, `--seeds`, `--aggregate`; новые копии `novice` и `value_nd`. Все прогоны и их порядок — `exp23/run_exp23.py`
 (≈ 51 мин на 4 процессах); свод: `python -I aktogay\run.py trial --aggregate aktogay\sim\data\exp23 --out aktogay\sim\data\experiment_23.json`.
+
+## Симметричная база, 24.10.2026 вечером
+
+Двойник добавлен к людям: он знает беду не позже людей (`--twin-human same`, по умолчанию; цикл вызовов принудительно 1 мин). Громкую беду с бригадой он видит в ту же минуту, что смена по тревоге (U(5; 15) мин [допущение]);
+тихую потерю (недодача собирателя, засор циклона) находит за время, измеренное на модуле «Где теряется медь» (`web/static/detect_eval.json`: медианы 110 и 95 мин, P90 125 и 126,5 мин) плюс чтение карточки U(5; 15) мин;
+канатирование, дрейф pH-метра и перекос ВВД — в минуту, когда их видят люди. Твёрдую руду «как сейчас» узнаёт при начале выемки блока (`--asis-hard dig`, по умолчанию) или на SAG (`--asis-hard sag`) [допущения].
+Прежняя база — `--twin-human none`. Подробно: `final_docs/VALIDATION.md`, 8.1, 8.17.
+
+| Прогон | Двойник целиком: среднее [95 % ДИ] | медиана | без одной наибольшей смены |
+|---|---|---|---|
+| `exp24/R1_same_dig_s1001.json` — симметричная база, seed 1001–1100 | **+0,61 [+0,23; +2,18]** | +0,09 | +0,26 |
+| `exp24/R2_same_dig_s2001.json` — то же, seed 2001–2100 | +0,31 [+0,21; +0,47] | +0,01 | +0,28 |
+| `exp24/R3_same_sag_s1001.json` — твёрдая руда «как сейчас» на SAG | +1,19 [+0,77; +2,81] | +0,14 | +0,85 |
+| `exp24/R4_same_sag_s2001.json` — то же, seed 2001–2100 | +0,81 [+0,58; +1,14] | +0,14 | +0,73 |
+| `exp24/R5_none_dig_s1001.json` — `--twin-human none` на этом коде (контроль 8.8) | +1,09 [+0,90; +1,33] | +0,71 | +1,04 |
+
+Остальные прогоны (повтор контроля и живая часть склада 163 кт) — в `exp24/`, свод — `experiment_24.json`. Команды:
+
+```
+python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --library tier_s --jobs 4 --out R1.json
+python -I -B -X utf8 aktogay\sim\data\exp24\run_exp24.py        (все десять прогонов, ≈ 55 мин на 4 процессах, ниже обычного приоритета)
+python -I -B -X utf8 aktogay\run.py exp24 --write aktogay\sim\data\experiment_24.json
+```

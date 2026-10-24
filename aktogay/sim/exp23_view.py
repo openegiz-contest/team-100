@@ -1,7 +1,11 @@
-"""Compact file for the pages «Экономика» and «Калибровка»: the result of the experiment of 24.10.2026 (VALIDATION.md 8.6-8.8).
+"""Compact file for the pages «Экономика» and «Калибровка»: the result of the experiment of 24.10.2026 (VALIDATION.md 8.6-8.8, 8.17).
 
-Built only from `sim/data/experiment_23.json` (the summary of `sim/data/exp23/*.json`); nothing is simulated here and the
-older files (`trial_n100.json`, the report of the calibration job) are not touched. Every number is a model estimate.
+Built only from `sim/data/experiment_23.json` (the summary of `sim/data/exp23/*.json`, the base of 8.8: the twin sees a loud trouble at
+its start, `--twin-human none`) and `sim/data/experiment_24.json` (the symmetric people / twin base of 8.17, `sim/exp24.py`); nothing is
+simulated here and the older files (`trial_n100.json`, the report of the calibration job) are not touched. When experiment_24.json is
+there, `main` and `replication` are the symmetric base (the headline) and the base of 8.8 moves to `history.asym_8_8`; the blocks that were
+computed only on the base of 8.8 (tornado, price of an hour of delay, detection against order, laboratory) stay and are labelled so. Every
+number is a model estimate.
 
   python -I aktogay/run.py exp23 --write aktogay/web/static/exp23.json
 """
@@ -13,6 +17,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "data", "experiment_23.json")
+SRC24 = os.path.join(HERE, "data", "experiment_24.json")
 KIND_RU = {"trip": "остановка по защите", "crusher": "поломка дробилки", "grid": "урезание сети",
            "dose": "дрейф реагента", "hard": "твёрдая руда", "cyclone": "засор циклона", "reline": "перефутеровка",
            "roping": "канатирование циклонов", "phdrift": "дрейф pH-метра", "hpgr": "неравномерное питание ВВД",
@@ -71,7 +76,89 @@ def _novice(d: dict) -> dict:
     return out
 
 
-def build(path: str = SRC) -> dict:
+def _run24(r: dict) -> dict:
+    """One run of experiment_24.json in the form of the page: the statistics asked for in the brief of 24.10.2026."""
+    t = r["twin_minus_asis"]
+    return {"seeds": r["seeds"], "n": r["n"], "cu": _est(t, 3), "median": round(t["median"], 3), "trim1": round(t["trim1"], 3),
+            "p10": round(t["p10"], 3), "p90": round(t["p90"], 3), "share_worse": t["share_worse"], "share_better": t["share_better"],
+            "top_seed": r["top_shift"]["seed"], "top_d_cu": round(r["top_shift"]["d_cu_t"], 2),
+            "without_top": _est(r["without_top_shift"], 3), "seed_1066": None if r.get("seed_1066") is None else round(r["seed_1066"], 2)}
+
+
+def _main24(r: dict) -> dict:
+    t, m = r["twin_minus_asis"], r["metrics"]
+    out = {"n": r["n"], "seeds": r["seeds"], "troubles_per_shift": r["troubles_per_shift"],
+           "cu": _est(t), "usd": _est(m["usd"], 0), "kwh_per_t_cu": _est(m["kwh_per_t_cu"], 3), "down_min": _est(m["down_min"], 1),
+           "share_worse": t["share_worse"], "share_better": t["share_better"], "median": round(t["median"], 3),
+           "cu_no_troubles": round(r["cu_no_troubles_t"], 2)}
+    out.update({k: v for k, v in _run24(r).items() if k in ("trim1", "p10", "p90", "top_seed", "top_d_cu", "without_top", "seed_1066")})
+    return out
+
+
+def _sym(e: dict) -> dict:
+    """The block `sym` of the page: every variant of 8.17 on both seed sets, the steps of the ladder, where the gain sits."""
+    runs = e["runs"]
+    pick = lambda *keys: {k: _run24(runs[k]) for k in keys if k in runs}          # noqa: E731
+    r1 = runs["R1"]
+    out = {"dig": pick("R1", "R2"), "sag": pick("R3", "R4"), "stock_b": pick("R6", "R6b", "R7", "R7b"), "none": pick("R5", "R5b"),
+           "where_the_gain_sits": r1["gain_sits_in"], "decomposition": r1.get("decomposition"),
+           "detection": _est(r1["detection"], 3), "order": _est(r1["order"], 3), "top_seed": r1["top_shift"]["seed"]}
+    if "ladder" in e:
+        out["ladder"] = {k: {"cu": _est(v, 3), "median": round(v["median"], 3), "trim1": round(v["trim1"], 3), "stage": v["stage"], "seed0": v["seed0"]}
+                         for k, v in e["ladder"].items()}
+    return out
+
+
+def _worse24(e: dict) -> dict:
+    out = {}
+    for key, tag in (("R1", "main_full"), ("R2", "rep_full")):
+        r = e["runs"].get(key)
+        if r:
+            ws = r["worse_shifts"]
+            out[tag] = {"n": r["n"], "n_worse": len(ws), "n_below_zero": sum(1 for w in ws if w["d_cu"] < 0), "worst": round(ws[0]["d_cu"], 2) if ws else 0.0,
+                        "rows": [{"seed": w["seed"], "d_cu": round(w["d_cu"], 3), "text": w["text"], "kinds": w["kinds"], "shared_crew": w["shared_crew"]}
+                                 for w in ws]}
+    return out
+
+
+def build(path: str = SRC, path24: str = SRC24) -> dict:
+    out = _build23(path)
+    if not os.path.exists(path24):
+        return out
+    with open(path24, encoding="utf-8") as f:
+        e = json.load(f)
+    if "R1" not in e["runs"] or "R2" not in e["runs"]:
+        return out
+    old_main, old_rep = out["main"], out["replication"]
+    out["history"]["asym_8_8"] = {"note": "база опыта 8.8: двойник видит громкую беду в её начале (--twin-human none)", "main": old_main, "replication": old_rep,
+                                  "control_on_the_merged_code": _run24(e["runs"]["R5"]) if "R5" in e["runs"] else None}
+    out["main"] = _main24(e["runs"]["R1"])
+    r2 = e["runs"]["R2"]
+    out["replication"] = {"seeds": r2["seeds"], "cu": _est(r2["twin_minus_asis"]), "share_worse": r2["twin_minus_asis"]["share_worse"]}
+    out["sym"] = _sym(e)
+    out["worse"] = _worse24(e)
+    if e["runs"]["R1"].get("energy_co2"):
+        out["energy"] = _energy({"energy_co2": e["runs"]["R1"]["energy_co2"]})
+    if e.get("novice_data"):
+        nd = dict(e["novice_data"])
+        nd.setdefault("expectations", {})
+        out["novice"] = _novice({"b3_d1": {"main_full": {"pairs": {"expert-novice": _expert_novice23(path)}}}, "novice_data": nd})
+        pairs = (out["novice"].get("data") or {}).get("pairs", {})
+        if "twin-expert" in pairs:
+            # the same 100 differences as the headline (code control): one interval on the pages, not a second bootstrap draw of it
+            pairs["twin-expert"]["cu"] = dict(out["main"]["cu"])
+    out["source"] = {**out["source"], "file": "sim/data/experiment_24.json (+ experiment_23.json)", "plan": "VALIDATION.md 8.6, 8.17",
+                     "doc": "VALIDATION.md 8.6-8.8, 8.17"}
+    return out
+
+
+def _expert_novice23(path: str) -> dict:
+    """«опытный − новичок по одной беде» of 8.8 (it does not involve the twin and stays as it was)."""
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)["b3_d1"]["main_full"]["pairs"]["expert-novice"]
+
+
+def _build23(path: str = SRC) -> dict:
     with open(path, encoding="utf-8") as f:
         d = json.load(f)
     b = d["b3_d1"]

@@ -163,14 +163,17 @@ def water_step(w: WaterState, fl: WaterFlows, dt_min: float, prm: ParamSet, z_pi
     pond_in = max(0, proc - overflow_used - conc_moist - tails_loss) + spill
       (free water of the tails; filtrate joins the tails stream);
     pond_return = regulator: pond_in - evap + (pond - mid) / pond_reg_h,
-      mid = (pond_lo_m3 + pond_hi_m3) / 2, clamped to [0, proc - overflow_used];
+      mid = (pond_lo_m3 + pond_hi_m3) / 2, clamped to [0, proc - overflow_used],
+      with a floor while the pond holds water: at least proc - overflow_used - water_intake_cap_m3h
+      (what the fresh-water cap cannot supply), never more than the pond holds plus pond_in minus evaporation;
     evap = water_evap_m3h (fitted, includes seepage);
     pond water limits the step: evap and then pond_return never take more
       than the pond holds plus pond_in;
     leak = fl.leak_frac * pond_return (lost from the return pipeline, scenario water);
     recycle = pond_return - leak + overflow_used; demand = proc - recycle;
     intake = min(demand, water_intake_cap_m3h); short = demand - intake (process water
-      missing: less water reaches the tails, pond_in falls by it; the plant cuts the ore);
+      missing: less water reaches the tails, pond_in falls by it; the plant cuts the ore;
+      a short below 1e-6 m3/h is rounding and is set to 0);
     pond_m3 += (pond_in - pond_return - evap) * dt / 60;
     residual_pct = 100 * (intake - tails_loss - conc_moist - evap - leak - d(pond)/dt) / intake
       (0 when intake is 0); non-zero only when the inputs are not consistent;
@@ -209,6 +212,11 @@ def water_step(w: WaterState, fl: WaterFlows, dt_min: float, prm: ParamSet, z_pi
         avail = math.inf if w.pond_m3 > 0.0 else pond_in
     evap = min(evap_sp, avail)
     ret = min(ret, max(0.0, avail - evap))
+    # Floor of the regulator: while the pond holds water the plant is not left short of process water by the band logic. The fresh
+    # water cap forces at least `cap - water_intake_cap_m3h` of return; without the floor a pond below the middle of its band (1 Mm3
+    # in a 1.0-1.5 Mm3 band) made the regulator hold the water back and the plant cut the ore by 76 % (VALIDATION 9.4).
+    if w.pond_m3 > 0.0:
+        ret = max(ret, min(max(0.0, cap - prm["water_intake_cap_m3h"]), max(0.0, avail - evap)))
 
     # winter: part of the pond return does not reach the process (ice, frozen sections); it stays in the pond
     ret = ret * (1.0 - min(max(0.0, fl.winter_frac), 1.0))
@@ -217,6 +225,8 @@ def water_step(w: WaterState, fl: WaterFlows, dt_min: float, prm: ParamSet, z_pi
     intake_cap = prm["water_intake_cap_m3h"]
     intake = min(demand, intake_cap)
     short = demand - intake
+    if short < 1e-6:                                 # rounding of the sums, not a deficit: the state must not read SHORT (E18)
+        short = 0.0
     pond_in = max(0.0, pond_in - short)              # water the process did not get does not reach the tails
     rate = pond_in - ret - evap                      # d(pond)/dt, m3/h
     w.pond_m3 = max(0.0, w.pond_m3 + rate * dt_min / MIN_PER_H)

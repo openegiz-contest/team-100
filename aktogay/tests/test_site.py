@@ -76,8 +76,8 @@ class TestPit(unittest.TestCase):
         self.assertEqual(seen[:3], ["LOADING"] * 3)
         self.assertEqual(seen.count("HAUL_FULL"), 12)
         self.assertEqual(seen.count("QUEUE"), 2)
-        self.assertEqual(seen.count("DUMP"), 1)
-        self.assertEqual(seen.count("RETURN"), 12)
+        self.assertEqual(seen.count("DUMP"), 2)                  # dump = (20.25 + 17.51) s + 0.5 min = 1.13 min (sim/haul.py)
+        self.assertEqual(seen.count("RETURN"), 11)
 
     def test_trucks_faces_follow_the_aggregate(self):
         pl = Plant(prm(), seed=42)

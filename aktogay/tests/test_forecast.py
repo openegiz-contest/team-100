@@ -267,7 +267,7 @@ class ForecastTest(unittest.TestCase):
         self.assertLess(b["days_to_end"], a["days_to_end"])
         self.assertAlmostEqual(a["drop_from_peak_pct"], 100 * (0.98 / 1.03 - 1), places=6)
         self.assertLess(a["drop_from_peak_pct"], 0.0)
-        self.assertAlmostEqual(a["reline_h"], 96)
+        self.assertAlmostEqual(a["reline_h"], 84)
         self.assertGreater(a["reline_cu_t"], 0.0)
         self.assertEqual(len(f["curve"]), 21)
         txt = fc.liner_text(f, T0)

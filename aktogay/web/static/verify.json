@@ -1,0 +1,1209 @@
+{
+ "code_hash": "8c5de3472dfd",
+ "command": "python -I aktogay/run.py verify --write aktogay/web/static/verify.json",
+ "copy_ru": {
+  "base": "база",
+  "fact": "факт",
+  "loud": "по громкости",
+  "no_twin": "без двойника"
+ },
+ "fork_ru": {
+  "base": "база",
+  "fact": "по $",
+  "loud": "по громкости",
+  "no_twin": "без двойника"
+ },
+ "label": "оценка на модели; тот же код, что в akt-sim; копия «факт» без нажатий в интерфейсе",
+ "runs": [
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.0157,
+     "energy_mwh": 3100.328,
+     "ore_t": 84055.69,
+     "usd": 4107271.0,
+     "water_m3": 48996.9
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -0.7431,
+     "energy_mwh": -12.244,
+     "ore_t": -83.9,
+     "usd": -9918.0,
+     "water_m3": -25.4
+    }
+   },
+   "fork": false,
+   "id": "crusher:1",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 296.2884,
+     "energy_mwh": 3091.394,
+     "ore_t": 82098.34,
+     "usd": 4000448.0,
+     "water_m3": 48390.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -8.4703,
+     "energy_mwh": -21.178,
+     "ore_t": -2041.25,
+     "usd": -116741.0,
+     "water_m3": -632.0
+    }
+   },
+   "fork": false,
+   "id": "conveyor:1",
+   "kip": 1,
+   "moments": {
+    "sag_off_1": {
+     "clock": "11:00",
+     "min": 180.0
+    },
+    "stock_empty_1": {
+     "clock": "10:57",
+     "min": 177.0
+    }
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 159.5075,
+     "energy_mwh": 1927.299,
+     "ore_t": 43512.08,
+     "usd": 2142124.0,
+     "water_m3": 36412.0
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -145.2513,
+     "energy_mwh": -1185.273,
+     "ore_t": -40627.51,
+     "usd": -1975065.0,
+     "water_m3": -12610.3
+    }
+   },
+   "fork": false,
+   "id": "reline:1",
+   "kip": 1,
+   "moments": {
+    "sag_off_1": {
+     "clock": "08:01",
+     "min": 1.0
+    }
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 200.8859,
+     "energy_mwh": 2992.837,
+     "ore_t": 55067.1,
+     "usd": 2681479.0,
+     "water_m3": 39998.4
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -103.8728,
+     "energy_mwh": -119.734,
+     "ore_t": -29072.49,
+     "usd": -1435709.0,
+     "water_m3": -9023.9
+    }
+   },
+   "fork": false,
+   "id": "mantle:1",
+   "kip": 1,
+   "moments": {
+    "sag_off_1": {
+     "clock": "11:00",
+     "min": 180.0
+    },
+    "stock_empty_1": {
+     "clock": "10:57",
+     "min": 177.0
+    }
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 299.271,
+     "energy_mwh": 3113.761,
+     "ore_t": 82451.97,
+     "usd": 4041112.0,
+     "water_m3": 48497.1
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -5.4878,
+     "energy_mwh": 1.189,
+     "ore_t": -1687.62,
+     "usd": -76077.0,
+     "water_m3": -525.2
+    }
+   },
+   "fork": false,
+   "id": "hpgr_fire",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 281.0542,
+     "energy_mwh": 3070.268,
+     "ore_t": 77431.79,
+     "usd": 3790036.0,
+     "water_m3": 46938.0
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -23.7045,
+     "energy_mwh": -42.303,
+     "ore_t": -6707.8,
+     "usd": -327152.0,
+     "water_m3": -2084.3
+    }
+   },
+   "fork": false,
+   "id": "hpgr:2",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 299.7021,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4046975.0,
+     "water_m3": 49034.5
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -5.0566,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": -70214.0,
+     "water_m3": 12.2
+    }
+   },
+   "fork": false,
+   "id": "roping:1",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 302.8462,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4090632.0,
+     "water_m3": 49027.1
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -1.9125,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": -26557.0,
+     "water_m3": 4.8
+    }
+   },
+   "fork": false,
+   "id": "phdrift:1",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 0.0,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": 0.0,
+     "water_m3": 0.0
+    }
+   },
+   "fork": false,
+   "id": "sample:1",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 305.4037,
+     "energy_mwh": 3095.177,
+     "ore_t": 85129.52,
+     "usd": 4126607.0,
+     "water_m3": 49333.6
+    },
+    "loud": {
+     "cu_t": 303.2286,
+     "energy_mwh": 3099.699,
+     "ore_t": 84837.91,
+     "usd": 4096288.0,
+     "water_m3": 49246.3
+    },
+    "no_twin": {
+     "cu_t": 302.3814,
+     "energy_mwh": 3099.699,
+     "ore_t": 84837.91,
+     "usd": 4084523.0,
+     "water_m3": 49248.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 0.645,
+     "energy_mwh": -17.395,
+     "ore_t": 989.93,
+     "usd": 9419.0,
+     "water_m3": 311.3
+    },
+    "loud": {
+     "cu_t": -1.5301,
+     "energy_mwh": -12.872,
+     "ore_t": 698.33,
+     "usd": -20901.0,
+     "water_m3": 224.0
+    },
+    "no_twin": {
+     "cu_t": -2.3774,
+     "energy_mwh": -12.872,
+     "ore_t": 698.33,
+     "usd": -32665.0,
+     "water_m3": 226.0
+    }
+   },
+   "fork": true,
+   "fork_cu_t": {
+    "detection_cu_t": 0.847265,
+    "order_cu_t": 2.175096,
+    "total_cu_t": 3.022362
+   },
+   "id": "fork",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 291.3794,
+     "energy_mwh": 3012.157,
+     "ore_t": 80395.02,
+     "usd": 3934982.0,
+     "water_m3": 47859.0
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -13.3793,
+     "energy_mwh": -100.415,
+     "ore_t": -3744.57,
+     "usd": -182206.0,
+     "water_m3": -1163.3
+    }
+   },
+   "fork": false,
+   "id": "icy+dust+grid",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 285.4166,
+     "energy_mwh": 2994.559,
+     "ore_t": 78481.67,
+     "usd": 3852931.0,
+     "water_m3": 47263.9
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -19.3422,
+     "energy_mwh": -118.012,
+     "ore_t": -5657.91,
+     "usd": -264257.0,
+     "water_m3": -1758.4
+    }
+   },
+   "fork": false,
+   "id": "startup:1",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 0.0,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": 0.0,
+     "water_m3": 0.0
+    }
+   },
+   "fork": false,
+   "id": "dust",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 0.0,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": 0.0,
+     "water_m3": 0.0
+    }
+   },
+   "fork": false,
+   "id": "leachcold",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.3792,
+     "energy_mwh": 3112.276,
+     "ore_t": 84157.1,
+     "usd": 4111927.0,
+     "water_m3": 49028.0
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -0.3795,
+     "energy_mwh": -0.295,
+     "ore_t": 17.51,
+     "usd": -5262.0,
+     "water_m3": 5.7
+    }
+   },
+   "fork": false,
+   "id": "icy",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 0.0,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": 0.0,
+     "water_m3": 0.0
+    }
+   },
+   "fork": false,
+   "id": "fatigue",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 251.5564,
+     "energy_mwh": 3014.957,
+     "ore_t": 70233.97,
+     "usd": 3383020.0,
+     "water_m3": 44325.6
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -53.2024,
+     "energy_mwh": -97.615,
+     "ore_t": -13905.62,
+     "usd": -734169.0,
+     "water_m3": -4696.7
+    }
+   },
+   "fork": false,
+   "id": "pitstop",
+   "kip": 1,
+   "moments": {
+    "sag_off_1": {
+     "clock": "11:30",
+     "min": 210.0
+    },
+    "sag_off_2": {
+     "clock": "16:17",
+     "min": 497.0
+    },
+    "stock_empty_1": {
+     "clock": "11:27",
+     "min": 207.0
+    },
+    "stock_empty_2": {
+     "clock": "16:14",
+     "min": 494.0
+    }
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7444,
+     "energy_mwh": 3112.56,
+     "ore_t": 84134.76,
+     "usd": 4116990.0,
+     "water_m3": 49020.8
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -0.0143,
+     "energy_mwh": -0.011,
+     "ore_t": -4.83,
+     "usd": -198.0,
+     "water_m3": -1.5
+    }
+   },
+   "fork": false,
+   "id": "oil",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 305.8508,
+     "energy_mwh": 3114.271,
+     "ore_t": 84459.94,
+     "usd": 4132267.0,
+     "water_m3": 49120.5
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 1.092,
+     "energy_mwh": 1.7,
+     "ore_t": 320.35,
+     "usd": 15079.0,
+     "water_m3": 98.2
+    }
+   },
+   "fork": false,
+   "id": "hard:1",
+   "kip": 1,
+   "moments": {},
+   "next_day_cu_t": {
+    "diff_total": -7.166,
+    "night_shift": -8.258,
+    "until": "08:00"
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 291.4006,
+     "energy_mwh": 3012.453,
+     "ore_t": 80331.86,
+     "usd": 3935273.0,
+     "water_m3": 47839.2
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -13.3582,
+     "energy_mwh": -100.119,
+     "ore_t": -3807.73,
+     "usd": -181916.0,
+     "water_m3": -1183.1
+    }
+   },
+   "fork": false,
+   "id": "grid",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 301.2934,
+     "energy_mwh": 3104.36,
+     "ore_t": 83055.42,
+     "usd": 4067117.0,
+     "water_m3": 56419.5
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -3.4653,
+     "energy_mwh": -8.212,
+     "ore_t": -1084.16,
+     "usd": -50072.0,
+     "water_m3": 7397.2
+    }
+   },
+   "fork": false,
+   "id": "water",
+   "kip": 1,
+   "moments": {
+    "sag_off_1": {
+     "clock": "08:46",
+     "min": 46.0
+    },
+    "sag_off_2": {
+     "clock": "08:46",
+     "min": 46.0
+    }
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4115393.0,
+     "water_m3": 55006.8
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 0.0,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": -1795.0,
+     "water_m3": 5984.5
+    }
+   },
+   "fork": false,
+   "id": "winter",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 247.1814,
+     "energy_mwh": 3072.358,
+     "ore_t": 68225.42,
+     "usd": 3320511.0,
+     "water_m3": 44083.2
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -57.5773,
+     "energy_mwh": -40.214,
+     "ore_t": -15914.17,
+     "usd": -796678.0,
+     "water_m3": -4939.1
+    }
+   },
+   "fork": false,
+   "id": "gmd:1",
+   "kip": 1,
+   "moments": {
+    "sag_off_1": {
+     "clock": "09:31",
+     "min": 91.0
+    }
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.2972,
+     "energy_mwh": 3104.659,
+     "ore_t": 83946.01,
+     "usd": 4111051.0,
+     "water_m3": 48962.0
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -0.4615,
+     "energy_mwh": -7.913,
+     "ore_t": -193.58,
+     "usd": -6137.0,
+     "water_m3": -60.3
+    }
+   },
+   "fork": false,
+   "id": "idler:1",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 302.942,
+     "energy_mwh": 3112.57,
+     "ore_t": 84139.42,
+     "usd": 4091963.0,
+     "water_m3": 49026.8
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -1.8167,
+     "energy_mwh": -0.001,
+     "ore_t": -0.17,
+     "usd": -25226.0,
+     "water_m3": 4.5
+    }
+   },
+   "fork": false,
+   "id": "froth:1",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 291.9973,
+     "energy_mwh": 3082.516,
+     "ore_t": 80543.68,
+     "usd": 3941296.0,
+     "water_m3": 47905.6
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -12.7614,
+     "energy_mwh": -30.056,
+     "ore_t": -3595.91,
+     "usd": -175892.0,
+     "water_m3": -1116.7
+    }
+   },
+   "fork": false,
+   "id": "rake:1",
+   "kip": 1,
+   "moments": {
+    "sag_off_1": {
+     "clock": "15:01",
+     "min": 421.0
+    }
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7582,
+     "energy_mwh": 3112.57,
+     "ore_t": 84139.42,
+     "usd": 4117182.0,
+     "water_m3": 49019.1
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -0.0005,
+     "energy_mwh": -0.001,
+     "ore_t": -0.17,
+     "usd": -6.0,
+     "water_m3": -3.2
+    }
+   },
+   "fork": false,
+   "id": "cloth:1",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 297.1158,
+     "energy_mwh": 3094.101,
+     "ore_t": 81895.85,
+     "usd": 4011869.0,
+     "water_m3": 48324.8
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -7.6429,
+     "energy_mwh": -18.471,
+     "ore_t": -2243.74,
+     "usd": -105319.0,
+     "water_m3": -697.5
+    }
+   },
+   "fork": false,
+   "id": "slurry:1",
+   "kip": 1,
+   "moments": {
+    "sag_off_1": {
+     "clock": "10:06",
+     "min": 126.0
+    }
+   },
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.6855,
+     "energy_mwh": 3112.547,
+     "ore_t": 84131.68,
+     "usd": 4116173.0,
+     "water_m3": 49019.9
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -0.0732,
+     "energy_mwh": -0.025,
+     "ore_t": -7.91,
+     "usd": -1015.0,
+     "water_m3": -2.4
+    }
+   },
+   "fork": false,
+   "id": "brake",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.1205,
+     "energy_mwh": 3112.221,
+     "ore_t": 83980.86,
+     "usd": 4108353.0,
+     "water_m3": 48973.1
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -0.6382,
+     "energy_mwh": -0.351,
+     "ore_t": -158.73,
+     "usd": -8835.0,
+     "water_m3": -49.2
+    }
+   },
+   "fork": false,
+   "id": "track",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7135,
+     "energy_mwh": 3099.699,
+     "ore_t": 84837.91,
+     "usd": 4116906.0,
+     "water_m3": 49242.7
+    },
+    "loud": {
+     "cu_t": 304.5985,
+     "energy_mwh": 3099.699,
+     "ore_t": 84837.91,
+     "usd": 4115310.0,
+     "water_m3": 49243.0
+    },
+    "no_twin": {
+     "cu_t": 302.3814,
+     "energy_mwh": 3099.699,
+     "ore_t": 84837.91,
+     "usd": 4084523.0,
+     "water_m3": 49248.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": -0.0452,
+     "energy_mwh": -12.872,
+     "ore_t": 698.33,
+     "usd": -282.0,
+     "water_m3": 220.4
+    },
+    "loud": {
+     "cu_t": -0.1602,
+     "energy_mwh": -12.872,
+     "ore_t": 698.33,
+     "usd": -1879.0,
+     "water_m3": 220.7
+    },
+    "no_twin": {
+     "cu_t": -2.3774,
+     "energy_mwh": -12.872,
+     "ore_t": 698.33,
+     "usd": -32665.0,
+     "water_m3": 226.0
+    }
+   },
+   "fork": true,
+   "fork_cu_t": {
+    "detection_cu_t": 2.217161,
+    "order_cu_t": 0.114976,
+    "total_cu_t": 2.332137
+   },
+   "id": "fork",
+   "kip": 2,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  }
+ ],
+ "seed": 42
+}

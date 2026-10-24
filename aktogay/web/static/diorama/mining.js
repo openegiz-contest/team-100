@@ -271,7 +271,7 @@ export function build(ctx) {
     lbl(cid, () => {
       if (!AKT.things[cid]) return '';
       const s = AKT.st(cid);
-      return `ЦПД-${p.n} · ${AKT.fmt(AKT.num(cid, 'tph'))} т/ч${s && s !== 'RUN' ? ' · ' + AKT.stOf(cid) : ''}`;
+      return `Дробилка ЦПД-${p.n} · ${AKT.fmt(AKT.num(cid, 'tph'))} т/ч${s && s !== 'RUN' ? ' · ' + AKT.stOf(cid) : ''}`;
     }, { thing: cid, prio: 2, at: new V3(p.nx - 4, p.y0 + 34, p.nz),
       title: () => `${AKT.nameRu(cid)}: ${AKT.stOf(cid)} · ${AKT.fmt(AKT.num(cid, 'tph'))} т/ч (Ditto) · ${AKT.pass(cid, 'kind') || ''}` });
     lbl(kid, () => {

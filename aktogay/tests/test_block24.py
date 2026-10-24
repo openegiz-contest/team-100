@@ -6,7 +6,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC = os.path.join(ROOT, "web", "static")
-DOCS = os.path.dirname(ROOT)
+DOCS = os.path.join(os.path.dirname(ROOT), "final_docs")
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
@@ -56,7 +56,7 @@ class PagesTest(unittest.TestCase):
         self.assertIn("Сверка с фактом KAZ Minerals", read(STATIC, "views.js"))
 
     def test_readme_sections(self):
-        r = read(DOCS, "README.md")
+        r = read(DOCS, "README_aktogay.md")
         self.assertLess(r.index("### Как проверить за 5 минут"), r.index("### Требования"))
         self.assertIn("### Что сделано сверх Примера рудника", r)
         self.assertIn("GRAFANA_ADMIN_PASSWORD", r)

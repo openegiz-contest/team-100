@@ -259,7 +259,7 @@ class HandoverTest(unittest.TestCase):
         for head in ("Сдача смены 19:30", "Открытые беды", "Отложенные", "Приборы под подозрением",
                      "Руда на 12 ч", "Бригады"):
             self.assertIn(head, ho["text"])
-        self.assertIn("Дробилка 2", ho["text"])
+        self.assertIn("Дробилка ЦПД-2", ho["text"])
         self.assertTrue(ho["crews"])
 
     def test_no_sheet_at_the_first_tact_and_one_per_mark(self):

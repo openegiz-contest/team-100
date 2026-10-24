@@ -1,0 +1,218 @@
+{
+ "causes": [
+  "dose",
+  "cyclone",
+  "liner",
+  "oxide"
+ ],
+ "command": "python -I aktogay/run.py cusum_eval --write aktogay/web/static/cusum_eval.json --jobs 4",
+ "curve": [
+  {
+   "delay_median_min": 95.0,
+   "delay_p90_min": 275.0,
+   "detected_share": 0.975,
+   "false_alarms_per_week_free_run": 35.25,
+   "fast": 3.0,
+   "h": 4.0,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 95.0,
+   "delay_p90_min": 275.0,
+   "detected_share": 0.975,
+   "false_alarms_per_week_free_run": 35.25,
+   "fast": 3.5,
+   "h": 4.0,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 95.0,
+   "delay_p90_min": 275.0,
+   "detected_share": 0.975,
+   "false_alarms_per_week_free_run": 35.25,
+   "fast": 4.0,
+   "h": 4.0,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 110.0,
+   "delay_p90_min": 300.0,
+   "detected_share": 0.975,
+   "false_alarms_per_week_free_run": 32.25,
+   "fast": 3.0,
+   "h": 5.0,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 110.0,
+   "delay_p90_min": 300.0,
+   "detected_share": 0.975,
+   "false_alarms_per_week_free_run": 32.25,
+   "fast": 3.5,
+   "h": 5.0,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 110.0,
+   "delay_p90_min": 300.0,
+   "detected_share": 0.975,
+   "false_alarms_per_week_free_run": 32.25,
+   "fast": 4.0,
+   "h": 5.0,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 110.0,
+   "delay_p90_min": 245.0,
+   "detected_share": 0.925,
+   "false_alarms_per_week_free_run": 29.75,
+   "fast": 3.0,
+   "h": 6.5,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 110.0,
+   "delay_p90_min": 245.0,
+   "detected_share": 0.925,
+   "false_alarms_per_week_free_run": 29.75,
+   "fast": 3.5,
+   "h": 6.5,
+   "work_point": true
+  },
+  {
+   "delay_median_min": 110.0,
+   "delay_p90_min": 245.0,
+   "detected_share": 0.925,
+   "false_alarms_per_week_free_run": 29.75,
+   "fast": 4.0,
+   "h": 6.5,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 140.0,
+   "delay_p90_min": 255.0,
+   "detected_share": 0.925,
+   "false_alarms_per_week_free_run": 27.0,
+   "fast": 3.0,
+   "h": 8.0,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 140.0,
+   "delay_p90_min": 255.0,
+   "detected_share": 0.925,
+   "false_alarms_per_week_free_run": 27.0,
+   "fast": 3.5,
+   "h": 8.0,
+   "work_point": false
+  },
+  {
+   "delay_median_min": 140.0,
+   "delay_p90_min": 255.0,
+   "detected_share": 0.925,
+   "false_alarms_per_week_free_run": 27.0,
+   "fast": 4.0,
+   "h": 8.0,
+   "work_point": false
+  }
+ ],
+ "delay_runs": 40,
+ "fast": 3.5,
+ "fast_threshold_only_alarms_per_week_6_monitors": 2.81,
+ "free_run": {
+  "hidden_causes": 0,
+  "loss_episodes_per_week": 29.75,
+  "loss_episodes_per_week_by_node": {
+   "cyclones-1": 5.75,
+   "cyclones-2": 3.75,
+   "flot-1": 5.0,
+   "flot-2": 4.75,
+   "sag-1": 6.75,
+   "sag-2": 3.75
+  },
+  "loss_episodes_total": 119,
+  "planned_stops": 0,
+  "seeds": [
+   1001,
+   1002,
+   1003,
+   1004
+  ],
+  "unsure_episodes_per_week": 38.25,
+  "updates_per_week": {
+   "cyclones-1": 2016,
+   "cyclones-2": 2016,
+   "flot-1": 672,
+   "flot-2": 672,
+   "sag-1": 2016,
+   "sag-2": 2016
+  },
+  "weeks": 4,
+  "z_autocorr_lag1_2_3": {
+   "cyclones-1": [
+    0.972,
+    0.942,
+    0.913
+   ],
+   "cyclones-2": [
+    0.964,
+    0.928,
+    0.893
+   ],
+   "flot-1": [
+    0.653,
+    0.588,
+    0.529
+   ],
+   "flot-2": [
+    0.579,
+    0.521,
+    0.481
+   ],
+   "sag-1": [
+    0.976,
+    0.952,
+    0.928
+   ],
+   "sag-2": [
+    0.967,
+    0.936,
+    0.905
+   ]
+  },
+  "z_mean": {
+   "cyclones-1": 0.032,
+   "cyclones-2": -0.178,
+   "flot-1": -0.019,
+   "flot-2": -0.056,
+   "sag-1": 0.12,
+   "sag-2": -0.154
+  },
+  "z_sd": {
+   "cyclones-1": 0.688,
+   "cyclones-2": 0.684,
+   "flot-1": 1.038,
+   "flot-2": 0.936,
+   "sag-1": 0.812,
+   "sag-2": 0.839
+  }
+ },
+ "h": 6.5,
+ "k": 0.5,
+ "monte_carlo_n01": {
+  "6.5/3.5": {
+   "alarms_per_week_6_monitors": 5.417,
+   "arl0_tacts_per_monitor": 2233.0,
+   "weeks": 300
+  },
+  "6.5/99.0": {
+   "alarms_per_week_6_monitors": 2.85,
+   "arl0_tacts_per_monitor": 4244.0,
+   "weeks": 300
+  }
+ },
+ "note": "оценка на модели; свободный прогон без скрытых причин; задержка — от начала причины (линия 1, размер по таблице параметров)",
+ "siegmund_alarms_per_week_6_monitors_cusum_only": 2.84,
+ "siegmund_arl0_tacts_cusum_only": 4252.0,
+ "stated_false_alarms_per_week": 0.95
+}

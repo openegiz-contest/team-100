@@ -1,5 +1,6 @@
 /* Spread of a scenario through the plant: which nodes differ from the run without the scenario (the copy «base» that
-   the simulator publishes on the thing baseline as <thing>_<feature>_base), each with «было → стало», in the order of
+   the simulator publishes on the thing baseline as <thing>_<feature>_base), each with «база → факт, эффект» (the base copy
+   at the same model minute, so the swing of the ore is subtracted), in the order of
    the process (pit -> excavators -> crusher -> belt -> stockpile -> SAG -> ... -> copper in the concentrate).
    Everything is read from Ditto (baseline and the plant things); nothing is computed from the simulator.
    Used by the map, the diorama, the 3D view and the banner of the scenario. */
@@ -60,8 +61,9 @@
       if (cur && cur.kind === 'num' && MAIN.indexOf(cur.field) <= pri) continue;
       out[thing] = {
         thing, field: f, base: b, now, kind: 'num', stage: stage(thing),
+        effect: now - b,
         short: `${fnum(b, spec[3])}${NB}→${NB}${fnum(now, spec[3])}${NB}${spec[1]}`,
-        text: `${AKT.shortName(thing)}: ${spec[0]} ${fnum(b, spec[3])}${NB}→${NB}${fnum(now, spec[3])}${NB}${spec[1]}`,
+        text: `${AKT.shortName(thing)}: ${spec[0]} база ${fnum(b, spec[3])}${NB}→${NB}факт ${fnum(now, spec[3])}${NB}${spec[1]}, эффект ${(now - b) < 0 ? '−' : '+'}${fnum(Math.abs(now - b), spec[3])}`,
       };
     }
     return out;

@@ -22,6 +22,13 @@ aktogay/
     ore.py            blocks with block-model error, plan, fleet (ready trucks, ore haul), haul,
                       belt, stockpile (draw column + sides), batches
     pit.py            trucks as a state machine on the aggregated haul, faces, haul roads, stripping
+    haul.py           truck cycle from a calculation (24.10.2026): load + haul loaded (map distance, power-limited speed of the
+                      793D from the Specalog) + queue + dump (body raise/lower) + return; one calibrated factor fleet_speed_eff
+    plausibility.py   the 20 invariants of the live check (balances, limits, ranges with sources) -> web/static/plausibility.json;
+                      web/static/plausibility.js evaluates them on the state read from Ditto
+    fidelity.py       availability against Ausenco, SAG reline events, forward test on 2026, recovery refit, ore spread
+                      -> data/fidelity.json (copy in web/static, shown by web/static/fidelity.js on «Калибровка»)
+    influence.py      which parameters can change the conclusions: read counter + one-at-a-time screening -> data/influence.json
     people.py         people of the shift: FREE / TRAVEL / WORK / OFF, location, free time
     utilities.py      power balance, load shedding, water balance with pond, leak and fresh-water cap,
                       money, CO2
@@ -43,6 +50,13 @@ aktogay/
     calib_report.py   akt-calib: calibration rows + trial summary -> validation-calib (Ditto HTTP)
     data/trial_n100.json   summary of `trial --n 100 --no-twin` (seeds 1001-1100), shown in ?view=calib
     replay.py         replay file «с двойником / без» from the stored rows of trial_n100.json (web/static/replay.json)
+    verify.py         expected shift result of every catalog scenario (copies база / по $ / по громкости / без двойника, t Cu and $ by 20:00,
+                      key moments, seed, code hash) computed by the same code as the stand -> web/static/verify.json; tests/test_doc_claims.py keeps it
+                      equal to the script output and checks the scenario tables of SUBMISSION and VALIDATION against fresh CopySet runs
+    detect_eval.py    the module «Где теряется медь» on hidden causes x lines x sizes x 25 seeds: detection share, delay, node/role matrix, false
+                      alarms of control runs -> web/static/detect_eval.json (VALIDATION 8.14)
+    cusum_eval.py     false alarms of the CUSUM against the stated 0.95 a week: Monte Carlo, free-run residuals, threshold curve -> web/static/cusum_eval.json (8.15)
+    stock_sens.py     two readings of the PEK sentence about the ore stockpile (live 40 kt or 163 kt): scenarios under both -> sim/data/stock_sens.json (8.16)
     paramstat.py      labels of the parameter tables: fact / vendor / analog / project / calc / assumption (web/static/params_summary.json)
     publish.py        feature snapshots -> MQTT -> Ditto (catalog from setup/things.json, rate budget)
     service.py        akt-sim: Plant / CopySet in model time, commands from the control thing,
@@ -54,7 +68,7 @@ aktogay/
                       and the evidence list with the age of every measurement of an issue card
     inside.py         the page «Изнутри»: nodes, signals with the place where each is seen, failures with sources, depth A/B/C;
                       writes web/static/inside.json (a test keeps it equal)
-    readiness.py      the nine points of every new trouble; writes web/static/readiness.json and READINESS.md
+    readiness.py      the nine points of every new trouble; writes web/static/readiness.json and final_docs/READINESS.md
     scenarios.py      catalog of scenarios (what should happen, how to check) and the constructor of a trouble; writes web/static/scenarios.json
     apidoc.py         web/API.md (HTTP API and, per module, inputs, outputs, tests) and web/static/modules.json (live table of «Как проверить»)
   setup/
@@ -62,7 +76,7 @@ aktogay/
     gen_site.py       writes the generated things and responsible.person from sim/site_<name>.py
     gen_tm.py         models/*.tm.jsonld from things.json; setup.py creates the things in Ditto
   docker/sim.Dockerfile   image aktogay/sim:local (service by default); compose services akt-sim
-                          and akt-calib (one shot: calib --quick --publish)
+                          and akt-calib (one shot: calib --quick --publish; own tag aktogay/calib:local, two services must not build one tag)
   tests/              unittest; one file per module, plus support.py and mod_support.py
 ```
 
@@ -119,9 +133,23 @@ python -I aktogay/run.py params --md PARAMETERS.md
 python -I aktogay/run.py calib --quick         # fast calibration table + calib.json
 python -I aktogay/run.py calib --out calib.json   # full: step 10 min, about 4 min
 python -I aktogay/run.py service --dry-run --duration 30 --speed 1200   # service without MQTT
-python -I aktogay/run.py trial --n 100 --no-twin --jobs 5 --out trial.json   # about 3 min
+python -I aktogay/run.py trial --n 100 --no-twin --library tier_s --jobs 5 --out trial.json   # main trial, symmetric base, about 6 min
+python -I aktogay/sim/data/exp24/run_exp24.py    # the ten runs of VALIDATION 8.17 (about 55 min, 4 processes, below normal priority)
+python -I aktogay/run.py exp24 --write aktogay/sim/data/experiment_24.json   # summary of exp24/*.json (and ladder/, nov24/)
+python -I aktogay/scripts/reline_check.py       # per-day drop of the five reported SAG relines, regression, line-hours (VALIDATION 6.3, 6.8)
+python -I aktogay/scripts/rec_baselines.py      # recovery baselines over backtest_q.json (VALIDATION 6.5)
+python -I aktogay/run.py verify --write aktogay/web/static/verify.json --jobs 3   # expected scenario results; rerun after any change of the model (the test fails on a stale file)
+python -I aktogay/run.py detect_eval --seeds 25 --jobs 4 --write aktogay/web/static/detect_eval.json   # about 10 min, below normal priority
+python -I aktogay/run.py cusum_eval --jobs 4 --write aktogay/web/static/cusum_eval.json   # about 5 min
+python -I aktogay/run.py stock_sens --jobs 4 --write aktogay/sim/data/stock_sens.json   # about 5 min
+python -I aktogay/scripts/check_numbers.py [--list]   # every headline number of README, SUBMISSION and the presentation is in web/static/claims.json
+python -I aktogay/scripts/measure_scenarios.py --out FILE.json   # on a running stand: time to the first trouble and whom to call, all catalog scenarios
 python -I aktogay/run.py replay --write aktogay/web/static/replay.json        # replay of the trial shifts (no new trial)
 python -I aktogay/run.py paramstat --write aktogay/web/static/params_summary.json   # labels of the parameter tables
+python -I aktogay/run.py plausibility --write aktogay/web/static/plausibility.json   # invariants of the live check
+python -I aktogay/run.py haul --calibrate      # parts of the truck cycle of every route and fleet_speed_eff for the 30 min reference
+python -I aktogay/run.py backtest --jobs 4 && python -I aktogay/run.py fidelity --jobs 4   # then copy data/fidelity.json to web/static/
+python -I aktogay/run.py influence --jobs 4   # about 60 min: every read model row, both edges, recovery refit family; copy data/influence.json to web/static/
 python -I aktogay/modules/scenarios.py --write-json aktogay/web/static/scenarios.json
 python -I aktogay/modules/apidoc.py --write-md aktogay/web/API.md --write-json aktogay/web/static/modules.json
 python -I aktogay/setup/gen_site.py            # generated things of the site into setup/things.json
@@ -208,17 +236,25 @@ ore is not in the library (no crew can end a preset oxide cause).
 
 "No twin" is the fair baseline "as now" by default: people take the same
 operating decisions without the twin, only when they see the trouble (grid
-cut and reline 10 min after the start, `--asis-notice`; hard ore when it
-reaches the SAG, `scen_hard_lead_h` later). A grid call is repeated until the
+cut and reline 10 min after the start, `--asis-notice`; hard ore at the start
+of digging, about 2 h after the start of the trouble, `--asis-hard dig`, or
+when the block reaches the SAG, `--asis-hard sag`; a loud trouble by its alarm, 5-15 min). A grid call is repeated until the
 SAG of the shed line gets the headroom (and the plant latches it,
 `Plant._c2_call`). `--no-asis` gives the old baseline where nobody takes those
-decisions (it overstated the gain). Result of 22.10.2026 (N 100, seeds
-1001-1100, `sim/data/trial_n100.json`): twin in all +1.26 t Cu per shift
+decisions (it overstated the gain).
+
+Symmetric base (24.10.2026 evening, VALIDATION 8.17, `--twin-human same`, default): the twin is an addition to the people and knows a
+trouble no later than they do (minimum of the two times); a loud trouble with a crew is known at the people's minute, silent dose and
+cyclone troubles at the time the module measured (`web/static/detect_eval.json`, `trial.MODULE_FIND`) plus reading the card as an alarm,
+roping, pH drift and HPGR skew at the people's minute. The cycle is forced to `fine_tact_min` (1 min) for every copy. `--twin-human none`
+is the base of 8.8 (the twin sees a loud trouble in its first minute); the trial of 22.10.2026 is reproduced only with it.
+Result of 22.10.2026 (N 100, seeds 1001-1100, `sim/data/trial_n100.json`): twin in all +1.26 t Cu per shift
 [95 % BCa +1.06; +1.52], 93 % of shifts better, none worse; order alone
-+0.08 [+0.05; +0.23] [model estimate; historical, library without tier S]. Current main result (experiment of
-24.10.2026, full library, `sim/data/experiment_23.json`, VALIDATION.md 8.8): twin minus expert +1.07 t Cu per shift
-[+0.89; +1.31]; the pages read it from `web/static/exp23.json` (`run.py exp23 --write`). `--set`, `--hidden-mult`, `--mag` are
-the sensitivity options.
++0.08 [+0.05; +0.23] [model estimate; historical, library without tier S, asymmetric base]. Current main result (experiment of
+24.10.2026, full library, symmetric base, `sim/data/experiment_24.json`, VALIDATION.md 8.17): twin minus as-now +0.61 t Cu per shift
+[+0.23; +2.18], median +0.09, without the largest shift (seed 1066) +0.26; hard ore seen by the people only at the SAG:
++1.19 [+0.77; +2.81]. The earlier +1.07 [+0.89; +1.31] (`experiment_23.json`, 8.8) is kept as history. The pages read `web/static/exp23.json`
+(`run.py exp23 --write`, built from both files). `--set`, `--hidden-mult`, `--mag` are the sensitivity options.
 
 ## Library vs site passport
 
@@ -358,7 +394,7 @@ writes `control.lever` into Ditto, `akt-sim` applies it to the fact copy only; t
 the same minute without levers, so «база / с рычагами / разница» is the usual copy difference. The advice button
 (`modules/lever_advice.py`, `web/static/lever.js`) only posts the same call; the modules never write levers.
 P80 slope: lab 1.2 pp per 10 um (Bozshakol composite), plant regression 1.95 pp (both shown); reagent price is an assumption
-(`lev_reagent_usd_t`); the Volza / ITB / ScienceDirect pages did not open.
+(`lev_reagent_usd_t`); the Volza / ITB / ScienceDirect pages did not open (`gaps/facts_round2.md`, «Реагенты»).
 Troubles of tier T are scenario tokens (never drawn in free run, so the N = 100 summary is unchanged): signal ramps from normal to
 alert, the consequence follows unless the called role fixes it; thresholds are examples or assumptions as labelled in the cards.
 
@@ -387,8 +423,8 @@ Calibration choices (design section 4, revised):
   the feed-grade gain. With this slope the 2024 recovery check misses
   (-0.7 pp) and 2023 holds; the constant-tails bound 12.8 would pass 2024 and
   miss 2023 (+1.8 pp). No single grade slope explains both years.
-- SAG reline 96 h is an assumption (RME benchmark), not the Q3 2025 quarter
-  change, so the reline check is no longer closed on itself.
+- SAG reline is 84 h (24.10.2026; analog: Minera Chinalco Peru, Metso Outotec case study, 84 h done against 96 h planned; one vendor case);
+  it was 96 h (assumption, RME benchmark). It is not taken from the Q3 2025 quarter change, so the reline check is not closed on itself.
 - SAG: J0 25 % (Bradken); the 12 % ball charge stays when the ore grinds out
   (power floor about 69 % of P0); under a power cap below that the control
   slows the mill. A stopped mill keeps its charge. Bond energy is capped at
@@ -397,10 +433,45 @@ Calibration choices (design section 4, revised):
   the year grade.
 - Tails lock their pore water only (0.31 m3/t at dry 1.45 t/m3, SG 2.66).
 
+## Modules keep up with the simulator (24.10)
+
+Seen on the stand under load: `mod-losses` and `mod-priority` stood 80-100 model minutes behind the site, and a stopped
+crusher had an empty queue for about 75 model minutes. Cause: a tact waited for the newest point that ANY thing showed
+(`floor(max sim_time)`), and a point is published over 3-4 s, so under load a read almost never found that point complete;
+the module skipped the cycle and the next read met the next half-published point. `mod-priority` also waited for the exact
+point of `mod-losses`/`mod-ore`. Now (`modules/main.py`):
+
+- `Runner._span` / `due`: the point of a tact is the newest one EVERY thing of the module's reads has reached
+  (`floor(min sim_time)` on the module's tact); older points are skipped, not replayed; the newer one, still being
+  published, sets `incomplete` so the next read comes after `AKT_RETRY_S`. One tact per module per cycle: the work per cycle is bounded.
+- `priority_point`: `mod-priority` computes at the newest point not past `mod-losses.processed` and not past
+  `mod-ore.processed + 10` (the 15-min tact of the ore module); it never waits for an exact point.
+- `watch_lag`: one WARNING a minute while a module is more than 30 model minutes behind the site.
+- The interface shows the lag: `AKT.moduleLag()` (site `sim_time` minus `processed_sim_time` of each module) on the page
+  «Модули» and, above 20 model minutes, as a chip in the context line.
+
+Measured at x60, free run and scenarios, `processed_sim_time` against the site (model minutes), sampled every 4-6 s:
+
+| | median | p95 | max |
+|---|---|---|---|
+| before (one module, 100 s, no extra load) | 60 | 100 | 105 |
+| after (same stand, 100 s) | 10 | 20 | 25 |
+| after, scenario `crusher:1` from the click | trouble of the crusher in the queue 61 s after the click (16 s after the shift starts), model 08:10 | | |
+
+What is left (10-20 model minutes) is the read cycle: settle 2 s + a read of 1-3 s + the duty rest (`AKT_DUTY` 0.3): a
+read every 6-12 s; shortening it costs Ditto CPU, which is what the 23.10 incident was about.
+
+## Shell scripts for the repository sync
+
+`aktogay/scripts/akt-check.sh`, `akt-preflight.sh`, `akt-urls.sh` must be executable in the repository (the Windows
+working copy cannot carry the bit): after copying the folder into the Team Repository run
+`git update-index --chmod=+x aktogay/scripts/akt-check.sh aktogay/scripts/akt-preflight.sh aktogay/scripts/akt-urls.sh`.
+The Makefile calls them as `bash <script>`, so a repository without the bit still works.
+
 ## Known gaps (TODO)
 
 - Tier S (23.10.2026): the thresholds of the new troubles (visibility 150 m, friction 0.40, circulating load 320 %, skew 6 %, pH gap
-  0.3, oil failure 8 h after the alert) and the size of their effects are assumptions of the stand (64 of the 78 new parameter rows);
+  0.3, oil failure 8 h after the alert) and the size of their effects are assumptions of the stand (63 of the 78 new parameter rows; two of the 64 of 23.10.2026, scen_icy_wind_ms and scen_icy_temp_c, became calc on 24.10.2026, VALIDATION 10.2);
   the sources name the risks, not the numbers. The trial library has the money kinds of the tier as an opt-in (`--library tier_s`),
   the N = 100 summary in `sim/data/trial_n100.json` was not recomputed for them. A blocked analyser sample line (`sample:N`) is a
   deviation without a price; the tired driver (`fatigue`) is a scenario, its sensor is not confirmed by any source.
@@ -416,9 +487,28 @@ Calibration choices (design section 4, revised):
   October 2024); the other calendar stops are planned maintenance whose kind
   of work is not disclosed (`RELINE_CALENDAR`, field `kind`).
 - Daily load profile (Zenodo) and GeoMet block distribution are not wired yet.
-- Haul length, ramps, number and places of the dam piezometers, the return
-  water pipeline and the shift roster by role are not published: they are
-  assumptions of the site file (labelled so). The truck fleet is the one of
-  06.06.2024; the 2026 fleet is not confirmed.
+- Number and places of the dam piezometers, the return water pipeline and the shift roster by role are not published: they are
+  assumptions of the site file (labelled so). The truck fleet is the one of 06.06.2024; the 2026 fleet is not confirmed.
+- Haulage (24.10.2026): the cycle is calculated per route by `sim/haul.py` from the map distance (`plan.json`, label «расчёт по карте»),
+  the 793D Specalog (power, weight, body times) and the 236 t payload of the annual report 2020. Still open: the speed on the ramp is
+  power limited by formula (the retarding and rimpull charts of the Specalog are images and were not read as numbers), `fleet_speed_eff`
+  (0.516) is calibrated to the former 30 min cycle, `pit_haul_min` (dig to crusher lag, 30 min) is still a constant shared with the
+  modules table, the 785 and 777 trucks use the cycle of the 793D.
+- Ore stockpile (24.10.2026): the model reads the PEK «рабочий объём 163 000 т» as the whole pile and keeps 40 kt live (`stock_live_t`,
+  assumption). If «рабочий» means live, the twin benefit of the main trial on the symmetric base goes from +0.61 [+0.23; +2.18] to +0.59 [+0.21; +2.32] t Cu per shift (hard ore at the SAG: +1.19 to +1.06) and
+  the losses of C1, belt, mantle change and pit stop vanish (VALIDATION 8.16, `sim/stock_sens.py`, `sim/data/stock_sens*.json`). Not decided:
+  a stockpile passport or a daily level log is needed. The seed 42 table of scenario results is one run; C1 loses -15.2 t Cu on average over 10 seeds.
+- Detector (24.10.2026): `cusum_h` is an assumption, not a calculation: 2.8 false alarms a week for independent z (5.4 with the fast threshold),
+  about 30 a week on the residuals of the twin, flat in h (VALIDATION 8.15). A detector on the change of the residual or an ore-error term in sigma is not built.
+- Crusher availability (24.10.2026): "in work" is the hour meter (crushed ore / rated rate), 80.8 % at 4 386 t/h and 70.2 % at 5 044 t/h
+  (OVOS range; the range is the design rate of the crushing area with the factor 1.15, not a crusher nameplate, and no nameplate was found)
+  against 65.1 % of the hours of a year in the OVOS design (285 d x 2 shifts x 10 h; KIO 0.78 is a share of days) and 70-75 % in the Ausenco
+  design basis: a requirement of the reported ore on the equipment, with no tolerance verdict (VALIDATION 6.2); own stops (short stoppages, planned maintenance while the mill stands, liner change
+  inside the first SAG reline of the year) exist only in the calib run (`Plant._crusher_own_stops`, rows `crush_plan_*`, `crush_stop_*`), and the 2025
+  fit answers with cal_avail 0.9298 (0.9225 before). VALIDATION 6.2.
+- `liner_reline_h` was 96 h and overstated the drop of the ore of a line in the five reported SAG relines (-6.3 % against -4.8 %, VALIDATION
+  6.3); changed to 84 h (Minera Chinalco, actual) on 24.10.2026 in `sim/params.py`, `modules/params.py`, `modules/scenarios.py` and the texts (-5.5 %). The same holds for `conv_repair_h`, `w_idler_fix_h` and `w_slurry_fix_h`, whose
+  notes now carry the verified analogs (D1, D4) but whose value and label cannot change here.
+- Mine-plan variability of the ore (`blk_plan_*`) is off by default and used only in the spread check of `sim/fidelity.py`.
 - Detection rate, false alarms and the cause -> node matrix need the losses
   module; they are added to `calib` later.

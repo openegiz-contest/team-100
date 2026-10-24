@@ -39,18 +39,10 @@ export async function create(AKT, stage, opts, onFail) {
   /* ----------------------------------------------------------- renderer */
   /* программный WebGL (SwiftShader, llvmpipe): сцена считается процессором и без ограничения отнимала у стенда 3 ядра
      из 8 при 30 кадрах/с (23.10); на нём 8 кадров/с */
-  let frameMs = 33;
-  try {
-    const pc = document.createElement('canvas');
-    const gl = pc.getContext('webgl2') || pc.getContext('webgl');
-    if (gl) {
-      const ext = gl.getExtension('WEBGL_debug_renderer_info');
-      const name = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
-      if (/swiftshader|llvmpipe|software|basic render/i.test(name)) frameMs = 120;
-      const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
-    }
-  } catch (e) { /* проба необязательна */ }
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'low-power', preserveDrawingBuffer: false });
+  let frameMs = AKT.gl.probe().soft ? 120 : 33;
+  const glCtx = await AKT.gl.acquire(canvas, !AKT.gl.probe().soft);
+  if (!glCtx) throw new Error('браузер не создал контекст WebGL');
+  const renderer = new THREE.WebGLRenderer({ canvas, context: glCtx, antialias: !AKT.gl.probe().soft, powerPreference: 'low-power', preserveDrawingBuffer: false });
   renderer.setPixelRatio(1);
   renderer.shadowMap.enabled = false;
   const scene = new THREE.Scene();
@@ -341,8 +333,8 @@ export async function create(AKT, stage, opts, onFail) {
   const L0 = [
     ['line-1', top('line-1', 60), 1, () => `Линия 1${stw('line-1')} · ${AKT.vsBase('line-1', 'tph', fmt, 50)} т/ч`, () => `Линия 1: ${AKT.stOf('line-1')} · ${fmt(AKT.num('line-1', 'tph'))} т/ч · ${f1(AKT.num('line-1', 'cu_tph'))} т Cu/ч · извлечение ${f1(AKT.num('line-1', 'recovery'))} %`],
     ['line-2', top('line-2', 60), 1, () => `Линия 2${stw('line-2')} · ${AKT.vsBase('line-2', 'tph', fmt, 50)} т/ч`, () => `Линия 2: ${AKT.stOf('line-2')} · ${fmt(AKT.num('line-2', 'tph'))} т/ч · ${f1(AKT.num('line-2', 'cu_tph'))} т Cu/ч · извлечение ${f1(AKT.num('line-2', 'recovery'))} %`],
-    ['crusher-1', top('crusher-1', 45), 2, () => `Дробилка 1${stw('crusher-1')} · ${AKT.vsBase('crusher-1', 'tph', fmt, 50)} т/ч`, () => `Дробилка 1: ${AKT.stOf('crusher-1')}`],
-    ['crusher-2', top('crusher-2', 45), 2, () => `Дробилка 2${stw('crusher-2')} · ${AKT.vsBase('crusher-2', 'tph', fmt, 50)} т/ч`, () => `Дробилка 2 (схема): ${AKT.stOf('crusher-2')}`],
+    ['crusher-1', top('crusher-1', 45), 2, () => `Дробилка ЦПД-1${stw('crusher-1')} · ${AKT.vsBase('crusher-1', 'tph', fmt, 50)} т/ч`, () => `Дробилка ЦПД-1: ${AKT.stOf('crusher-1')}`],
+    ['crusher-2', top('crusher-2', 45), 2, () => `Дробилка ЦПД-2${stw('crusher-2')} · ${AKT.vsBase('crusher-2', 'tph', fmt, 50)} т/ч`, () => `Дробилка ЦПД-2 (схема): ${AKT.stOf('crusher-2')}`],
     ['stockpile-1', top('stockpile-1', 70), 3, () => `Склад 1${stw('stockpile-1')} · ${AKT.vsBase('stockpile-1', 'level_t', fmt, 200)} т`, () => `Склад руды 1 (схема): ${AKT.stOf('stockpile-1')} · запас на ${AKT.durH(AKT.num('stockpile-1', 'hours_left'))}`],
     ['stockpile-2', top('stockpile-2', 70), 3, () => `Склад 2${stw('stockpile-2')} · ${AKT.vsBase('stockpile-2', 'level_t', fmt, 200)} т`, () => `Склад руды 2 (схема): ${AKT.stOf('stockpile-2')} · запас на ${AKT.durH(AKT.num('stockpile-2', 'hours_left'))}`],
     ['conveyor-1', V(1500, 1245, 24), 4, () => `Конв. 1 · ${AKT.vsBase('conveyor-1', 'tph', fmt, 50)} т/ч`, () => `Конвейер 1: ${AKT.stOf('conveyor-1')}`],

@@ -114,7 +114,7 @@ AKT.simDate = simMin => {
 AKT.clockDate = (simMin, ref) => AKT.clockDay(simMin, ref);
 AKT.dur = min => {
   if (min == null || !isFinite(min) || min < 0) return '—';
-  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  const tot = Math.round(min), h = Math.floor(tot / 60), m = tot % 60;     /* whole minutes first: 119,6 min is 2 ч 00 мин, not «1 ч 60 мин» */
   if (h >= 48) return `${Math.floor(h / 24)}${NBSP}сут.${NBSP}${h % 24}${NBSP}ч`;
   return h > 0 ? `${h}${NBSP}ч${NBSP}${String(m).padStart(2, '0')}${NBSP}мин` : `${m}${NBSP}мин`;
 };
@@ -800,6 +800,45 @@ AKT.warming = () => {
   const t = AKT.simTime, p = AKT.num('mod-priority', 'processed_sim_time');
   return t != null && t >= 0 && (p == null || String(AKT.val('mod-priority', 'idSimulationRun') || '') !== AKT.run) && !AKT.issues().length;
 };
+/* How far the modules are behind the simulator, in model minutes: {name: lag|null}. A module that has not written
+   for this run yet has no lag (the stand is warming up). */
+AKT.MODS = [['mod-losses', 'Где теряется медь'], ['mod-ore', 'Какая руда идёт'], ['mod-priority', 'Очередь бед']];
+AKT.moduleLag = () => {
+  const out = {}, t = AKT.simTime;
+  for (const [n] of AKT.MODS) {
+    const p = AKT.num(n, 'processed_sim_time'), same = String(AKT.val(n, 'idSimulationRun') || '') === AKT.run;
+    out[n] = t != null && p != null && p >= 0 && same ? Math.max(0, t - p) : null;
+  }
+  return out;
+};
+/* the lag that matters to the dispatcher: the queue of troubles and the loss detector (the ore forecast has a 15-min tact) */
+AKT.maxLag = () => { const l = AKT.moduleLag(); const v = [l['mod-losses'], l['mod-priority']].filter(x => x != null); return v.length ? Math.max(...v) : null; };
+AKT.LAG_WARN = 20;
+/* Live effect of the twin in a scenario with copies of the model: copper of this run minus the copy without the twin
+   («Две беды сразу»), otherwise minus the copy without the scenario. Read from baseline.shift_result (Ditto). */
+AKT.effect = () => {
+  const r = AKT.shiftResult(); if (!r) return null;
+  const c = r.copies || {}, ok = k => c[k] && c[k].cu_t >= 0;
+  const sg = d => (d > 0.004 ? '+' : d < -0.004 ? '−' : '±') + AKT.f2(Math.abs(d));
+  if (ok('fact') && ok('no_twin')) {
+    const d = c.fact.cu_t - c.no_twin.cu_t, usd = (c.fact.usd - c.no_twin.usd);
+    return { kind: 'twin', d, usd, t: r.t_min, text: `С двойником сейчас ${sg(d)} т Cu против копии без двойника${Math.abs(usd) >= 500 ? ` (≈ ${AKT.money(Math.abs(usd))})` : ''}${Math.abs(d) < 0.005 && AKT.issues().length ? ' · разница появится, когда бригада устранит беду' : ''}`,
+      title: 'Две копии одной смены с 08:00: в одной вызовы идут по очереди двойника, в другой тихую потерю на флотации находит лаборатория в 14:00 (допущение). Разница накопленной меди на этот час, оценка на модели.' };
+  }
+  if (ok('fact') && ok('base')) {
+    const d = c.fact.cu_t - c.base.cu_t;
+    return { kind: 'scen', d, t: r.t_min, text: `Сценарий к этому часу: ${sg(d)} т Cu против копии без сценария`,
+      title: 'Копия «без сценария» — та же смена с 08:00 без беды. Разница накопленной меди на этот час, оценка на модели. Эффект двойника измеряет сценарий «Две беды сразу» и «Повтор смены».' };
+  }
+  return null;
+};
+/* hours the ore stock lasts. The published hours_left lags one point behind a stop of the crusher (the first minutes show
+   «больше двух суток» while the SAG already takes 3800 t/h from the stock): when nothing comes in, count it from the level. */
+AKT.hoursLeft = sp => {
+  const h = AKT.num(sp, 'hours_left'), lvl = AKT.num(sp, 'level_t'), inn = AKT.num(sp, 'in_tph'), out = AKT.num(sp, 'out_tph');
+  if (lvl != null && lvl >= 0 && out != null && out > 100 && inn != null && inn < 0.1 * out && (h == null || h < 0 || h > lvl / out + 0.5)) return lvl / out;
+  return h;
+};
 AKT.staleSec = () => AKT.polled ? Date.now() / 1000 - AKT.polled : null;
 AKT.isStale = () => {
   const age = AKT.staleSec();
@@ -860,7 +899,7 @@ AKT.nowLine = () => {
   /* no issue in the queue yet, but something deviates: say so (the module counts issues every few model minutes) */
   const KEY = ['crusher-1', 'crusher-2', 'conveyor-1', 'conveyor-2', 'stockpile-1', 'stockpile-2', 'line-1', 'line-2', 'sag-1', 'sag-2', 'pebble-1', 'pebble-2', 'filter-1', 'filter-2', 'power', 'water', 'conc-stock'];
   const dev = KEY.filter(n => AKT.things[n] && AKT.levelOf(n)).sort((a, b) => AKT.levelOf(a) - AKT.levelOf(b)).slice(0, 3);
-  if (dev.length) { out.text = `Бед в очереди нет, но есть отклонения: ${dev.map(n => `${AKT.LV_GLYPH[AKT.levelOf(n)]} ${AKT.nameRu(n)} — ${AKT.stOf(n)}`).join(', ')}. Двойник оценит их за несколько минут модели.`; return out; }
+  if (dev.length) { out.text = `Бед в очереди нет, но есть отклонения: ${dev.map(n => `${AKT.LV_GLYPH[AKT.levelOf(n)]} ${AKT.nameRu(n)} — ${AKT.stOf(n)}`).join(', ')}.${(() => { const rl = AKT.roleFirst(AKT.role(dev.find(n => AKT.role(n)) || '')); return rl ? ` Звать ${AKT.roleAcc(rl)} — цена уточняется, двойник считает.` : ' Цена уточняется, двойник считает.'; })()}`; if (dev.length) out.btn = null; return out; }
   out.text = `Бед нет. Фабрика работает в норме и даёт ${AKT.f1(AKT.num('site', 'cu_tph'))} т меди в час.`;
   out.demo = !AKT.scenario() && st === 'RUN';
   return out;
@@ -887,6 +926,13 @@ const Now = {
     const c = AKT.ctxLine();
     if (ctx.innerHTML !== c) ctx.innerHTML = c;
     const o = AKT.nowLine();
+    const eff = document.getElementById('now-eff');
+    if (eff) {
+      const e = AKT.effect(), lag = AKT.maxLag();
+      const html = (e ? `<a class="chip eff" href="${AKT.href('?view=modules')}" title="${AKT.esc(e.title)}">${AKT.esc(e.text)}</a>` : '')
+        + (lag != null && lag > AKT.LAG_WARN ? `<span class="chip lag" title="Модули считают с отставанием от симулятора; они берут последнюю готовую точку и пропускают старые.">⏱ модули отстают на ${AKT.esc(AKT.dur(lag))}</span>` : '');
+      if (eff._h !== html) { eff._h = html; eff.innerHTML = html; }
+    }
     const key = (o.chip || '') + '|' + o.text + '|' + (o.btn ? o.btn.issue + o.btn.label : '') + '|' + (o.demo ? 'demo' : '');
     sec.classList.toggle('stale', !!o.stale);
     if (key === this.last) return;
@@ -956,11 +1002,11 @@ AKT.pollJournal = async function () {
 const MENU4 = [
   ['now', 'Сейчас', [['plan', 'Обзор'], ['queue', 'Все беды'], ['areas', 'Участки'], ['forecast', 'Прогнозы'], ['copper', 'Путь меди']]],
   ['shift', 'Смена', [['handover', 'Сдача смены'], ['report', 'Отчёт смены'], ['journal', 'Журнал с выгрузкой']]],
-  ['analysis', 'Анализ', [['economics', 'Экономика'], ['calib', 'Калибровка'], ['ore', 'Руда'], ['inside', 'Изнутри'], ['replay', 'Повтор смены']]],
+  ['analysis', 'Анализ', [['economics', 'Экономика'], ['calib', 'Калибровка'], ['modules', 'Модули'], ['inside', 'Изнутри'], ['replay', 'Повтор смены']]],
   ['learn', 'Обучение и справка', [['howto', 'Как проверить'], ['scenarios', 'Сценарии'], ['train', 'Тренировка'], ['legend', 'Обозначения'], ['tour', 'Как пользоваться']]],
 ];
 /* views that live under another item of the menu (the hub «Участки» lists them) */
-const MENU_ALIAS = { levers: 'analysis', line1: 'areas', line2: 'areas', diorama: 'areas', site: 'areas', tree: 'areas', text: 'areas', unit: 'areas' };
+const MENU_ALIAS = { ore: 'analysis', levers: 'analysis', line1: 'areas', line2: 'areas', diorama: 'areas', site: 'areas', tree: 'areas', text: 'areas', unit: 'areas' };
 AKT.viewName = () => {
   const v = AKT.params.get('view') || 'plan';
   if (v === 'line') return 'line' + (AKT.params.get('n') || '1');
@@ -1037,20 +1083,20 @@ AKT.route = async function () {
 /* ------------------------------------------------------------------ panel */
 /* training scenarios: what happens, what to watch (with its countdown source), how to undo */
 AKT.SCENARIOS = [
-  { id: 'crusher:1', name: 'Встала дробилка', what: 'Дробилка 1 у карьера встанет сейчас, ремонт ≈ 3 ч (бывает до 5 ч).',
+  { id: 'crusher:1', name: 'Встала дробилка', what: 'Дробилка ЦПД-1 у карьера встанет сейчас, ремонт ≈ 3 ч (бывает до 5 ч).',
     watch: 'Склад руды 1 начнёт убывать; если он кончится раньше ремонта, линия 1 встанет. Двойник покажет беду и кого звать.' },
   { id: 'grid', name: 'Сеть урезала мощность', what: 'Лимит сети 300 → 218 МВт на 2 ч.', watch: 'Нагрузку площадки против лимита и когда лимит снимут.' },
   { id: 'hard:1', name: 'Твёрдая руда', what: 'На линию 1 идёт блок твёрдой руды (A×b 27): мельница будет молоть медленнее.', watch: 'Когда твёрдая руда дойдёт до мельницы SAG-1.' },
-  { id: 'reline:1', name: 'Перефутеровка SAG', what: 'Мельница SAG-1 встаёт на плановую замену футеровки на 96 ч (допущение).', watch: 'Когда мельница вернётся; линия 1 стоит.' },
+  { id: 'reline:1', name: 'Перефутеровка SAG', what: 'Мельница SAG-1 встаёт на плановую замену футеровки на 84 ч (аналог: кейс Metso, Minera Chinalco Peru).', watch: 'Когда мельница вернётся; линия 1 стоит.' },
   { id: 'fork', name: 'Две беды сразу', what: 'Скрытый сбой на флотации 1 и поломка дробилки 2 в 09:20; дежурный КИПиА один.', watch: 'Кого звать первым — смотрите карточку ①.' },
   { id: 'water', name: 'Беда с водой', what: 'Сбой водовода и забора свежей воды, растёт давление воды в дамбе.', watch: 'Пьезометры дамбы: давление против тревоги 150 кПа.' },
   { id: 'startup:1', name: 'Пуск мельницы при людях внутри', what: 'Шаровая 1A на ремонте по наряду-допуску, механик внутри; через час кто-то включает команду на пуск.', watch: 'Безопасность людей: беда класса S0 идёт первой, пуск надо отменить.' },
-  { id: 'dust', name: 'Пыление пляжа хвостохранилища', what: 'Ветер до 14 м/с над сухим пляжем на 6 ч.', watch: 'Экологическая беда S1 идёт после людей и перед деньгами.' },
+  { id: 'dust', name: 'Пыление пляжа хвостохранилища', what: 'Ветер не ниже 11 м/с над сухим пляжем на 6 ч (ветер — типичное событие по ERA5, расчёт).', watch: 'Экологическая беда S1 идёт после людей и перед деньгами.' },
   { id: 'winter', name: 'Зима', what: 'Возврат воды с хвостохранилища снижен (лёд), воздух около −10 °C (аналог: нормы NOAA).', watch: 'Метка «Зима» в шапке; беды с водой дороже и срочнее.' },
   { id: 'pitstop', name: 'Остановка карьера', what: 'Все экскаваторы руды встают на 8 ч (причина не названа: взрыв, погода или поломка).', watch: 'Склад каждой линии: через сколько часов он кончится и SAG встанет. Двойник покажет беду «Карьер (останов)» и кого звать — горного диспетчера.' },
   { id: 'conveyor:1', name: 'Встал конвейер', what: 'Главный конвейер линии 1 отключился; дробилка стоит с пустой лентой, ремонт ≈ 2 ч.', watch: 'Склад линии 1 убывает; двойник покажет беду «Конвейер» и кого звать — механика ЦПД.' },
   { id: 'hpgr_fire', name: 'Пожар на прессе дробления гали', what: 'Пожар на прессе дробления гали: люди рядом, узел остановлен.', watch: 'Безопасность людей: беда класса S0 идёт первой.' },
-  { id: 'icy', name: 'Метель и гололёд на откатке', what: 'На 6 ч метель и гололёд: видимость ≈ 120 м, сцепление ≈ 0,3, ветер 16 м/с, воздух −14 °C. Пороги опасности (150 м, 0,4) — допущение: KAZ Minerals называет метели и сильный ветер риском ДТП на Актогае, цифр не публикует.',
+  { id: 'icy', name: 'Метель и гололёд на откатке', what: 'На 6 ч метель и гололёд: видимость ≈ 120 м, сцепление ≈ 0,3, ветер 11 м/с, воздух −5 °C (по ERA5, расчёт). Пороги опасности (150 м, 0,4) — допущение: KAZ Minerals называет метели и сильный ветер риском ДТП на Актогае, цифр не публикует.',
     watch: 'Беда класса S0 «Зимняя дорога»: ограничить движение — горный диспетчер → начальник смены карьера → дорожная служба. После вызова ограничение введено, откатка идёт медленнее: рядом видна цена этого решения. Переработка фабрики от погоды сама не падает.' },
   { id: 'fatigue', name: 'Усталость водителя (допущение)', what: 'Оповещение об усталости водителя самосвала HT141 и близком сближении техники на 1 ч. Датчика и случаев на Актогае в открытых данных не нашли — это сценарий-допущение.',
     watch: 'Беда класса S0: снять машину с рейса, развести технику. В деньгах не считается.' },
@@ -1062,7 +1108,7 @@ AKT.SCENARIOS = [
     watch: 'Через 30 мин анализатор «под подозрением»: в карточках с хвостами, питанием и извлечением у замера виден возраст данных, в листе сдачи — отклонение «Анализатор 1: данные старше…». Дежурный КИПиА прочищает линию, показания возобновляются.' },
   { id: 'hpgr:2', name: 'Неравномерное питание ВВД линии 2', what: 'Питание пресса ВВД линии 2 сегрегирует: перекос валков ≈ 12 %, круг гали ограничен. Если никто не вмешается за 2 ч, металл на валках — металлодетектор остановит пресс на 4 ч (допущения; аналог — блог Metso 2022).',
     watch: 'Беда «Неравномерное питание ВВД»: звать механика фабрики. На «Пути меди» узел ВВД краснеет от перекоса и сигнала металлодетектора.' },
-  { id: 'mantle:1', name: 'Замена брони дробилки 1', what: 'Дробилка 1 встаёт на плановую замену брони ≈ 60 ч (аналог — рудник La Caridad, Metso). Склад кормит SAG, пока не кончится.',
+  { id: 'mantle:1', name: 'Замена брони дробилки 1', what: 'Дробилка ЦПД-1 встаёт на плановую замену брони ≈ 60 ч (аналог — рудник La Caridad, Metso). Склад кормит SAG, пока не кончится.',
     watch: 'Часы до остановки SAG-1 и цена после конца склада; дробилка 1 и конвейер стоят, бригада ЦПД работает по наряду-допуску.' },
   { id: 'oil', name: 'Загрязнение масла EX01', what: 'Гидромасло экскаватора EX01 (EX3600) загрязняется: через ≈ 3 ч тревога датчика на машине; если никто не вмешается, через ≈ 8 ч после неё отказ насоса и ремонт ≈ 57 ч (ремонт — аналог другой машины; сроки — допущения).',
     watch: 'Беда «Загрязнение масла» с часами до отказа, потом «Отказ экскаватора». Звать сменного механика карьера. В диспетчерскую сигнал идёт, если подключена опция Global e-Service.' },
@@ -1079,7 +1125,7 @@ AKT.scenWatch = scen => {
   if (later) return { text: `Своя беда начнётся в ${AKT.clock(later.at)}: ${AKT.scenarioRu(later.kind)}`, lv: 0 };
   const left = (min, what, at) => ({ text: `${what} через ${AKT.dur(min)}${at != null ? ` (в ${AKT.clockDay(at)})` : ''}`, lv: min < 60 ? 3 : 0 });
   if (kind === 'crusher') {
-    const sp = `stockpile-${n}`, h = AKT.num(sp, 'hours_left'), lvl = AKT.num(sp, 'level_t');
+    const sp = `stockpile-${n}`, h = AKT.hoursLeft(sp), lvl = AKT.num(sp, 'level_t');
     if (lvl != null && lvl < 50) return { text: `Склад ${n} пуст — линия ${n} стоит`, lv: 1 };
     const cr = AKT.st(`crusher-${n}`);
     const tail = cr && AKT.stopped(cr) ? `дробилка ${n} стоит` : `дробилка ${n} снова работает`;
@@ -1116,7 +1162,7 @@ AKT.scenWatch = scen => {
     return L.length ? { text: `Следите: склад кончится раньше всего через ${AKT.durH(Math.min(...L.map(r => r.hours)))}; потом SAG этой линии встанет`, lv: Math.min(...L.map(r => r.hours)) < 1 ? 3 : 0 } : { text: 'Следите: склады линий и когда карьер снова даст руду', lv: 0 };
   }
   if (kind === 'conveyor') {
-    const sp = `stockpile-${n}`, h = AKT.num(sp, 'hours_left');
+    const sp = `stockpile-${n}`, h = AKT.hoursLeft(sp);
     return { text: `Следите: конвейер ${n} ${AKT.stopped(AKT.st(`conveyor-${n}`)) ? 'стоит' : 'снова идёт'}; склад ${n} — ${AKT.fmt(AKT.num(sp, 'level_t'))} т${h != null && h <= 48 ? `, кончится через ${AKT.durH(h)}` : ''}`, lv: h != null && h < 1 ? 3 : 0 };
   }
   if (kind === 'icy') {
@@ -1144,7 +1190,7 @@ AKT.scenWatch = scen => {
     return { text: m ? 'Металлодетектор сработал, пресс остановлен — звать механика фабрики' : `Следите: перекос валков ${AKT.f1(AKT.num(pb, 'hpgr_skew_pct'))} %, разница мощности приводов ${AKT.f1(AKT.num(pb, 'hpgr_kw_diff_pct'))} %`, lv: m ? 1 : 0 };
   }
   if (kind === 'mantle') {
-    const left = AKT.num(`crusher-${n}`, 'service_left_h'), h = AKT.num(`stockpile-${n}`, 'hours_left');
+    const left = AKT.num(`crusher-${n}`, 'service_left_h'), h = AKT.hoursLeft(`stockpile-${n}`);
     return { text: `Следите: замена брони ещё ${left != null ? AKT.durH(left) : '—'}; склад ${n} ${h != null && h <= 48 ? 'кончится через ' + AKT.durH(h) : '— ' + AKT.fmt(AKT.num(`stockpile-${n}`, 'level_t')) + ' т'}`, lv: h != null && h < 1 ? 3 : 0 };
   }
   if (kind === 'oil') {
@@ -1181,6 +1227,7 @@ const Panel = AKT.panel = {
   <div class="b-h"><span class="tag-s">Учебный сценарий:</span> <span id="b-name"></span> · <span id="b-run"></span></div>
   <div class="watch" id="b-watch"></div>
   <div id="b-before"></div>
+  <div id="b-expect" class="b-expect"></div>
   <div id="b-chain" class="b-chain" hidden></div>
   <div class="b-btns" id="b-btns"><button type="button" id="b-stop">Остановить сценарий…</button></div>
   <div class="b-btns" id="b-confirm" hidden><span>Остановить? Фабрика сразу вернётся в состояние, как если бы сценария не было, на то же время модели. Прогон продолжится.</span>
@@ -1412,8 +1459,11 @@ const Panel = AKT.panel = {
       const b = this.scen;
       const pl = AKT.cmpOpen() ? AKT.prop.grouped() : [];
       $('b-chain').hidden = !pl.length;
-      html('b-chain', pl.length ? `<div class="b-ch-h">Как расходятся последствия (было → стало, по ходу процесса):</div><ol class="b-ch">${pl.slice(0, 7).map(c => `<li class="${AKT.prop.fresh(c.thing) ? 'new' : ''}"><a href="${AKT.href('?view=unit&id=' + AKT.id(c.thing))}">${AKT.esc(c.text)}</a></li>`).join('')}</ol>${pl.length > 7 ? `<div class="p-sub">и ещё ${AKT.fmt(pl.length - 7)} узлов — на карте и в диораме они под штриховкой</div>` : ''}` : '');
-      set('b-before', b && b.cu != null && start != null ? `До сценария (${AKT.clock(start)}): медь ${AKT.f1(b.cu)} т/ч → сейчас ${AKT.f1(AKT.num('site', 'cu_tph'))} т/ч` : '');
+      html('b-chain', pl.length ? `<div class="b-ch-h">Как расходятся последствия (база в ту же минуту модели → факт сейчас, эффект; по ходу процесса):</div><ol class="b-ch">${pl.slice(0, 7).map(c => `<li class="${AKT.prop.fresh(c.thing) ? 'new' : ''}"><a href="${AKT.href('?view=unit&id=' + AKT.id(c.thing))}">${AKT.esc(c.text)}</a></li>`).join('')}</ol>${pl.length > 7 ? `<div class="p-sub">и ещё ${AKT.fmt(pl.length - 7)} узлов — на карте и в диораме они под штриховкой</div>` : ''}` : '');
+      if (!AKT.verify.data) AKT.verify.load(() => Panel.update());      /* once: a loaded file calls back at once, and the callback is update() itself */
+      html('b-expect', AKT.verify.banner(scen));
+      const eff = AKT.scenEffect(scen);
+      set('b-before', eff ? eff.text : (b && b.cu != null && start != null ? `До сценария (${AKT.clock(start)}): медь ${AKT.f1(b.cu)} т/ч → сейчас ${AKT.f1(AKT.num('site', 'cu_tph'))} т/ч. Копии без сценария здесь нет: в разнице есть и колебание руды.` : ''));
     }
     $('p-lever').hidden = !AKT.leverOn();
     if (AKT.leverOn() && AKT.lever) set('lv-b-t', AKT.lever.describe());
@@ -1532,10 +1582,10 @@ const Panel = AKT.panel = {
     $('p-result').hidden = !res;
     if (res) {
       set('p-result-title', res.kind === 'shift' ? `Итог смены (к ${AKT.clockDay(res.t_min)})` : `Итог смены: ход без сценария и со сценарием (к ${AKT.clockDay(res.t_min)})`);
-      html('p-result-body', AKT.shiftTable(res));
+      html('p-result-body', AKT.shiftTable(res) + AKT.verify.compare(res));
     }
     /* journal of the shift: this run, 3 last rows */
-    const jr = AKT.journal.filter(r => !r.run || r.run === AKT.run).slice(0, 3);
+    const jr = AKT.shiftJournal().slice(0, 3);
     const jh = jr.length ? jr.map(r => `<li><span class="jt">${AKT.clock(r.sim_time)}</span> ${AKT.esc(AKT.journalRu(r))}</li>`).join('')
       : '<li class="empty dash">В этой смене действий ещё не было. Запись появится здесь через несколько секунд после нажатия.</li>';
     html('p-journal', jh);
@@ -1605,6 +1655,13 @@ const Panel = AKT.panel = {
     if (ce2 && ce2._raw !== costH) { ce2._raw = costH; ce2.innerHTML = costH; if (AKT.glossify) AKT.glossify(ce2); }
   },
 };
+/* rows of the journal of this shift: the dispatcher's calls (InfluxDB) and the module's own rows (arrived, late, resolved),
+   newest first; the panel, the queue page and the report read this one list */
+AKT.shiftJournal = () => {
+  const esc = ((AKT.val('mod-priority', 'escalations') || {}).log || []).filter(e => e && (e.action === 'late' || e.action === 'arrived' || e.action === 'resolved'))
+    .map(e => ({ sim_time: e.t, action: e.action, issue: e.issue, role: '', text: e.text, run: AKT.run }));
+  return (AKT.journal || []).filter(r => !r.run || r.run === AKT.run).concat(esc).sort((a, b) => (b.sim_time || 0) - (a.sim_time || 0));
+};
 /* a journal row in words */
 AKT.journalRu = r => {
   const issueRu = s => AKT.things[s] ? AKT.nameRu(AKT.issueNode(s) || s) : (/^issue-(\d+)$/.test(s || '') ? 'беда ' + s.slice(6) : (s || ''));
@@ -1612,6 +1669,9 @@ AKT.journalRu = r => {
   if (r.action === 'call') return `позвали ${role}${r.issue ? ' к ' + issueRu(r.issue) : ''}`;
   if (r.action === 'snooze') return `отложили${r.issue ? ' ' + issueRu(r.issue) : ''}: ${r.text || ''}`;
   if (r.action === 'auto_call') return `автовызов ${role}${r.issue ? ' к ' + issueRu(r.issue) : ''}`;
+  if (r.action === 'arrived') return `прибыли${r.issue ? ': ' + issueRu(r.issue) : ''}${r.text ? ' — ' + r.text : ''}`;
+  if (r.action === 'late') return `не прибыли вовремя${r.issue ? ': ' + issueRu(r.issue) : ''}${r.text ? ' — ' + r.text : ''}`;
+  if (r.action === 'resolved') return `беда устранена${r.issue ? ': ' + issueRu(r.issue) : ''}`;
   return `${r.action || ''} ${issueRu(r.issue)} ${r.text || ''}`.trim();
 };
 const KEY_RU = {
@@ -1659,6 +1719,109 @@ AKT.shiftTable = r => {
   }).join('');
   if (!rows) return '<p class="note">Копии модели ещё считают первые минуты сценария: цифры появятся здесь сами.</p>';
   return `<table class="kv"><tr><th></th><th>Медь, т</th><th>Разница с ходом без сценария</th><th>Руда, т</th><th>Энергия, МВт·ч</th><th>≈ Стоимость</th></tr>${rows}</table>`;
+};
+/* Effect of a scenario = the fact minus the base copy at the same model minute (the swing of the ore cancels), copper of the line
+   named in the scenario, else of the plant. Null when the base copy is not published (free run, hidden cause): the caller keeps
+   the pair «before the scenario → now» and says that the swing of the ore is inside it. */
+AKT.scenEffect = scen => {
+  const m = /:(\d)/.exec(scen || ''), th = m ? `line-${m[1]}` : 'site';
+  const b = AKT.base(th, 'cu_tph'), n = AKT.num(th, 'cu_tph');
+  if (b == null || n == null || b < 0 || n < 0) return null;
+  const d = n - b, sg = d > 0.04 ? '+' : d < -0.04 ? '−' : '±';
+  return { base: b, fact: n, effect: d, text: `Медь ${m ? 'линии ' + m[1] : 'станции'}: база ${AKT.f1(b)} → факт ${AKT.f1(n)} т Cu/ч, эффект ${sg}${AKT.f1(Math.abs(d))} (разница с копией без сценария в ту же минуту модели; колебание руды вычтено)` };
+};
+/* Expected result of a scenario, computed beforehand by the same code as the stand: web/static/verify.json, written by
+   `python -I aktogay/run.py verify` (sim/verify.py); a test keeps the file equal to the script output. */
+AKT.verify = {
+  data: null, asked: false, seen: {},
+  load(cb) {
+    if (this.data) { if (cb) cb(); return; }
+    if (cb) (this.cbs = this.cbs || []).push(cb);
+    if (this.asked) return;
+    this.asked = true;
+    fetch('/verify.json', { cache: 'no-store' }).then(r => r.json()).then(d => { this.data = d; (this.cbs || []).forEach(f => f()); this.cbs = []; })
+      .catch(() => { this.asked = false; });
+  },
+  kip() { const k = Number(AKT.params && AKT.params.get('kip')); return k >= 2 ? 2 : 1; },
+  run(id, kip) {
+    if (!this.data || !id) return null;
+    const rs = this.data.runs.filter(r => r.id === id);
+    return rs.find(r => r.kip === (id === 'fork' ? kip || this.kip() : 1)) || null;
+  },
+  sg(d, f) { return (d > 0.00004 ? '+' : d < -0.00004 ? '−' : '±') + f(Math.abs(d)); },
+  momentRu(k) {
+    const m = /^(stock_empty|sag_off)_(\d)$/.exec(k);
+    if (!m) return k;
+    return m[1] === 'stock_empty' ? `склад руды линии ${m[2]} кончится` : `SAG-${m[2]} останется без руды или встанет`;
+  },
+  /* the observation of a moment on the live stand (the things Ditto holds) */
+  observed(k) {
+    const m = /^(stock_empty|sag_off)_(\d)$/.exec(k);
+    if (!m) return false;
+    return m[1] === 'stock_empty' ? AKT.st(`stockpile-${m[2]}`) === 'EMPTY' : ['STARVED', 'STOP', 'RELINE'].includes(AKT.st(`sag-${m[2]}`));
+  },
+  /* status of one moment against the stand: wait / within ±10 min of model time / confirmed at HH:MM / not confirmed */
+  status(run, k, start) {
+    const key = `${AKT.run}|${run.id}|${k}`, now = AKT.simTime, exp = start != null ? start + run.moments[k].min : null;
+    if (this.observed(k) && this.seen[key] == null && now != null) this.seen[key] = now;
+    if (this.seen[key] != null) return `подтверждено в ${AKT.clock(this.seen[key])} модели`;
+    if (exp == null || now == null) return 'ждём';
+    if (this.since == null || this.sinceRun !== AKT.run) { this.since = now; this.sinceRun = AKT.run; }      /* when this page started to look at the run */
+    if (now < exp - 10) return 'ждём';
+    if (now <= exp + 10) return 'сейчас должно произойти (окно ±10 мин модели)';
+    return this.since > exp + 10 ? 'не видно: страница открыта после этого момента' : 'не подтвердилось';
+  },
+  text(run) {
+    const d = run.diff.fact, c = run.copies;
+    if (run.fork) {
+      const w = c.fact.cu_t - c.no_twin.cu_t, f = c.loud.cu_t - c.no_twin.cu_t, o = c.fact.cu_t - c.loud.cu_t;
+      return `двойник («по $») ${this.sg(w, AKT.f2)} т Cu против копии «без двойника»: находка ${this.sg(f, AKT.f2)}, порядок вызова ${this.sg(o, AKT.f2)}`;
+    }
+    return `${this.sg(d.cu_t, AKT.f2)} т Cu и ${d.usd < 0 ? '−' : '+'}${AKT.money(Math.abs(d.usd))} против копии без сценария`;
+  },
+  banner(scen) {
+    if (!this.data) return '';
+    const run = this.run(scen);
+    if (!run) return '';
+    const seed = AKT.num('site', 'seed');
+    const lab = `посчитано заранее тем же кодом, seed ${this.data.seed}, оценка на модели`;
+    if (seed != null && seed !== this.data.seed) return `<div class="b-ex"><b>Ожидаемый итог к 20:00</b> заранее посчитан для прогона № ${this.data.seed}, а идёт № ${AKT.fmt(seed)}: сверять нечего. Прогон № ${this.data.seed} — «Начать смену заново» в «Пульте модели».</div>`;
+    const start = AKT.scenStart();
+    const mom = Object.keys(run.moments).map(k => `<li>${AKT.esc(this.momentRu(k))} ≈ ${run.moments[k].clock} · <span class="p-sub">на стенде: ${AKT.esc(this.status(run, k, start))}</span></li>`).join('');
+    return `<div class="b-ex"><b>Ожидаемый итог к 20:00</b> — ${lab}: ${AKT.esc(this.text(run))}.${mom ? `<ul class="b-ex-l">${mom}</ul>` : ' Склад руды и SAG из-за сценария за смену не останавливаются.'}</div>`;
+  },
+  /* the shift result of the stand next to what was computed beforehand */
+  compare(res) {
+    if (!this.data || !res || res.kind !== 'scenario') return '';
+    const run = this.run(AKT.scenario());
+    const seed = AKT.num('site', 'seed');
+    if (!run || seed !== this.data.seed || res.t_min == null) return '';
+    const c = res.copies || {};
+    if (!(c.fact && c.base && c.fact.cu_t >= 0 && c.base.cu_t >= 0)) return '';
+    const got = c.fact.cu_t - c.base.cu_t, exp = run.diff.fact.cu_t;
+    const start = AKT.scenStart();
+    const done = start != null && res.t_min >= start + 719;
+    if (!done) return `<p class="note">К этому часу получено ${this.sg(got, AKT.f2)} т Cu; к 20:00 по заранее посчитанному (seed ${this.data.seed}, оценка на модели) будет ${this.sg(exp, AKT.f2)} т Cu.</p>`;
+    return `<p class="note">Итог к 20:00: получено ${this.sg(got, AKT.f2)} т Cu; заранее посчитано ${this.sg(exp, AKT.f2)} т Cu (seed ${this.data.seed}, оценка на модели) · ${Math.abs(got - exp) <= 0.05 ? 'совпало' : `расходится на ${AKT.f2(Math.abs(got - exp))} т Cu: на стенде вызовы идут в живом времени, а в расчёте заранее — без нажатий`}.</p>`;
+  },
+  table() {
+    if (!this.data) return '<p class="empty dash">Загружаю заранее посчитанные итоги…</p>';
+    const d = this.data, cur = AKT.scenario();
+    const names = (AKT.SCENARIOS || []).reduce((m, s) => { m[s.id] = s.name; return m; }, {});
+    const rows = d.runs.map(r => {
+      const c = r.copies, x = r.diff.fact;
+      const copies = r.fork
+        ? `по $ ${AKT.f2(c.fact.cu_t)} · по громкости ${AKT.f2(c.loud.cu_t)} · без двойника ${AKT.f2(c.no_twin.cu_t)} · база ${AKT.f2(c.base.cu_t)}`
+        : `база ${AKT.f2(c.base.cu_t)} · сценарий ${AKT.f2(c.fact.cu_t)}`;
+      const usd = r.fork ? `по $ − без двойника: ${this.sg(c.fact.usd - c.no_twin.usd, v => AKT.money(v))}` : `${x.usd < 0 ? '−' : '+'}${AKT.money(Math.abs(x.usd))}`;
+      const mom = Object.keys(r.moments).map(k => `${this.momentRu(k)} ≈ ${r.moments[k].clock}`).join('; ') || '—';
+      const live = cur === r.id && (r.id !== 'fork' || r.kip === this.kip()) ? (Object.keys(r.moments).map(k => this.status(r, k, AKT.scenStart())).join('; ') || 'идёт') : '';
+      const lab = r.fork ? `Две беды сразу, дежурных КИПиА: ${r.kip}` : (names[r.id] || AKT.scenarioRu(r.id));
+      return `<tr><td><b>${AKT.esc(lab)}</b> <span class="p-sub"><code>${AKT.esc(r.id)}</code></span><br><span class="p-sub">${AKT.esc(mom === '—' ? 'склад и SAG из-за сценария не останавливаются' : mom)}</span></td><td>${copies}</td><td class="n">${r.fork ? this.sg(c.fact.cu_t - c.no_twin.cu_t, AKT.f2) : this.sg(x.cu_t, AKT.f2)}</td><td>${usd}</td><td>${AKT.esc(live)}</td></tr>`;
+    }).join('');
+    return `<div style="overflow-x:auto"><table class="kv" id="ht-verify-t"><tr><th>Сценарий и ключевые моменты</th><th>Медь к 20:00, т Cu (копии)</th><th>Разница, т Cu</th><th>Разница, $</th><th>На стенде сейчас</th></tr>${rows}</table></div>
+<p class="note">Ожидаемый итог — посчитано заранее тем же кодом, seed ${d.seed}, оценка на модели; код ${AKT.esc(d.code_hash)}. Команда: <code>${AKT.esc(d.command)}</code>. Копия «факт» без нажатий в интерфейсе. У «Две беды сразу» разница считается с копией «без двойника». Окно сверки моментов на стенде — ±10 мин модели (модуль считает каждые 5–10 мин). В первой колонке — когда склад руды кончится или SAG останется без руды, если это происходит из-за сценария.</p>`;
+  },
 };
 AKT.planRu = s => String(s || '').replace(/L(\d)\s*:/g, 'линия $1:').replace(/\b0*(\d+)\s+([MST])\b/g,
   (m, n, c) => `${n}${NBSP}${{ M: 'М', S: 'С', T: 'Т' }[c]}`);

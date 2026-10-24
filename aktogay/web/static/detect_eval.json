@@ -1,0 +1,767 @@
+{
+ "by_cause": {
+  "cyclone": {
+   "alarmed_runs": 100,
+   "detected": 100,
+   "detected_ci95": [
+    0.963,
+    1.0
+   ],
+   "detected_share": 1.0,
+   "first_alarm_is_true_node_share": 1.0,
+   "latency_median_min": 65.0,
+   "latency_p10_min": 45.0,
+   "latency_p90_min": 110.5,
+   "latency_unsure_median_min": 65.0,
+   "latency_unsure_p10_min": 45.0,
+   "latency_unsure_p90_min": 110.5,
+   "missed": 0,
+   "missed_share": 0.0,
+   "n": 100,
+   "role_first_share": 1.0,
+   "role_named_share": 1.0,
+   "unsure_only": 0,
+   "unsure_only_share": 0.0
+  },
+  "dose": {
+   "alarmed_runs": 150,
+   "detected": 150,
+   "detected_ci95": [
+    0.975,
+    1.0
+   ],
+   "detected_share": 1.0,
+   "first_alarm_is_true_node_share": 1.0,
+   "latency_median_min": 110.0,
+   "latency_p10_min": 95.0,
+   "latency_p90_min": 170.0,
+   "latency_unsure_median_min": 80.0,
+   "latency_unsure_p10_min": 59.5,
+   "latency_unsure_p90_min": 150.5,
+   "missed": 0,
+   "missed_share": 0.0,
+   "n": 150,
+   "role_first_share": 1.0,
+   "role_named_share": 1.0,
+   "unsure_only": 0,
+   "unsure_only_share": 0.0
+  },
+  "liner": {
+   "alarmed_runs": 134,
+   "detected": 107,
+   "detected_ci95": [
+    0.636,
+    0.78
+   ],
+   "detected_share": 0.713,
+   "first_alarm_is_true_node_share": 0.634,
+   "latency_median_min": 290.0,
+   "latency_p10_min": 193.0,
+   "latency_p90_min": 580.0,
+   "latency_unsure_median_min": 305.0,
+   "latency_unsure_p10_min": 194.0,
+   "latency_unsure_p90_min": 580.0,
+   "missed": 41,
+   "missed_share": 0.273,
+   "n": 150,
+   "role_first_share": 0.0,
+   "role_named_share": 1.0,
+   "unsure_only": 2,
+   "unsure_only_share": 0.013
+  },
+  "oxide": {
+   "alarmed_runs": 143,
+   "detected": 139,
+   "detected_ci95": [
+    0.873,
+    0.959
+   ],
+   "detected_share": 0.927,
+   "first_alarm_is_true_node_share": 0.916,
+   "latency_median_min": 140.0,
+   "latency_p10_min": 95.0,
+   "latency_p90_min": 365.0,
+   "latency_unsure_median_min": 110.0,
+   "latency_unsure_p10_min": 50.0,
+   "latency_unsure_p90_min": 365.0,
+   "missed": 5,
+   "missed_share": 0.033,
+   "n": 150,
+   "role_first_share": 0.0,
+   "role_named_share": 1.0,
+   "unsure_only": 6,
+   "unsure_only_share": 0.04
+  }
+ },
+ "by_cause_line": {
+  "cyclone": {
+   "1": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 65.0,
+    "latency_p10_min": 45.0,
+    "latency_p90_min": 105.5,
+    "latency_unsure_median_min": 65.0,
+    "latency_unsure_p10_min": 45.0,
+    "latency_unsure_p90_min": 105.5,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   },
+   "2": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 65.0,
+    "latency_p10_min": 45.0,
+    "latency_p90_min": 115.0,
+    "latency_unsure_median_min": 65.0,
+    "latency_unsure_p10_min": 45.0,
+    "latency_unsure_p90_min": 115.0,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   }
+  },
+  "dose": {
+   "1": {
+    "alarmed_runs": 75,
+    "detected": 75,
+    "detected_ci95": [
+     0.951,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 110.0,
+    "latency_p10_min": 95.0,
+    "latency_p90_min": 170.0,
+    "latency_unsure_median_min": 80.0,
+    "latency_unsure_p10_min": 65.0,
+    "latency_unsure_p90_min": 146.0,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 75,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   },
+   "2": {
+    "alarmed_runs": 75,
+    "detected": 75,
+    "detected_ci95": [
+     0.951,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 110.0,
+    "latency_p10_min": 95.0,
+    "latency_p90_min": 164.0,
+    "latency_unsure_median_min": 80.0,
+    "latency_unsure_p10_min": 50.0,
+    "latency_unsure_p90_min": 149.0,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 75,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   }
+  },
+  "liner": {
+   "1": {
+    "alarmed_runs": 64,
+    "detected": 54,
+    "detected_ci95": [
+     0.61,
+     0.809
+    ],
+    "detected_share": 0.72,
+    "first_alarm_is_true_node_share": 0.688,
+    "latency_median_min": 307.5,
+    "latency_p10_min": 215.0,
+    "latency_p90_min": 550.0,
+    "latency_unsure_median_min": 307.5,
+    "latency_unsure_p10_min": 215.0,
+    "latency_unsure_p90_min": 550.0,
+    "missed": 21,
+    "missed_share": 0.28,
+    "n": 75,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   },
+   "2": {
+    "alarmed_runs": 70,
+    "detected": 53,
+    "detected_ci95": [
+     0.596,
+     0.798
+    ],
+    "detected_share": 0.707,
+    "first_alarm_is_true_node_share": 0.586,
+    "latency_median_min": 285.0,
+    "latency_p10_min": 181.0,
+    "latency_p90_min": 592.0,
+    "latency_unsure_median_min": 290.0,
+    "latency_unsure_p10_min": 182.0,
+    "latency_unsure_p90_min": 604.0,
+    "missed": 20,
+    "missed_share": 0.267,
+    "n": 75,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 2,
+    "unsure_only_share": 0.027
+   }
+  },
+  "oxide": {
+   "1": {
+    "alarmed_runs": 72,
+    "detected": 70,
+    "detected_ci95": [
+     0.853,
+     0.971
+    ],
+    "detected_share": 0.933,
+    "first_alarm_is_true_node_share": 0.903,
+    "latency_median_min": 140.0,
+    "latency_p10_min": 95.0,
+    "latency_p90_min": 398.0,
+    "latency_unsure_median_min": 102.5,
+    "latency_unsure_p10_min": 50.0,
+    "latency_unsure_p90_min": 347.0,
+    "missed": 3,
+    "missed_share": 0.04,
+    "n": 75,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 2,
+    "unsure_only_share": 0.027
+   },
+   "2": {
+    "alarmed_runs": 71,
+    "detected": 69,
+    "detected_ci95": [
+     0.836,
+     0.963
+    ],
+    "detected_share": 0.92,
+    "first_alarm_is_true_node_share": 0.93,
+    "latency_median_min": 125.0,
+    "latency_p10_min": 95.0,
+    "latency_p90_min": 311.0,
+    "latency_unsure_median_min": 110.0,
+    "latency_unsure_p10_min": 50.0,
+    "latency_unsure_p90_min": 381.0,
+    "missed": 2,
+    "missed_share": 0.027,
+    "n": 75,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 4,
+    "unsure_only_share": 0.053
+   }
+  }
+ },
+ "by_cause_magnitude": {
+  "cyclone": {
+   "1.0": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 95.0,
+    "latency_p10_min": 79.5,
+    "latency_p90_min": 126.5,
+    "latency_unsure_median_min": 95.0,
+    "latency_unsure_p10_min": 79.5,
+    "latency_unsure_p90_min": 126.5,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   },
+   "2.0": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 50.0,
+    "latency_p10_min": 45.0,
+    "latency_p90_min": 55.0,
+    "latency_unsure_median_min": 45.0,
+    "latency_unsure_p10_min": 40.0,
+    "latency_unsure_p90_min": 55.0,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   }
+  },
+  "dose": {
+   "0.25": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 155.0,
+    "latency_p10_min": 125.0,
+    "latency_p90_min": 185.0,
+    "latency_unsure_median_min": 125.0,
+    "latency_unsure_p10_min": 80.0,
+    "latency_unsure_p90_min": 185.0,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   },
+   "0.4": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 110.0,
+    "latency_p10_min": 95.0,
+    "latency_p90_min": 125.0,
+    "latency_unsure_median_min": 80.0,
+    "latency_unsure_p10_min": 59.5,
+    "latency_unsure_p90_min": 95.0,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   },
+   "0.5": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 95.0,
+    "latency_p10_min": 80.0,
+    "latency_p90_min": 110.0,
+    "latency_unsure_median_min": 65.0,
+    "latency_unsure_p10_min": 50.0,
+    "latency_unsure_p90_min": 80.0,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 1.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   }
+  },
+  "liner": {
+   "0.02": {
+    "alarmed_runs": 42,
+    "detected": 29,
+    "detected_ci95": [
+     0.442,
+     0.706
+    ],
+    "detected_share": 0.58,
+    "first_alarm_is_true_node_share": 0.5,
+    "latency_median_min": 465.0,
+    "latency_p10_min": 248.0,
+    "latency_p90_min": 636.0,
+    "latency_unsure_median_min": 457.5,
+    "latency_unsure_p10_min": 249.0,
+    "latency_unsure_p90_min": 635.5,
+    "missed": 20,
+    "missed_share": 0.4,
+    "n": 50,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 1,
+    "unsure_only_share": 0.02
+   },
+   "0.04": {
+    "alarmed_runs": 45,
+    "detected": 35,
+    "detected_ci95": [
+     0.562,
+     0.809
+    ],
+    "detected_share": 0.7,
+    "first_alarm_is_true_node_share": 0.6,
+    "latency_median_min": 450.0,
+    "latency_p10_min": 232.0,
+    "latency_p90_min": 530.0,
+    "latency_unsure_median_min": 450.0,
+    "latency_unsure_p10_min": 232.5,
+    "latency_unsure_p90_min": 555.0,
+    "missed": 14,
+    "missed_share": 0.28,
+    "n": 50,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 1,
+    "unsure_only_share": 0.02
+   },
+   "0.06": {
+    "alarmed_runs": 47,
+    "detected": 43,
+    "detected_ci95": [
+     0.738,
+     0.93
+    ],
+    "detected_share": 0.86,
+    "first_alarm_is_true_node_share": 0.787,
+    "latency_median_min": 235.0,
+    "latency_p10_min": 176.0,
+    "latency_p90_min": 519.0,
+    "latency_unsure_median_min": 230.0,
+    "latency_unsure_p10_min": 176.0,
+    "latency_unsure_p90_min": 519.0,
+    "missed": 7,
+    "missed_share": 0.14,
+    "n": 50,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   }
+  },
+  "oxide": {
+   "1.0": {
+    "alarmed_runs": 43,
+    "detected": 39,
+    "detected_ci95": [
+     0.648,
+     0.872
+    ],
+    "detected_share": 0.78,
+    "first_alarm_is_true_node_share": 0.721,
+    "latency_median_min": 305.0,
+    "latency_p10_min": 215.0,
+    "latency_p90_min": 491.0,
+    "latency_unsure_median_min": 290.0,
+    "latency_unsure_p10_min": 157.0,
+    "latency_unsure_p90_min": 524.0,
+    "missed": 5,
+    "missed_share": 0.1,
+    "n": 50,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 6,
+    "unsure_only_share": 0.12
+   },
+   "2.0": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 140.0,
+    "latency_p10_min": 110.0,
+    "latency_p90_min": 185.0,
+    "latency_unsure_median_min": 110.0,
+    "latency_unsure_p10_min": 65.0,
+    "latency_unsure_p90_min": 171.5,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   },
+   "3.0": {
+    "alarmed_runs": 50,
+    "detected": 50,
+    "detected_ci95": [
+     0.929,
+     1.0
+    ],
+    "detected_share": 1.0,
+    "first_alarm_is_true_node_share": 1.0,
+    "latency_median_min": 95.0,
+    "latency_p10_min": 93.5,
+    "latency_p90_min": 110.0,
+    "latency_unsure_median_min": 65.0,
+    "latency_unsure_p10_min": 35.0,
+    "latency_unsure_p90_min": 80.5,
+    "missed": 0,
+    "missed_share": 0.0,
+    "n": 50,
+    "role_first_share": 0.0,
+    "role_named_share": 1.0,
+    "unsure_only": 0,
+    "unsure_only_share": 0.0
+   }
+  }
+ },
+ "code_hash": "d83ed4a63c44",
+ "command": "python -I aktogay/run.py detect_eval --seeds 25 --jobs 4 --write aktogay/web/static/detect_eval.json",
+ "control": {
+  "by_node_loss": {
+   "cyclones-1": 10,
+   "cyclones-2": 8,
+   "flot-1": 10,
+   "flot-2": 6,
+   "sag-1": 11,
+   "sag-2": 8
+  },
+  "hours_total": 275.0,
+  "loss_episodes": 53,
+  "loss_per_week": 32.38,
+  "runs": 25,
+  "runs_with_loss": 18,
+  "unsure_episodes": 50
+ },
+ "fork_silent_dose": {
+  "alarmed_runs": 25,
+  "detected": 25,
+  "detected_ci95": [
+   0.867,
+   1.0
+  ],
+  "detected_share": 1.0,
+  "first_alarm_is_true_node_share": 1.0,
+  "latency_median_min": 110.0,
+  "latency_p10_min": 95.0,
+  "latency_p90_min": 125.0,
+  "latency_unsure_median_min": 80.0,
+  "latency_unsure_p10_min": 65.0,
+  "latency_unsure_p90_min": 95.0,
+  "missed": 0,
+  "missed_share": 0.0,
+  "n": 25,
+  "role_first_share": 1.0,
+  "role_named_share": 1.0,
+  "unsure_only": 0,
+  "unsure_only_share": 0.0
+ },
+ "harness": "CopySet -> tests/mod_support.items_from_plant (numbers rounded as sim/publish sends them) -> LossesModule.compute every 5 model min, 12 h from 08:00; the cause starts at 09:00",
+ "label": "оценка на модели",
+ "magnitudes": {
+  "cyclone": [
+   1.0,
+   2.0
+  ],
+  "dose": [
+   0.25,
+   0.4,
+   0.5
+  ],
+  "liner": [
+   0.02,
+   0.04,
+   0.06
+  ],
+  "oxide": [
+   1.0,
+   2.0,
+   3.0
+  ]
+ },
+ "matrix_any_loss_by_node": {
+  "cyclone": {
+   "cyclones-1": 0.7,
+   "cyclones-2": 0.66,
+   "flot-1": 0.4,
+   "flot-2": 0.24,
+   "sag-1": 0.44,
+   "sag-2": 0.32
+  },
+  "dose": {
+   "cyclones-1": 0.4,
+   "cyclones-2": 0.32,
+   "flot-1": 0.7,
+   "flot-2": 0.62,
+   "sag-1": 0.44,
+   "sag-2": 0.32
+  },
+  "liner": {
+   "cyclones-1": 0.393,
+   "cyclones-2": 0.32,
+   "flot-1": 0.4,
+   "flot-2": 0.24,
+   "sag-1": 0.58,
+   "sag-2": 0.513
+  },
+  "oxide": {
+   "cyclones-1": 0.4,
+   "cyclones-2": 0.32,
+   "flot-1": 0.667,
+   "flot-2": 0.58,
+   "sag-1": 0.44,
+   "sag-2": 0.32
+  }
+ },
+ "matrix_by_kind": {
+  "cyclone": {
+   "cyclones своя линия": 1.0,
+   "flot своя линия": 0.32,
+   "sag своя линия": 0.38,
+   "другая линия (любой узел)": 0.58
+  },
+  "dose": {
+   "cyclones своя линия": 0.36,
+   "flot своя линия": 1.0,
+   "sag своя линия": 0.38,
+   "другая линия (любой узел)": 0.58
+  },
+  "liner": {
+   "cyclones своя линия": 0.353,
+   "flot своя линия": 0.32,
+   "sag своя линия": 0.713,
+   "другая линия (любой узел)": 0.58
+  },
+  "oxide": {
+   "cyclones своя линия": 0.36,
+   "flot своя линия": 0.927,
+   "sag своя линия": 0.38,
+   "другая линия (любой узел)": 0.58
+  }
+ },
+ "matrix_first_alarm_by_node": {
+  "cyclone": {
+   "cyclones-1": 0.5,
+   "cyclones-2": 0.5,
+   "flot-1": 0.0,
+   "flot-2": 0.0,
+   "sag-1": 0.0,
+   "sag-2": 0.0
+  },
+  "dose": {
+   "cyclones-1": 0.0,
+   "cyclones-2": 0.0,
+   "flot-1": 0.5,
+   "flot-2": 0.5,
+   "sag-1": 0.0,
+   "sag-2": 0.0
+  },
+  "liner": {
+   "cyclones-1": 0.033,
+   "cyclones-2": 0.053,
+   "flot-1": 0.04,
+   "flot-2": 0.093,
+   "sag-1": 0.38,
+   "sag-2": 0.293
+  },
+  "oxide": {
+   "cyclones-1": 0.02,
+   "cyclones-2": 0.02,
+   "flot-1": 0.44,
+   "flot-2": 0.44,
+   "sag-1": 0.027,
+   "sag-2": 0.007
+  }
+ },
+ "n_seeds": 25,
+ "nodes": [
+  "sag-1",
+  "cyclones-1",
+  "flot-1",
+  "sag-2",
+  "cyclones-2",
+  "flot-2"
+ ],
+ "overall": {
+  "alarmed_runs": 527,
+  "detected": 496,
+  "detected_ci95": [
+   0.874,
+   0.924
+  ],
+  "detected_share": 0.902,
+  "first_alarm_is_true_node_share": 0.884,
+  "latency_median_min": 125.0,
+  "latency_p10_min": 65.0,
+  "latency_p90_min": 450.0,
+  "latency_unsure_median_min": 95.0,
+  "latency_unsure_p10_min": 50.0,
+  "latency_unsure_p90_min": 450.0,
+  "missed": 46,
+  "missed_share": 0.084,
+  "n": 550,
+  "role_first_share": 0.504,
+  "role_named_share": 1.0,
+  "unsure_only": 8,
+  "unsure_only_share": 0.015
+ },
+ "runs": 600,
+ "seeds": [
+  1001,
+  1025
+ ],
+ "start_min_after_0800": 60.0,
+ "truth": {
+  "cyclone": [
+   "cyclones",
+   "plant_mech"
+  ],
+  "dose": [
+   "flot",
+   "kip"
+  ],
+  "liner": [
+   "sag",
+   "plant_mech"
+  ],
+  "oxide": [
+   "flot",
+   "shift_metallurgist"
+  ]
+ }
+}

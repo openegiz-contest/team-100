@@ -1,0 +1,5806 @@
+{
+ "kind": "akt-influence",
+ "version": 2,
+ "generated": "2026-10-24",
+ "threshold_t_cu": 0.1,
+ "reach_n": 5,
+ "screen_n": 5,
+ "screen_seeds": [
+  1001,
+  1012,
+  1020,
+  1041,
+  1005
+ ],
+ "base": "twin_human same, asis_hard dig (VALIDATION 8.17)",
+ "base_gain": 0.47126878655849397,
+ "summary": {
+  "total": 764,
+  "assumption": {
+   "n": 534,
+   "matters": 20,
+   "read_small": 164,
+   "read": 6,
+   "read_fixed": 23,
+   "not_read": 321
+  },
+  "fact": {
+   "n": 47,
+   "matters": 1,
+   "read_small": 5,
+   "read": 3,
+   "read_fixed": 5,
+   "not_read": 33
+  },
+  "vendor": {
+   "n": 45,
+   "matters": 3,
+   "read_small": 9,
+   "read": 0,
+   "read_fixed": 15,
+   "not_read": 18
+  },
+  "analog": {
+   "n": 63,
+   "matters": 2,
+   "read_small": 4,
+   "read": 3,
+   "read_fixed": 7,
+   "not_read": 47
+  },
+  "project": {
+   "n": 28,
+   "matters": 0,
+   "read_small": 2,
+   "read": 0,
+   "read_fixed": 4,
+   "not_read": 22
+  },
+  "calc": {
+   "n": 47,
+   "matters": 4,
+   "read_small": 12,
+   "read": 0,
+   "read_fixed": 3,
+   "not_read": 28
+  },
+  "matters": 30,
+  "read_small": 196,
+  "read": 12,
+  "read_fixed": 57,
+  "not_read": 469,
+  "assumptions_total": 534,
+  "screened": 226,
+  "refit_removes": [
+   "blk_ascu_mean_pct",
+   "clean_r0_pct",
+   "flot_ktau0"
+  ]
+ },
+ "top": [
+  {
+   "table": "model",
+   "key": "blk_ascu_mean_pct",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.40809910469286026,
+   "dev_refit": 0.0,
+   "matters_refit": false
+  },
+  {
+   "table": "model",
+   "key": "fleet_ore_793",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.4066724348891313
+  },
+  {
+   "table": "model",
+   "key": "flot_ktau0",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.3408182005453682,
+   "dev_refit": 0.008696533320289745,
+   "matters_refit": false
+  },
+  {
+   "table": "model",
+   "key": "flot_rinf0_pct",
+   "label": "calc",
+   "cls": "matters",
+   "dev": 0.3324612191347683
+  },
+  {
+   "table": "model",
+   "key": "sag_morrell_b",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.30159121549683054
+  },
+  {
+   "table": "model",
+   "key": "clean_r0_pct",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.27049329520970106,
+   "dev_refit": 0.0008615556754534848,
+   "matters_refit": false
+  },
+  {
+   "table": "model",
+   "key": "sens_an_cycle_min",
+   "label": "vendor",
+   "cls": "matters",
+   "dev": 0.2682399825083053
+  },
+  {
+   "table": "model",
+   "key": "acs_tail_sp_pct",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.2682399825083053
+  },
+  {
+   "table": "model",
+   "key": "cal_line_tph",
+   "label": "calc",
+   "cls": "matters",
+   "dev": 0.26715364501520755
+  },
+  {
+   "table": "model",
+   "key": "pit_block_t",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.26111922487466477
+  },
+  {
+   "table": "model",
+   "key": "flot_ascu_ref_pct",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.23823377617117103
+  },
+  {
+   "table": "model",
+   "key": "flot_p80_pp_10um",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.2297830629832333
+  },
+  {
+   "table": "model",
+   "key": "sag_morrell_a",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.22934837629056803
+  },
+  {
+   "table": "model",
+   "key": "blk_cu_mean_pct",
+   "label": "fact",
+   "cls": "matters",
+   "dev": 0.22329802746968427
+  },
+  {
+   "table": "model",
+   "key": "sag_k",
+   "label": "calc",
+   "cls": "matters",
+   "dev": 0.21593554113943586
+  },
+  {
+   "table": "model",
+   "key": "peb_frac_hard",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.19631722183409012
+  },
+  {
+   "table": "model",
+   "key": "fleet_speed_eff",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.16256874166524543
+  },
+  {
+   "table": "model",
+   "key": "peb_frac_base",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.1623789853237554
+  },
+  {
+   "table": "model",
+   "key": "pit_plan_h",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.13880432802933457
+  },
+  {
+   "table": "model",
+   "key": "stock_live_t",
+   "label": "calc",
+   "cls": "matters",
+   "dev": 0.1357762445278809
+  },
+  {
+   "table": "model",
+   "key": "flot_grade_pp_ln",
+   "label": "analog",
+   "cls": "matters",
+   "dev": 0.1288748082291477
+  },
+  {
+   "table": "model",
+   "key": "sens_an_tail_sigma",
+   "label": "vendor",
+   "cls": "matters",
+   "dev": 0.12886991280568055
+  },
+  {
+   "table": "model",
+   "key": "blk_cu_cv",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.1252000468052984
+  },
+  {
+   "table": "model",
+   "key": "ore_axb_base",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.12279741817642392
+  },
+  {
+   "table": "model",
+   "key": "flot_ph_pp_unit",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.11930767296225897
+  },
+  {
+   "table": "model",
+   "key": "hc_ph_drift",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.11930767296225897
+  },
+  {
+   "table": "model",
+   "key": "hc_dose_drop",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.11548198227825424
+  },
+  {
+   "table": "model",
+   "key": "ore_bwi_base",
+   "label": "vendor",
+   "cls": "matters",
+   "dev": 0.10929127435528019
+  },
+  {
+   "table": "model",
+   "key": "ball_f80_um",
+   "label": "analog",
+   "cls": "matters",
+   "dev": 0.10786556825329402
+  },
+  {
+   "table": "model",
+   "key": "ball_power_mw",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.10245240941333122
+  }
+ ],
+ "mechanism": {
+  "set_point_pct": 0.075,
+  "rows": [
+   {
+    "name": "base",
+    "set": {},
+    "tails_pct": 0.053264515424739,
+    "gain": 0.47126878655849397
+   },
+   {
+    "name": "blk_ascu_mean_pct@10",
+    "key": "blk_ascu_mean_pct",
+    "value": 10.0,
+    "set": {
+     "blk_ascu_mean_pct": 10.0
+    },
+    "tails_pct": 0.07479640448674507,
+    "shifted_sp": 0.09653188906200608,
+    "gain": 0.06316968186563372,
+    "gain_shifted_sp": 0.4996602373361497
+   },
+   {
+    "name": "flot_ktau0@2.5",
+    "key": "flot_ktau0",
+    "value": 2.5,
+    "set": {
+     "flot_ktau0": 2.5
+    },
+    "tails_pct": 0.07253146123340368,
+    "shifted_sp": 0.09426694580866468,
+    "gain": 0.13045058601312576,
+    "gain_shifted_sp": 0.492105349938754
+   },
+   {
+    "name": "clean_r0_pct@95",
+    "key": "clean_r0_pct",
+    "value": 95.0,
+    "set": {
+     "clean_r0_pct": 95.0
+    },
+    "tails_pct": 0.06069566834743966,
+    "shifted_sp": 0.08243115292270066,
+    "gain": 0.2007754913487929,
+    "gain_shifted_sp": 0.46901546165281616
+   }
+  ],
+  "compatible_with_the_report": {
+   "blk_ascu_mean_pct": 7.9798846171751645,
+   "flot_ktau0": 2.755552535087215,
+   "clean_r0_pct": null
+  },
+  "note": "compatible_with_the_report: the value of the row at which the re-solved flot_rinf0_pct reaches the top of its own range; beyond it the row cannot be moved without the base recovery leaving the 87.2 % of the report (None: the whole range stays inside)"
+ },
+ "recovery_family": {
+  "blk_ascu_mean_pct": {
+   "edges": [
+    {
+     "value": 2.0,
+     "gain": 0.47369091989802425,
+     "dev": 0.0024221333395302858
+    },
+    {
+     "value": 10.0,
+     "gain": 0.06316968186563372,
+     "dev": 0.40809910469286026
+    }
+   ],
+   "refit_edges": [
+    {
+     "value": 2.0,
+     "gain": 0.47126878655849397,
+     "dev": 0.0,
+     "rinf0": 89.36987025923968
+    },
+    {
+     "value": 10.0,
+     "gain": 0.47126878655849397,
+     "dev": 0.0,
+     "rinf0": 98.23978018588616
+    }
+   ],
+   "dev": 0.40809910469286026,
+   "value_tested": 10.0,
+   "gain": 0.06316968186563372,
+   "dev_refit": 0.0
+  },
+  "flot_ktau0": {
+   "edges": [
+    {
+     "value": 2.5,
+     "gain": 0.13045058601312576,
+     "dev": 0.3408182005453682
+    },
+    {
+     "value": 4.5,
+     "gain": 0.47660740288694114,
+     "dev": 0.005338616328447177
+    }
+   ],
+   "refit_edges": [
+    {
+     "value": 2.5,
+     "gain": 0.4625722532382042,
+     "dev": 0.008696533320289745,
+     "rinf0": 97.93598217887826
+    },
+    {
+     "value": 4.5,
+     "gain": 0.47521013958279357,
+     "dev": 0.003941353024299599,
+     "rinf0": 90.90679043675954
+    }
+   ],
+   "dev": 0.3408182005453682,
+   "value_tested": 2.5,
+   "gain": 0.13045058601312576,
+   "dev_refit": 0.008696533320289745
+  },
+  "clean_r0_pct": {
+   "edges": [
+    {
+     "value": 95.0,
+     "gain": 0.2007754913487929,
+     "dev": 0.27049329520970106
+    },
+    {
+     "value": 98.5,
+     "gain": 0.4729587799126648,
+     "dev": 0.0016899933541708045
+    }
+   ],
+   "refit_edges": [
+    {
+     "value": 95.0,
+     "gain": 0.4704072308830405,
+     "dev": 0.0008615556754534848,
+     "rinf0": 94.64758303924226
+    },
+    {
+     "value": 98.5,
+     "gain": 0.47191495298990277,
+     "dev": 0.0006461664314088011,
+     "rinf0": 91.28447095155344
+    }
+   ],
+   "dev": 0.27049329520970106,
+   "value_tested": 95.0,
+   "gain": 0.2007754913487929,
+   "dev_refit": 0.0008615556754534848
+  }
+ },
+ "rows": [
+  {
+   "table": "model",
+   "key": "econ_cu_price_usd_t",
+   "label": "fact",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "econ_payable_frac",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "econ_power_kzt_kwh",
+   "label": "fact",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "econ_kzt_per_usd",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "econ_water_usd_m3",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "econ_co2_t_mwh",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cal_hours_run",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_avail",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_line_tph",
+   "label": "calc",
+   "cls": "matters",
+   "dev": 0.26715364501520755
+  },
+  {
+   "table": "model",
+   "key": "cal_shift_h",
+   "label": "project",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_shift_start_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cal_step_live_min",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_step_calib_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_checkpoint_min",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_warmup_from_h",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_warmup_to_h",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_seed",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_batch_keep_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 1.1379786002407855e-14
+  },
+  {
+   "table": "model",
+   "key": "cal_stop_h_lo",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_stop_h_hi",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2025_ore_mt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2025_grade_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2025_feed_pct",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2025_rec_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2025_cu_kt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2025_payable_kt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2024_ore_mt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2024_grade_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2024_rec_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2024_cu_kt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2024_energy_gwh",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2024_water_mm3",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2023_energy_gwh",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2023_water_mm3",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2023_grade_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_2023_rec_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q3_2025_ore_kt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q3_2025_grade_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q3_2025_rec_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q2_2025_rec_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q2_2025_l2_kt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q3_2025_l2_kt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q2_2025_hours",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q3_2025_hours",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_reline_q_pct",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q2_2026_ore_mt",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tgt_q2_2026_grade_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_rec_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_cu_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_energy_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_water_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_reline_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_balance_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_block_t",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.26111922487466477
+  },
+  {
+   "table": "model",
+   "key": "pit_plan_h",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.13880432802933457
+  },
+  {
+   "table": "model",
+   "key": "pit_exc_count",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.015444746602111092
+  },
+  {
+   "table": "model",
+   "key": "pit_exc_bucket_m3",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_exc_tph",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_exc_max_tph",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.006674648062357846
+  },
+  {
+   "table": "model",
+   "key": "pit_haul_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0009839899666417296
+  },
+  {
+   "table": "model",
+   "key": "fleet_trucks",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_payload_t",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_kio",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.02708959972333108
+  },
+  {
+   "table": "model",
+   "key": "fleet_trip_min",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_redraw_h",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_n_777",
+   "label": "fact",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_n_785",
+   "label": "fact",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_n_793",
+   "label": "fact",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_payload_777_t",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "fleet_payload_793_t",
+   "label": "fact",
+   "cls": "read_small",
+   "dev": 0.005107474802082401
+  },
+  {
+   "table": "model",
+   "key": "fleet_ore_785",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.036633153879949976
+  },
+  {
+   "table": "model",
+   "key": "fleet_ore_793",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.4066724348891313
+  },
+  {
+   "table": "model",
+   "key": "fleet_load_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.007680751289444732
+  },
+  {
+   "table": "model",
+   "key": "fleet_queue_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.012401307249103877
+  },
+  {
+   "table": "model",
+   "key": "fleet_body_raise_s",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_body_lower_s",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_spot_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.002177106177350674
+  },
+  {
+   "table": "model",
+   "key": "fleet_nom_payload_793_t",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_gmw_793_t",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_power_793_kw",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_vmax_kmh",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_eta_drive",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.008013406853376648
+  },
+  {
+   "table": "model",
+   "key": "fleet_rr",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.01730227422758618
+  },
+  {
+   "table": "model",
+   "key": "fleet_v_empty_kmh",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.01366424336719091
+  },
+  {
+   "table": "model",
+   "key": "fleet_speed_eff",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.16256874166524543
+  },
+  {
+   "table": "model",
+   "key": "fleet_ramp_km_1",
+   "label": "calc",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_ramp_km_2",
+   "label": "calc",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_waste_km",
+   "label": "calc",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "fleet_rise_m_1",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.006709681907113907
+  },
+  {
+   "table": "model",
+   "key": "fleet_rise_m_2",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.005676625567900828
+  },
+  {
+   "table": "model",
+   "key": "fleet_rise_m_w",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_exc_waste_count",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_exc_waste_tph",
+   "label": "fact",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_road_detour",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_road_close_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_pitstop_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "conv_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_drill_holes_shift",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_drill_t_hole",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_drill_move_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_drill_kio",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_face_blasted_t0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_face_blasted_max_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "blk_axb_mean",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.08890734756196256
+  },
+  {
+   "table": "model",
+   "key": "blk_axb_cv",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.01760967385022244
+  },
+  {
+   "table": "model",
+   "key": "blk_axb_lo",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "blk_axb_hi",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.00169702115722431
+  },
+  {
+   "table": "model",
+   "key": "blk_cu_mean_pct",
+   "label": "fact",
+   "cls": "matters",
+   "dev": 0.22329802746968427
+  },
+  {
+   "table": "model",
+   "key": "blk_cu_cv",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.1252000468052984
+  },
+  {
+   "table": "model",
+   "key": "blk_cu_lo_frac",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "blk_cu_hi_frac",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "blk_ascu_mean_pct",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.40809910469286026,
+   "dev_refit": 0.0,
+   "matters_refit": false
+  },
+  {
+   "table": "model",
+   "key": "blk_ascu_sd_pp",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 1.599255946305167e-05
+  },
+  {
+   "table": "model",
+   "key": "blk_err_axb_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.004547800619093323
+  },
+  {
+   "table": "model",
+   "key": "blk_err_cu_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.008276017201194474
+  },
+  {
+   "table": "model",
+   "key": "blk_err_ascu_pp",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 8.348345784281452e-06
+  },
+  {
+   "table": "model",
+   "key": "blk_plan_on",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0011457698227786972
+  },
+  {
+   "table": "model",
+   "key": "blk_plan_len_blocks",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "blk_plan_sigma_cu",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "blk_plan_sigma_axb",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "blk_plan_sigma_ascu_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ore_density_t_m3",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.03922250088296553
+  },
+  {
+   "table": "model",
+   "key": "ore_axb_base",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.12279741817642392
+  },
+  {
+   "table": "model",
+   "key": "ore_bwi_base",
+   "label": "vendor",
+   "cls": "matters",
+   "dev": 0.10929127435528019
+  },
+  {
+   "table": "model",
+   "key": "ore_axb_hard",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.006206095402330913
+  },
+  {
+   "table": "model",
+   "key": "ore_bwi_hard",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ore_axb_blend",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.018443104375000963
+  },
+  {
+   "table": "model",
+   "key": "ore_blend_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.039757710074354635
+  },
+  {
+   "table": "model",
+   "key": "ui_axb_soft",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ui_axb_hard",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crush_cap_tph",
+   "label": "project",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crush_kio",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crush_power_mw",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crush_plan_every_d",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crush_plan_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crush_plan_wait_d",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crush_stop_per_day",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crush_stop_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crush_lube_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crush_lube_noise_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crush_lube_trip_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crush_repair_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "conv_length_km",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "conv_belt_m",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "conv_cap_tph",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "conv_power_mw",
+   "label": "analog",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "conv_speed_ms",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "conv_transit_min",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.00021343806948836974
+  },
+  {
+   "table": "model",
+   "key": "stock_total_t",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "stock_live_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "stock_live_t",
+   "label": "calc",
+   "cls": "matters",
+   "dev": 0.1357762445278809
+  },
+  {
+   "table": "model",
+   "key": "stock_column_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0019383912408670878
+  },
+  {
+   "table": "model",
+   "key": "stock_exchange_tau_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 8.117758882236759e-05
+  },
+  {
+   "table": "model",
+   "key": "stock_reg_high_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 2.588889560684038e-05
+  },
+  {
+   "table": "model",
+   "key": "stock_reg_low_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.006056414037038882
+  },
+  {
+   "table": "model",
+   "key": "stock_low_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "stock_full_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "stock_empty_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "stock1_t0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.003691247519600427
+  },
+  {
+   "table": "model",
+   "key": "stock2_t0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.005484731433261947
+  },
+  {
+   "table": "model",
+   "key": "sag_diam_ft",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_len_ft",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_rated_mw",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_power_sp_mw",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0958710929314407
+  },
+  {
+   "table": "model",
+   "key": "sag_power_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sag_speed_pct",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sag_load0_pct",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sag_ball_load_pct",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sag_ball_dens_mult",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sag_tau_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sag_starved_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sag_f80_mm",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.01548471063370016
+  },
+  {
+   "table": "model",
+   "key": "sag_morrell_a",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.22934837629056803
+  },
+  {
+   "table": "model",
+   "key": "sag_morrell_b",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.30159121549683054
+  },
+  {
+   "table": "model",
+   "key": "sag_k",
+   "label": "calc",
+   "cls": "matters",
+   "dev": 0.21593554113943586
+  },
+  {
+   "table": "model",
+   "key": "sag_e_base_kwh_t",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_e_design_kwh_t",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_e_2017_19_kwh_t",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_austin_j",
+   "label": "analog",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_austin_a",
+   "label": "analog",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_austin_b",
+   "label": "analog",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sag_austin_c",
+   "label": "analog",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "liner_wear_mm_mt",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "liner_feed_end_mm",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "liner_life_mt",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 4.89242257344924e-05
+  },
+  {
+   "table": "model",
+   "key": "liner_eta_new",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "liner_x_ramp",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0292488382805573
+  },
+  {
+   "table": "model",
+   "key": "liner_eta_peak",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 9.78421643708649e-05
+  },
+  {
+   "table": "model",
+   "key": "liner_x_peak",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 4.89242257344924e-05
+  },
+  {
+   "table": "model",
+   "key": "liner_eta_end",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "liner_x0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.043179916216433856
+  },
+  {
+   "table": "model",
+   "key": "liner_reline_h",
+   "label": "analog",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "peb_frac_base",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.1623789853237554
+  },
+  {
+   "table": "model",
+   "key": "peb_frac_hard",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.19631722183409012
+  },
+  {
+   "table": "model",
+   "key": "peb_limit_tph",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_l2_tph",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_l2_kw",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "peb_warn_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "peb_stop_e_med",
+   "label": "analog",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "peb_stop_e_hard",
+   "label": "analog",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "peb_kio",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "peb_stop_h_lo",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "peb_stop_h_hi",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ball_rated_mw",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ball_power_mw",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.10245240941333122
+  },
+  {
+   "table": "model",
+   "key": "ball_per_line",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ball_f80_um",
+   "label": "analog",
+   "cls": "matters",
+   "dev": 0.10786556825329402
+  },
+  {
+   "table": "model",
+   "key": "ball_p80_target_um",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.010925594669697614
+  },
+  {
+   "table": "model",
+   "key": "ball_p80_min_um",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_total",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_open",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_clog_p80_um",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.04354812106687406
+  },
+  {
+   "table": "model",
+   "key": "cyc_clog_dp_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_pressure_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_upset_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "flot_rinf0_pct",
+   "label": "calc",
+   "cls": "matters",
+   "dev": 0.3324612191347683
+  },
+  {
+   "table": "model",
+   "key": "flot_grade_pp_ln",
+   "label": "analog",
+   "cls": "matters",
+   "dev": 0.1288748082291477
+  },
+  {
+   "table": "model",
+   "key": "flot_jose_ascu",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 3.979682105637039e-06
+  },
+  {
+   "table": "model",
+   "key": "flot_grade_ref_pct",
+   "label": "fact",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "flot_ascu_ref_pct",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.23823377617117103
+  },
+  {
+   "table": "model",
+   "key": "flot_ktau0",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.3408182005453682,
+   "dev_refit": 0.008696533320289745,
+   "matters_refit": false
+  },
+  {
+   "table": "model",
+   "key": "flot_tau0_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "flot_p80_ref_um",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "flot_p80_pp_10um",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.2297830629832333
+  },
+  {
+   "table": "model",
+   "key": "flot_dose_sp_gt",
+   "label": "project",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "flot_dose_ref_deficit",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "flot_dose_pp",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "flot_pull0_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 5.742283644860624e-06
+  },
+  {
+   "table": "model",
+   "key": "clean_r0_pct",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.27049329520970106,
+   "dev_refit": 0.0008615556754534848,
+   "matters_refit": false
+  },
+  {
+   "table": "model",
+   "key": "clean_pp_10pp",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 6.699330879211818e-06
+  },
+  {
+   "table": "model",
+   "key": "flot_conc0_pct",
+   "label": "project",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "flot_conc_slope",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "flot_rec_ref_pct",
+   "label": "fact",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "flot_delay_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.010336013196126703
+  },
+  {
+   "table": "model",
+   "key": "flot_tau_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0235089588447977
+  },
+  {
+   "table": "model",
+   "key": "flot_design_rec_pct",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "flot_design_tail_pct",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "thick_cap_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "thick_uf_solids_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "thick_feed_solids_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "thick_t0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "thick_high_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "filt_presses",
+   "label": "project",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "filt_press_tph",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "filt_moist_pct",
+   "label": "project",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "filt_moist_sigma_pp",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "filt_cloth_every_h",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "filt_cloth_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "filt_design_lo_tph",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "filt_design_hi_tph",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cstock_cap_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cstock_high_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cstock_t0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cstock_train_wagons",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cstock_wagon_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cstock_train1_h",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cstock_train2_h",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_tails_solids_pct",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_tails_dry_t_m3",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_tails_m3_t",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "water_recycle_m3_t",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_proc_m3_t",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "water_fresh_lo_m3_t",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_fresh_hi_m3_t",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_intake_2024_m3_t",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_evap_m3h",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_proc_m3_per_line",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pond_m3_0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_lo_m3",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pond_hi_m3",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pond_reg_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_piezo_kpa0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_piezo_kpa_mm3",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_piezo_sp_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_piezo_noise_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_piezo_off1_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_piezo_off2_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pond_piezo_off3_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "water_leak_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_intake_cap_m3h",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "water_leak_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "water_reg_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pow_grid_limit_mw",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pow_motor_eff",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 1.1379786002407855e-14
+  },
+  {
+   "table": "model",
+   "key": "pow_other_mw",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0019530959149392513
+  },
+  {
+   "table": "model",
+   "key": "pow_line_aux_mw",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0019530959149392513
+  },
+  {
+   "table": "model",
+   "key": "pow_tx_mva",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pow_c2_limit_mw",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pow_c2_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pow_shed_other_mw",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0019602235975526017
+  },
+  {
+   "table": "model",
+   "key": "pow_reserve_mw",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pow_call_use_mw",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 2.588889560684038e-05
+  },
+  {
+   "table": "model",
+   "key": "crew_arrive_lo_min",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crew_arrive_hi_min",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crew_sigma_ln",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crew_kip",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crew_cpd",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crew_mill",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crew_water",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "crew_dose_arrive_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0208138984002062
+  },
+  {
+   "table": "model",
+   "key": "crew_dose_fix_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.02605903754871408
+  },
+  {
+   "table": "model",
+   "key": "crew_trip_fix_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.005172590793802112
+  },
+  {
+   "table": "model",
+   "key": "crew_late_p",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crew_late_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crew_remind_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crew_person_decision_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "nov_detect_mult",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "nov_detect_sigma_ln",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "nov_p_diag",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "nov_p_step",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "nov_steps",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "nov_stress_mult",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "nov_stress_open",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "issue_notice_lo_min",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "issue_notice_hi_min",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "issue_horizon_h",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_per_shift",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_found_lo_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_found_hi_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_liner_wear_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_liner_eta_loss",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_cyclone_n",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0653221816004475
+  },
+  {
+   "table": "model",
+   "key": "hc_dose_drop",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.11548198227825424
+  },
+  {
+   "table": "model",
+   "key": "hc_dose_ramp_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.03247353749693499
+  },
+  {
+   "table": "model",
+   "key": "hc_oxide_ascu_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_silent_per_shift",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_energy_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_reagent_over",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "hc_leak_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "season_winter_from_doy",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "season_winter_to_doy",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "winter_return_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "wx_temp_winter_c",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "wx_temp_summer_c",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "wx_temp_amp_c",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "wx_wind_mean_ms",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "wx_wind_sigma_ms",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "beach_dry_summer_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "beach_dry_winter_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_dust_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_leach_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ox_cold_frac",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_dust_wind_ms",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_dust_dry_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ball_media_gt",
+   "label": "analog",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "hc_balls_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sens_balls_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "hc_conc_drop_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_startup_after_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_startup_work_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_startup_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_icy_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_icy_wind_ms",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_icy_temp_c",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_vis_clear_m",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_vis_icy_m",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_grip_clear",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_grip_winter",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_grip_icy",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_winter_cycle_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_icy_cycle_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_restrict_cycle_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_vis_min_m",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_grip_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_fatigue_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_oil_start_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_oil_alert_pct",
+   "label": "vendor",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_oil_rise_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_oil_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_oil_repair_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "pit_oil_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cyc_circ_base_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "hc_rope_sev",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_rope_ramp_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_rope_p80_um",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_rope_dp_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_rope_circ_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ball_rope_over_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_rope_escalate_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_rope_flot_pp",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "cyc_rope_flot_h",
+   "label": "analog",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_an_clean_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "flot_ph_sp",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "flot_ph_pp_unit",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.11930767296225897
+  },
+  {
+   "table": "model",
+   "key": "hc_ph_drift",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.11930767296225897
+  },
+  {
+   "table": "model",
+   "key": "sens_ph_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_ph_lab_every_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.09738844816896519
+  },
+  {
+   "table": "model",
+   "key": "sens_ph_lab_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_ph_suspect_gap",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_uneven_eff",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.051033101457153396
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_skew_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_kwdiff_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_ramp_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 1.466225435248214e-05
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_tramp_after_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.006865185682920549
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_stop_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0001240827250626464
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_fix_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "peb_hpgr_skew_alarm_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "crush_mantle_h",
+   "label": "analog",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_an_cycle_min",
+   "label": "vendor",
+   "cls": "matters",
+   "dev": 0.2682399825083053
+  },
+  {
+   "table": "model",
+   "key": "sens_an_feed_sigma",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_an_tail_sigma",
+   "label": "vendor",
+   "cls": "matters",
+   "dev": 0.12886991280568055
+  },
+  {
+   "table": "model",
+   "key": "sens_an_conc_sigma",
+   "label": "vendor",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_lab_every_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.03242833967627806
+  },
+  {
+   "table": "model",
+   "key": "sens_lab_delay_h",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "sens_lab_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_weigher_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_power_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_p80_sigma_um",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_dose_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "acs_tail_sp_pct",
+   "label": "assumption",
+   "cls": "matters",
+   "dev": 0.2682399825083053
+  },
+  {
+   "table": "model",
+   "key": "acs_cycles",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_end_h",
+   "label": "assumption",
+   "cls": "read_fixed",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_fork_dose_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_fork_trip_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_fork_lab_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_fork_found_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_safety_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_hard_lead_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.02367297813507324
+  },
+  {
+   "table": "model",
+   "key": "asis_rope_see_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "asis_mantle_see_min",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "scen_fire_line",
+   "label": "fact",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "scen_fire_people",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_fire_safety_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_fire_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "flot_reag_tank_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "flot_reag_refill_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_tank_sigma_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "flot_conc_max_pct",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "scen_trip_lube_kpa",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_flow_sigma",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_an_stale_cycles",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "sens_lab_find_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.032428339676289386
+  },
+  {
+   "table": "model",
+   "key": "sens_lab_find_ascu_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_piezo_over_kpa",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_draw_chunk_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_fit_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_fit_rec_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_fit_runs",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_secant_trust",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_quick_step_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_q_warmup_d",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_week_days",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_week_step_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_week_stock_lo_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_week_stock_hi_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_week_false_alarms",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_budget_s",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_week_resets",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "cal_alarm_lags",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "tol_grade_round_pct",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_gmd_gap_ok_mm",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_gmd_gap_alert_mm",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_gmd_gap_crit_mm",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_gmd_rise_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_gmd_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_gmd_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_gmd_derate",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_gmd_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_idler_temp_ok_c",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_idler_temp_alert_c",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_idler_temp_crit_c",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_idler_rise_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_idler_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_idler_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_idler_rate_yr",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_froth_swing_ok_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_froth_swing_alert_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_froth_rise_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_froth_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_froth_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_rake_torque_ok_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_rake_torque_alert_pct",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_rake_torque_crit_pct",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_rake_rise_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_rake_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_rake_q_frac",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_rake_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_rake_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_cloth_cycle_ok_pct",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_cloth_cycle_alert_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_cloth_cycle_crit_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_cloth_rise_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_cloth_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_cloth_fix_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_slurry_head_ok_pct",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_slurry_head_alert_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_slurry_head_crit_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_slurry_rise_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_slurry_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_slurry_q_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_slurry_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_slurry_life_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_oil_ok_c",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_oil_alert_c",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_oil_crit_c",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_rise_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_share",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_brake_payload_t",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_track_press_ok_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_track_press_alert_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_track_press_crit_pct",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_track_rise_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_track_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_track_fix_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "w_track_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_feed_min_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_feed_max_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_p80_min_um",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_p80_max_um",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_p80_pp_10um",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_p80_pp_plant_10um",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_dose_min_gt",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_dose_max_gt",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_dose_conc_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "lev_reagent_usd_t",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "line_tph_base",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_power_sp_mw",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_rated_mw",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_e_base_kwh_t",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_f80_mm",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_morrell_a",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_morrell_b",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_k",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_density_t_m3",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_axb_base",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_axb_hard",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_bwi_base",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_bwi_hard",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "peb_frac_base",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "peb_frac_hard",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "peb_limit_tph",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "peb_stop_e_med",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "peb_stop_e_hard",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "motor_eff",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_power_mw",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_per_line",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_f80_um",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_p80_min_um",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "p80_ref_um",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "lev_adv_feed_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "lev_adv_rope_feed_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_tau0_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_ktau0",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_rinf0_pct",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_grade_pp_ln",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_grade_ref_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_jose_ascu",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_ascu_ref_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_p80_pp_10um",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ox_alarm_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "cathode_payable_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "grind_pp_10um",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "grind_pp_10um_lo",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "grind_pp_10um_hi",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_dose_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_dose_ref_deficit",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_dose_sp_gt",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_pull0_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "clean_r0_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "clean_pp_10pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_conc0_pct",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_conc_slope",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_rec_ref_pct",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_conc_max_pct",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_delay_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "flot_tau_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "acs_tail_sp_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "blk_err_axb_sigma",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "blk_err_cu_sigma",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "blk_err_ascu_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sens_an_cycle_min",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sens_an_feed_sigma",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sens_an_tail_sigma",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sens_an_conc_sigma",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sens_weigher_sigma",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sens_power_sigma",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sens_p80_sigma_um",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "model_err_sag",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "model_err_rec_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "cusum_k",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "cusum_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "cusum_fast_z",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "unsure_z",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "window_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "hist_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "balance_window_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tact_losses_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tact_ore_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tact_priority_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "cu_price_usd_t",
+   "label": "fact",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "cu_price_lo_usd_t",
+   "label": "fact",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "cu_price_hi_usd_t",
+   "label": "fact",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "payable_frac",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "pit_block_t",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "pit_haul_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "conv_travel_min",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "exc_dig_tph",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "stock_live_t",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "stock_column_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "stock_exchange_tau_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_axb_hard_max",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_axb_soft_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_early_share",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_expected_share",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_horizon_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_check_miss_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ore_soft_median_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_horizon_h",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_samples",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_sigma_ln",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_arrive_lo_min",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_arrive_hi_min",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_robust_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_defer_p_max",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_band1_min",
+   "label": "analog",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_band2_min",
+   "label": "analog",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_band3_min",
+   "label": "analog",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_snooze_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_issue_keep_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "q_max_enum",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_crusher_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_lube_trip_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_dose_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_cyclone_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_pebble_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_ball_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_sag_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_conveyor_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_filter_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_grid_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_decision_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_train_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_water_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "water_usd_m3",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "shed_feeder_mw",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "pebble_stop_loss_frac",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_stop_loss_frac",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "shift_start_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "power_usd_mwh",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_limited_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "sag_energy_lit_pct",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "reagent_usd_kg",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "reagent_min_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "reagent_min_z",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tank_sigma_t",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "reagent_ref_gt",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "reagent_ref_lab_gt",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "leak_min_m3h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "esc_after_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "remind_eta_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "handover_am_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "handover_pm_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "handover_btn_lead_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_kzt_kwh_mean",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_zones_on",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_night_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_day_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_peak_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_night_from_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_night_to_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_peak_from_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "tariff_peak_to_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "winter_water_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "winter_repair_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "winter_freeze_air_c",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "p80_alarm_um",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "conc_norm_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "conc_penalty_usd_dmt_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "conc_window_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_norm_gt",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_usd_kg",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_over_min_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_window_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "dust_wind_ms",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "dust_dry_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_dust_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "dust_pm10_max_mg_m3",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "permit_ref",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "review_min_fork_usd",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "shift_h",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "stock_total_t",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "stock_pek_days",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "fc_avail",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "liner_life_mt",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "liner_eta_new",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "liner_x_ramp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "liner_eta_peak",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "liner_x_peak",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "liner_eta_end",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "liner_reline_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "plan_cu_day_t",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "fc_rate_window_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "fc_sigma_window_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "fc_z",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_pit_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "pit_vis_min_m",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "pit_grip_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "pit_restrict_cycle_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "pit_exc_max_tph",
+   "label": "fact",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "pit_exc_ore_count",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "oil_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_oil_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_exc_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rope_circ_alarm_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ball_overload_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rope_escalate_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rope_flot_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rope_flot_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_rope_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ph_gap_alarm",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ph_pp_unit",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_ph_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "hpgr_skew_alarm_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "hpgr_kwdiff_alarm_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "hpgr_limit_nominal_tph",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_hpgr_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "hpgr_tramp_after_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_mantle_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "mantle_ref_kt_lo",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "mantle_ref_kt_hi",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "crush_cap_tph",
+   "label": "project",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "age_stale_an_cycles",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "an_cycle_min",
+   "label": "vendor",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "settle_min",
+   "label": "calc",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "age_stale_dcs_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "age_stale_lab_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_gmd_gap_alert_mm",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_gmd_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_gmd_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_gmd_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_idler_temp_alert_c",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_idler_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_idler_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_idler_rate_yr",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_froth_swing_alert_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_froth_swing_ok_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_froth_pp",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_froth_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_rake_torque_alert_pct",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_rake_torque_crit_pct",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_rake_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_rake_q_frac",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_rake_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_rake_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_cloth_cycle_alert_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_cloth_cycle_crit_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_cloth_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_slurry_head_alert_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_slurry_head_crit_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_slurry_q_frac",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_slurry_life_h",
+   "label": "analog",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_slurry_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_brake_oil_alert_c",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_brake_hold_min",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_brake_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_brake_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_brake_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_track_press_alert_pct",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_track_fail_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "wt_track_repair_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_track_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": null
+  }
+ ],
+ "seconds": 2891.5
+}

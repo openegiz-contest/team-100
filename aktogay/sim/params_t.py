@@ -69,7 +69,7 @@ ROWS = [
     ("w_idler_temp_crit_c", 120, 90, 160, "degC", S_ZIMROZ, "assumption", "temperature at which the belt is stopped by the fire protection (assumption)"),
     ("w_idler_rise_h", 4, 1, 12, "h", S_ZIMROZ, "assumption", "hours from the start of the heating to the alert limit"),
     ("w_idler_fail_h", 6, 1, 24, "h", S_ZIMROZ, "assumption", "hours from the alert to the stop of the belt if the idler is not changed"),
-    ("w_idler_fix_h", 1.5, 0.5, 4, "h", S_ZIMROZ, "assumption", "change of an idler by the conveyor crew after arrival"),
+    ("w_idler_fix_h", 1.5, 0.5, 4, "h", S_ZIMROZ, "assumption", "change of an idler by the conveyor crew after arrival; analog verified 24.10.2026: idlers and frame of an overland belt at a copper mine in Peru, MTTR 0.70 h over 10 events (ucsm.edu.pe thesis, p. 61) - the choice is above the analog; mirrored in modules/scenarios_t.py"),
     ("w_idler_rate_yr", 0.03, 0.01, 0.10, "1/yr", S_PPI, "assumption",
      "expected share of idler bearings failing per year: the maker's warranty assumption, not field statistics"),
     # ---- froth: oscillation of the flotation cell level
@@ -102,7 +102,7 @@ ROWS = [
     ("w_slurry_rise_h", 5, 1, 24, "h", S_WEIR, "assumption", "hours from the start of the loss of head to the alert limit"),
     ("w_slurry_fail_h", 4, 1, 24, "h", S_WEIR, "assumption", "hours from the alert limit to the critical head"),
     ("w_slurry_q_frac", 0.30, 0.1, 0.5, "-", S_WEIR, "assumption", "share of the line feed lost at the critical head (cyclone feed falls)"),
-    ("w_slurry_fix_h", 4, 1, 12, "h", S_WEIR, "assumption", "impeller change or sump level correction after arrival"),
+    ("w_slurry_fix_h", 4, 1, 12, "h", S_WEIR, "assumption", "impeller change or sump level correction after arrival; analog verified 24.10.2026: Warman 10x8 tailings filtration pumps (Chungar, Peru), MTTR 10.38 h before and 3.81 h after a maintenance plan (uncp.edu.pe thesis, pp. 88 and 93); 4 h matches the improved figure; mirrored in modules/scenarios_t.py"),
     ("w_slurry_life_h", 2000, 1300, 7800, "h", S_WEIR, "analog", "impeller life in the Weir case studies (1 300 -> 2 000 h gold, 4 200 -> 7 800 h bauxite); not a norm"),
     # ---- brake: brake / transmission oil temperature of the CAT 793D (VIMS)
     ("w_brake_oil_ok_c", 90, 60, 110, "degC", S_VIMS, "assumption", "brake oil temperature of a loaded truck in normal haul"),

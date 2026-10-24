@@ -1,0 +1,33 @@
+{
+ "A": {
+  "ci95": [
+   0.9038,
+   1.3289
+  ],
+  "loss_vs_base_no_twin_cu_t": 20.422,
+  "mean": 1.0858,
+  "median": 0.7116,
+  "n": 100,
+  "worse_than_expert": 3
+ },
+ "B": {
+  "ci95": [
+   0.6567,
+   0.9996
+  ],
+  "loss_vs_base_no_twin_cu_t": 17.189,
+  "mean": 0.8095,
+  "median": 0.5035,
+  "n": 100,
+  "worse_than_expert": 3
+ },
+ "B_minus_A": {
+  "ci95": [
+   -0.4329,
+   -0.1578
+  ],
+  "mean": -0.2763
+ },
+ "command_a": "python -I aktogay/run.py trial --library tier_s --n 100 --seed0 1001 --jobs 4 --copies base,by_value,by_loud,no_twin --out A.json",
+ "command_b": "python -I aktogay/run.py trial --library tier_s --n 100 --seed0 1001 --jobs 4 --copies base,by_value,by_loud,no_twin --set stock_live_t=163000 --set stock1_t0=47270 --set stock2_t0=122250 --out B.json"
+}

@@ -13,7 +13,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC = os.path.join(ROOT, "web", "static")
-DOCS = os.path.dirname(ROOT)
+DOCS = os.path.join(os.path.dirname(ROOT), "final_docs")
 SETUP = os.path.join(ROOT, "setup")
 for p in (ROOT, SETUP):
     if p not in sys.path:
@@ -209,12 +209,12 @@ class StaticSpreadTest(unittest.TestCase):
         import twins
         n = len(twins.Model().things)
         self.assertEqual(n, 136)
-        for name in ("README.md", "SUBMISSION.md"):
+        for name in ("README_aktogay.md", "SUBMISSION.md"):
             t = read(DOCS, name)
             for m in re.finditer(r"(\d+)\s+(?:постоянн\w+\s+вещ\w+|постоянных\s+вещей)", t):
                 self.assertEqual(int(m.group(1)), n, f"{name}: {m.group(0)}")
             self.assertNotRegex(t, r"\b(?:127|133)\s+постоянн")
-        self.assertIn("создаёт 136", read(DOCS, "README.md"))
+        self.assertIn("создаёт 136", read(DOCS, "README_aktogay.md"))
 
     def test_no_text_for_a_reader_outside_the_dispatcher(self):
         bad = re.compile(r"жюри|судь[яеи]|для\s+ИИ|нейросет|\bLLM\b", re.I)

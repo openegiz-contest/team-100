@@ -194,11 +194,11 @@ class Runner:
         log.info("backfill run %s: %d rows, %d points added, %d forecasts restored", self.run_id, len(rows), n, k)
 
     # ------------------------------------------------------------------ tacts
-    def _reads_complete(self, reads, types, t: float) -> tuple[bool, float]:
-        """(every READS thing at or past t, max sim_time seen)."""
+    def _span(self, reads, types) -> tuple[float, float]:
+        """(oldest, newest) sim_time of the READS things; oldest is NO_VALUE while a thing is missing."""
         names = [n for n in reads if n in self.store.things]
         if len(names) < len(reads) * 0.8:
-            return False, NO_VALUE
+            return NO_VALUE, NO_VALUE
         tmin = self.store.min_sim_time(names)
         tmax = self.store.max_sim_time(names)
         for typ in types:
@@ -211,34 +211,49 @@ class Runner:
                     continue
                 if s.sim_time != NO_VALUE and (tmin != NO_VALUE or not names):
                     tmin = min(tmin, s.sim_time) if tmin != NO_VALUE else s.sim_time
+        return tmin, tmax
+
+    def _reads_complete(self, reads, types, t: float) -> tuple[bool, float]:
+        """(every READS thing at or past t, max sim_time seen)."""
+        tmin, tmax = self._span(reads, types)
+        if tmax == NO_VALUE:
+            return False, NO_VALUE
         return (tmin != NO_VALUE and tmin >= t), tmax
 
     def due(self, module, reads, types) -> float:
-        """Next point to compute for a module, or NO_VALUE."""
-        complete, tmax = self._reads_complete(reads, types, 0.0)
+        """Next point to compute for a module, or NO_VALUE.
+
+        The point is the newest one every READS thing has reached (floor of the oldest sim_time on the
+        module's tact), not the newest one any thing shows: a point is published over a few seconds, so
+        under load the newest one is almost never complete when it is read and a module that waits for it
+        falls behind for good (23.10: 80-100 model min). Older points are skipped, not replayed."""
+        tmin, tmax = self._span(reads, types)
         if tmax == NO_VALUE:
             return NO_VALUE
-        target = floor_to(tmax, module.tact)
-        if module.processed != NO_VALUE and target <= module.processed:
+        want = floor_to(tmax, module.tact)
+        if module.processed != NO_VALUE and want <= module.processed:
             return NO_VALUE
-        ok, _ = self._reads_complete(reads, types, target)
         key = module.name
         now = time.monotonic()
         if tmax != self.tmax_seen:
             self.tmax_seen, self.tmax_wall = tmax, now
-        if not ok:
-            self.incomplete = True
-            since = self.incomplete_since.setdefault(key, now)
-            # resend only when the simulator stands at the point (barrier) and it stays incomplete:
-            # in free run a point is published over a few seconds and completes by itself
-            standing = now - self.tmax_wall > 3.0
-            if standing and now - since > 3.0 and self.resent.get(key) != target:
-                self.resent[key] = target
-                self.writers[key].write(module.thing, {"resend": target}, self.run_id, target, partial=True)
-                log.info("%s: point %.0f incomplete for 3 s while the simulator stands, resend written", key, target)
-            return NO_VALUE
-        self.incomplete_since.pop(key, None)
-        return target
+        if tmin != NO_VALUE:
+            target = floor_to(tmin, module.tact)
+            if module.processed == NO_VALUE or target > module.processed:
+                if target < want:
+                    self.incomplete = True          # read again soon: the newer point is on its way
+                self.incomplete_since.pop(key, None)
+                return target
+        self.incomplete = True
+        since = self.incomplete_since.setdefault(key, now)
+        # resend only when the simulator stands at the point (barrier) and it stays incomplete:
+        # in free run a point is published over a few seconds and completes by itself
+        standing = now - self.tmax_wall > 3.0
+        if standing and now - since > 3.0 and self.resent.get(key) != want:
+            self.resent[key] = want
+            self.writers[key].write(module.thing, {"resend": want}, self.run_id, want, partial=True)
+            log.info("%s: point %.0f incomplete for 3 s while the simulator stands, resend written", key, want)
+        return NO_VALUE
 
     def tact_losses(self, t: float) -> None:
         feats = self.losses.compute(t)
@@ -308,10 +323,36 @@ class Runner:
             self.tact_ore(t)
         t = self.due(self.priority, priority_mod.READS, priority_mod.READS_TYPES)
         if t != NO_VALUE:
-            ore_ok = self.ore.processed != NO_VALUE and self.ore.processed >= floor_to(t, self.ore.tact)
-            if self.losses.processed != NO_VALUE and self.losses.processed >= t and ore_ok:
+            t = self.priority_point(t)
+            if t != NO_VALUE:
                 self.tact_priority(t)
+        self.watch_lag()
         self.repeat_processed()
+
+    def priority_point(self, t: float) -> float:
+        """The point akt-priority can compute now: not past what akt-losses and akt-ore have processed
+        (ore on its own, coarser tact), so the newest of those, never a stale one."""
+        if self.losses.processed == NO_VALUE or self.ore.processed == NO_VALUE:
+            return NO_VALUE
+        t = min(t, self.losses.processed, self.ore.processed + self.ore.tact - self.priority.tact)
+        t = floor_to(t, self.priority.tact)
+        if self.priority.processed != NO_VALUE and t <= self.priority.processed:
+            return NO_VALUE
+        return t
+
+    LAG_WARN_MIN = 30.0
+
+    def watch_lag(self) -> None:
+        """One log line a minute while a module is more than LAG_WARN_MIN model minutes behind the site (the interface shows the same)."""
+        site_t = self.store.sim_time("site")
+        now = time.monotonic()
+        if site_t == NO_VALUE or now - getattr(self, "_lag_logged", 0.0) < 60.0:
+            return
+        late = {m.name: site_t - m.processed for m in (self.losses, self.ore, self.priority)
+                if m.processed != NO_VALUE and site_t - m.processed > self.LAG_WARN_MIN}
+        if late:
+            self._lag_logged = now
+            log.warning("behind the simulator (model min): %s", ", ".join(f"{k} {v:.0f}" for k, v in late.items()))
 
     def repeat_processed(self) -> None:
         """Repeat processed_sim_time once a second while the simulator still stands at that point."""

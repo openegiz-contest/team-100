@@ -180,6 +180,13 @@ class Plant:
         self._late_ok = False
         self._peb_until = self._rand_t0         # pebble stops drawn up to this minute
         self._peb: dict[int, list[tuple[float, float]]] = {n: [] for n in lines}
+        self._crw_until = self._rand_t0         # own stops of the primary crusher (calib run) drawn up to this minute
+        self._crw: dict[int, list[tuple[float, float]]] = {n: [] for n in lines}          # short stops
+        self._crp: dict[int, list[float]] = {n: [] for n in lines}                        # nominal starts of planned windows
+        self._crp_left: dict[int, float] = {n: 0.0 for n in lines}                        # planned crusher work still to do, min
+        self._crp_since: dict[int, float] = {n: NO_VALUE for n in lines}                  # when the oldest planned work was due
+        self._crp_t: dict[int, float] = {n: NO_VALUE for n in lines}                      # previous call, min
+        self._mantle_year: dict[int, int] = {n: -1 for n in lines}                        # year of the last liner change
         self._events: list[ScenarioEvent] = []  # announced events not applied yet
         self._grid: list[tuple[float, float, float]] = []   # (start, end, limit MW)
         self._limit_mw = p["pow_grid_limit_mw"]
@@ -860,6 +867,12 @@ class Plant:
                     st.causes.append(c)
                     self._hc2_last_end = c.t_end_min if c.t_end_min != NO_VALUE else INF
             self._hc2_until = end
+        if st.mode == "calib" and t + dt > self._crw_until - EPS:
+            self._crw_until = max(t + dt, self._rand_t0) + p["cal_draw_chunk_h"] * MIN_PER_H
+            for ln in st.lines:
+                planned, shorts = ev.draw_crusher_stops(st.seed, ln.n, self._rand_t0, self._crw_until, p)
+                self._crw[ln.n] = [x for x in shorts if x[1] > t + EPS]
+                self._crp[ln.n] = [a for a in planned if a > t - MIN_PER_DAY]
         if t + dt > self._peb_until - EPS:
             # windows are counted from the model origin, so the result does not
             # depend on the chunk length; none starts before the random start
@@ -959,6 +972,8 @@ class Plant:
                     sag.state = "RUN"
             self._down[n] = sag.state in ("RELINE", "STOP")
             self._hpgr_step(ln, t)
+            if st.mode == "calib":
+                self._crusher_own_stops(ln, t)
             pw = self._peb[n]
             while pw and pw[0][1] <= t + EPS:
                 pw.pop(0)
@@ -971,6 +986,38 @@ class Plant:
                 peb.stop_until_min = NO_VALUE
         if self._relines and any(w[2] <= t + EPS for w in self._relines):
             self._relines = [w for w in self._relines if w[2] > t + EPS]
+
+    def _crusher_own_stops(self, ln, t: float) -> None:
+        """Own stops of the primary crusher in a calib run: short stoppages; planned maintenance (crush_plan_h of work, done while the
+        mill of the line stands, as the maintenance shift does, or after crush_plan_wait_d days of waiting whatever the mill does);
+        the liner change of the crusher inside the first SAG reline of the year (both stand, no ore is lost)."""
+        p, n, cr = self.prm, ln.n, ln.crusher
+        on = any(a <= t + EPS and t < b - EPS for a, b in self._crw[n])
+        dt = max(0.0, t - self._crp_t[n]) if self._crp_t[n] != NO_VALUE else 0.0
+        self._crp_t[n] = t
+        pend = self._crp[n]
+        while pend and pend[0] <= t + EPS:                       # a nominal start passed: that much work is added
+            self._crp_left[n] += p["crush_plan_h"] * MIN_PER_H
+            if self._crp_since[n] == NO_VALUE:
+                self._crp_since[n] = pend[0]
+            pend.pop(0)
+        left = self._crp_left[n]
+        if left > EPS:
+            mill_down = ln.sag.state in ("RELINE", "STOP")
+            if mill_down or t - self._crp_since[n] >= p["crush_plan_wait_d"] * MIN_PER_DAY:
+                on = True
+                self._crp_left[n] = max(0.0, left - dt)
+            if self._crp_left[n] <= EPS:
+                self._crp_left[n], self._crp_since[n] = 0.0, NO_VALUE
+        year = int(t // (365.0 * MIN_PER_DAY))
+        for line, a, b, _scen in self._relines:
+            if line == n and a <= t + EPS and t < min(b, a + p["crush_mantle_h"] * MIN_PER_H) - EPS and self._mantle_year[n] in (-1, year):
+                on = True
+                self._mantle_year[n] = year
+        if on and not cr.fault:
+            cr.fault = "own"
+        elif not on and cr.fault == "own":
+            cr.fault = ""
 
     # ===================================================== internals: grid
     def _power_balance(self) -> None:

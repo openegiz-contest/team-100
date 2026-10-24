@@ -54,8 +54,8 @@
   const LABELS = [
     { id: 'line-1', x: -250, y: 2650, anchor: 'end', to: 'line-1', text: () => lineText(1), title: () => `Линия 1: ${AKT.stOf('line-1')} · ${fmt(AKT.num('line-1', 'tph'))} т/ч руды · ${f1(AKT.num('line-1', 'cu_tph'))} т/ч меди · извлечение ${f1(AKT.num('line-1', 'recovery'))} %`, st: 'line-1', prio: 1 },
     { id: 'line-2', x: 2500, y: 650, to: 'line-2', text: () => lineText(2), title: () => `Линия 2: ${AKT.stOf('line-2')} · ${fmt(AKT.num('line-2', 'tph'))} т/ч руды · ${f1(AKT.num('line-2', 'cu_tph'))} т/ч меди · извлечение ${f1(AKT.num('line-2', 'recovery'))} %`, st: 'line-2', prio: 1 },
-    { id: 'crusher-1', x: 3800, y: 1800, to: 'crusher-1', text: () => `${G(AKT.levelOf('crusher-1'))}Дробилка 1${stw('crusher-1')} · ${AKT.vsBase('crusher-1', 'tph', fmt, 50)}${NB}т/ч`, title: () => `Дробилка 1 у карьера (ЦПД): ${AKT.stOf('crusher-1')} · ${fmt(AKT.num('crusher-1', 'tph'))} т/ч · давление масла ${fmt(AKT.num('crusher-1', 'lube_kpa'))} кПа`, st: 'crusher-1', prio: 2 },
-    { id: 'crusher-2', x: 3800, y: 1150, to: 'crusher-2', text: () => `${G(AKT.levelOf('crusher-2'))}Дробилка 2${stw('crusher-2')} · ${AKT.vsBase('crusher-2', 'tph', fmt, 50)}${NB}т/ч`, title: () => `Дробилка 2 (место — схема): ${AKT.stOf('crusher-2')} · ${fmt(AKT.num('crusher-2', 'tph'))} т/ч · давление масла ${fmt(AKT.num('crusher-2', 'lube_kpa'))} кПа`, st: 'crusher-2', prio: 2 },
+    { id: 'crusher-1', x: 3800, y: 1800, to: 'crusher-1', text: () => `${G(AKT.levelOf('crusher-1'))}Дробилка ЦПД-1${stw('crusher-1')} · ${AKT.vsBase('crusher-1', 'tph', fmt, 50)}${NB}т/ч`, title: () => `Дробилка ЦПД-1 у карьера (ЦПД): ${AKT.stOf('crusher-1')} · ${fmt(AKT.num('crusher-1', 'tph'))} т/ч · давление масла ${fmt(AKT.num('crusher-1', 'lube_kpa'))} кПа`, st: 'crusher-1', prio: 2 },
+    { id: 'crusher-2', x: 3800, y: 1150, to: 'crusher-2', text: () => `${G(AKT.levelOf('crusher-2'))}Дробилка ЦПД-2${stw('crusher-2')} · ${AKT.vsBase('crusher-2', 'tph', fmt, 50)}${NB}т/ч`, title: () => `Дробилка ЦПД-2 (место — схема): ${AKT.stOf('crusher-2')} · ${fmt(AKT.num('crusher-2', 'tph'))} т/ч · давление масла ${fmt(AKT.num('crusher-2', 'lube_kpa'))} кПа`, st: 'crusher-2', prio: 2 },
     { id: 'power', x: -250, y: 2150, anchor: 'end', to: 'power', text: () => powerText(), title: () => `ЛЭП 220 кВ и подстанция: площадка берёт ${fmt(AKT.num('power', 'site_mw'))} из ${fmt(AKT.num('power', 'grid_limit_mw'))} МВт · мельницы ${f1(AKT.num('power', 'grinding_mw'))} · прочее ${f1(AKT.num('power', 'other_mw'))} · запас ${f1(AKT.num('power', 'headroom_mw'))} МВт`, st: 'power', prio: 2 },
     { id: 'stockpile-1', x: -250, y: 2400, anchor: 'end', to: 'stockpile-1', text: () => stockText('stockpile-1'), title: () => stockTitle('stockpile-1'), st: 'stockpile-1', prio: 3 },
     { id: 'stockpile-2', x: 2500, y: 900, to: 'stockpile-2', text: () => stockText('stockpile-2'), title: () => stockTitle('stockpile-2'), st: 'stockpile-2', prio: 3 },
@@ -80,11 +80,11 @@
   const excTitle = n => { const b = AKT.val(n, 'block'); return `${AKT.nameRu(n)} (место — схема): ${AKT.stOf(n)} · ${fmt(AKT.num(n, 'tph'))} т/ч${b ? ' · партия ' + AKT.batchNo(String(b)) : ''}${AKT.val(n, 'bench') != null ? ' · уступ ' + fmt(AKT.num(n, 'bench')) : ''}`; };
   const beltText = n => AKT.stopped(AKT.st(n)) || AKT.levelOf(n) ? `${G(AKT.levelOf(n) || 1)}Конвейер ${n.slice(-1)} ${AKT.stOf(n)} · ${AKT.vsBase(n, 'tph', fmt, 50)}${NB}т/ч` : '';
   const stockText = n => {
-    const h = AKT.num(n, 'hours_left');
+    const h = AKT.hoursLeft(n);
     return `${G(AKT.levelOf(n))}Склад ${n.slice(-1)}${stw(n)} · ${AKT.vsBase(n, 'level_t', fmt, 200)}${NB}т${h != null && h <= 48 ? ' · хватит на ' + AKT.durH(h) : ''}`;
   };
   const stockTitle = n => {
-    const h = AKT.num(n, 'hours_left');
+    const h = AKT.hoursLeft(n);
     return `Склад руды ${n.slice(-1)} (место — схема): ${AKT.stOf(n)} · ${fmt(AKT.num(n, 'level_t'))} т · приход ${fmt(AKT.num(n, 'in_tph'))} · расход ${fmt(AKT.num(n, 'out_tph'))} т/ч · ${h != null && h <= 48 ? 'кончится через ' + AKT.durH(h) : 'хватит больше чем на 2 суток'}`;
   };
   const powerText = () => {
@@ -619,7 +619,9 @@
         }
         rec.x = pos[0]; rec.y = pos[1]; rec.to = pos;
         const hl = !!(top && top.person === n);
-        const text = AKT.personLabel(info);
+        /* a person who is free and not called is a pictogram with a tooltip, not a text: 13 labels on a 1280 map covered the labels of the deviations (P2-10) */
+        const idle = !hl && !info.tr && !/WORK|BUSY|CALLED|TRAVEL/.test(String(info.st || ''));
+        const text = idle ? '' : AKT.personLabel(info);
         if (rec.t.textContent !== text) rec.t.textContent = text;
         const cls = `pm${hl ? ' hl' : ''}${info.tr ? ' travel' : ''}`;
         if (rec.g.getAttribute('class') !== cls) rec.g.setAttribute('class', cls);

@@ -53,7 +53,9 @@ S_MIR = ("MIR RK order no. 348 of 30.12.2014, items 12, 63, 315, 316, 326 (opene
 S_D5 = "design file 17, section 5"
 S_D7 = "design file 17, section 7"
 S_E19 = "evidence map file 19, section 3"
-S_METSO = "Metso Courier on-stream analyser: cycle 12-16 min, precision 1-6 %"
+S_METSO = "Metso Courier 5X/6X SL on-stream analyser, p. 12: cycle 12-16 min, precision 3-6 % (minor), 1-4 % (major)"
+S_AZO = "AZoMining 20.01.2026 (six streams on one analyser, total measurement cycle 8 minutes): https://www.azomining.com/Article.aspx?ArticleID=1908"
+S_REMES = "Remes et al., Minerals Engineering 2007, p. 3 (analysis accuracy 'can vary between 1% and 10%', random error): https://skoge.folk.ntnu.no/prost/proceedings/npc07/TKK/TKK01.pdf"
 S_IVESON = "Iveson, Galvin 2024, Minerals Engineering 212 (two-product recovery error propagation)"
 S_REZAEI = "Rezaei Dashtaki et al. 2025, Sci Rep 15:4565 (repair times lognormal)"
 S_GOPAL = "Gopalakrishnan 2018, PhD Chalmers (order robustness, 70 % threshold is ours)"
@@ -165,10 +167,14 @@ PARAMS: tuple[Param, ...] = (
        "lognormal error of the block-model A*b"),
     _p("blk_err_cu_sigma", 0.05, 0.03, 0.18, "-", S_D4, "assumption", "relative error of the block Cu"),
     _p("blk_err_ascu_pp", 1.0, 0.5, 2.0, "pp", S_D4, "assumption", "additive error of the block ASCu"),
-    _p("sens_an_cycle_min", 15, 12, 16, "min", S_D4 + "; " + S_METSO, "assumption", "on-stream analyser cycle"),
-    _p("sens_an_feed_sigma", 0.03, 0.01, 0.06, "-", S_D4 + "; " + S_METSO, "assumption", "relative"),
-    _p("sens_an_tail_sigma", 0.05, 0.03, 0.10, "-", S_D4 + "; " + S_METSO, "assumption", "relative"),
-    _p("sens_an_conc_sigma", 0.03, 0.01, 0.06, "-", S_D4 + "; " + S_METSO, "assumption", "relative"),
+    _p("sens_an_cycle_min", 15, 8, 16, "min", S_METSO + "; " + S_AZO, "vendor",
+       "on-stream analyser cycle: 12-16 min for a Courier 5X/6X SL (p. 12); a six-stream central analyser measures every stream once in 8 min"),
+    _p("sens_an_feed_sigma", 0.03, 0.01, 0.06, "-", S_METSO, "vendor",
+       "relative; vendor 3-6 % for minor concentrations (the feed is minor), 1-4 % for major ones"),
+    _p("sens_an_tail_sigma", 0.05, 0.03, 0.10, "-", S_METSO + "; " + S_REMES, "vendor",
+       "relative; vendor 3-6 % for minor concentrations (the tails are minor); the upper edge 10 % is Remes et al. 2007 (1-10 %, random error)"),
+    _p("sens_an_conc_sigma", 0.03, 0.01, 0.06, "-", S_METSO, "vendor",
+       "relative; vendor 1-4 % for major concentrations (the concentrate is major), 6 % is the minor-concentration figure"),
     _p("sens_weigher_sigma", 0.01, 0.005, 0.02, "-", S_D4, "assumption", "belt weigher, relative"),
     _p("sens_power_sigma", 0.003, 0.001, 0.005, "-", S_D4, "assumption", "power meter, relative"),
     _p("sens_p80_sigma_um", 5, 3, 8, "um", S_D4, "assumption", "P80 analyser, absolute"),
@@ -177,8 +183,10 @@ PARAMS: tuple[Param, ...] = (
     _p("model_err_rec_pp", 1.0, 0.5, 3.0, "pp", S_E19, "assumption", "recovery model error, shown in text"),
     # ---- detector (file 19, section 3 B) ----
     _p("cusum_k", 0.5, 0.25, 1.0, "-", S_NIST, "analog", "reference value, half the shift to find"),
-    _p("cusum_h", 6.5, 4.0, 8.0, "-", S_NIST + "; " + S_E19, "calc",
-       "decision interval for 6 monitors: about 0.95 false alarms a week with the fast threshold"),
+    _p("cusum_h", 6.5, 4.0, 8.0, "-", S_NIST + "; " + S_E19, "assumption",
+       "decision interval of the one-sided CUSUM. Measured 24.10.2026 (VALIDATION 8.15): for independent z ~ N(0,1) and 5-min tacts "
+       "about 2.8 false alarms a week on 6 monitors (5.4 with the fast threshold), on the residuals of the twin about 30 a week; "
+       "an earlier note said 0.95 a week (label calc), which does not hold"),
     _p("cusum_fast_z", 3.5, 3.0, 4.0, "-", S_E19, "assumption", "one-cycle threshold"),
     _p("unsure_z", 2.0, 1.5, 2.5, "-", S_D5, "assumption", "below: 'inside noise'; above without alarm: 'unsure'"),
     _p("window_min", 45, 30, 60, "min", S_D5, "assumption", "expectation window (3 analyser cycles)"),
@@ -328,7 +336,7 @@ PARAMS: tuple[Param, ...] = (
     _p("liner_eta_peak", 1.03, 1.00, 1.05, "-", "same", "assumption", "peak late in the campaign"),
     _p("liner_x_peak", 0.70, 0.50, 0.85, "-", "same", "assumption", "campaign share of the peak"),
     _p("liner_eta_end", 0.98, 0.95, 1.00, "-", "same", "assumption", "end of the campaign"),
-    _p("liner_reline_h", 96, 72, 126, "h", "RME relining benchmark (2-5 % of the year), not the August 2025 reline", "assumption",
+    _p("liner_reline_h", 84, 72, 126, "h", "Metso Outotec case study, Minera Chinalco Peru: SAG reline done in 84 h (96 h planned); RME benchmark 2-5 % of the year", "analog",
        "length of a SAG reline (same row as the model)"),
     _p("plan_cu_day_t", 603.6, 550, 650, "t", S_KAZ25 + ": 220.3 kt copper in concentrate in 2025 / 365", "calc",
        "average day of 2025, the reference line of the copper forecast (there is no published daily plan)"),

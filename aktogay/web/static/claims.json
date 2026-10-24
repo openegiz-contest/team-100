@@ -1,0 +1,3701 @@
+{
+ "version": 1,
+ "about": "Реестр заявленных чисел: каждое число вида «+N,NN т» (и границы интервалов) в README, SUBMISSION и презентации привязано к опыту и вычислению; scripts/check_numbers.py сверяет и падает на непомеченном числе.",
+ "check_kinds": {
+  "auto": "пересчитывается из файла результатов при каждой проверке",
+  "history": "прогон прежнего кода (22.10.2026), оставлен как запись; где файл сохранён, сверяется и расхождения выводятся предупреждением",
+  "literature": "число другой работы",
+  "manual": "оговорено причиной в поле note"
+ },
+ "experiments": {
+  "main_24_10": {
+   "title": "Основной опыт 24.10.2026 (база 8.8, --twin-human none)",
+   "what": "100 парных смен модели, seed 1001–1100, полная библиотека бед с уровнем S, копии «по $», «по громкости», «как сейчас»; различается только то, когда беду заметили и позвали",
+   "kind": "модельный опыт, N = 100",
+   "command": "python -I -B -X utf8 aktogay/sim/data/exp23/run_exp23.py (main_full), затем trial --aggregate",
+   "ci": "95 % ДИ, бутстрэп BCa, 10 000 повторов"
+  },
+  "rep_24_10": {
+   "title": "Повтор на новых seed 2001–2100 (база 8.8, --twin-human none)",
+   "what": "тот же опыт на других сменах модели",
+   "kind": "модельный опыт, N = 100",
+   "command": "run_exp23.py (rep_full)",
+   "ci": "95 % ДИ, BCa"
+  },
+  "e4_crews": {
+   "title": "Опыт по числу бригад (E4) (база 8.8, --twin-human none)",
+   "what": "те же 100 смен с 1, 2 или 3 бригадами в каждой службе; вклад находки и порядка вызова разложен по 2×2",
+   "kind": "модельный опыт, N = 100",
+   "command": "run_exp23.py (crews1, crews2, crews3)",
+   "ci": "95 % ДИ, BCa"
+  },
+  "b1_delay": {
+   "title": "Цена часа задержки вызова (B1) (база 8.8, --twin-human none)",
+   "what": "вызов бригады задержан на 0–120 мин; наклон потери меди по задержке",
+   "kind": "модельный опыт, N = 100",
+   "command": "run_exp23.py (delay_0 … delay_120)",
+   "ci": "95 % ДИ, BCa"
+  },
+  "b2_lab": {
+   "title": "Задержка лаборатории (B2) (база 8.8, --twin-human none)",
+   "what": "результат пробы через 2–24 ч",
+   "kind": "модельный опыт, N = 100",
+   "command": "run_exp23.py (lab_2 … lab_24)",
+   "ci": "95 % ДИ"
+  },
+  "tornado": {
+   "title": "Торнадо допущений (база 8.8, --twin-human none)",
+   "what": "один фактор за раз: лаборатория, доля выполненных советов, время находки тихой беды, ошибка оценки модуля",
+   "kind": "модельный опыт, N = 100 на фактор",
+   "command": "run_exp23.py (tor_*, lab_*)",
+   "ci": "95 % ДИ"
+  },
+  "novice": {
+   "title": "Новичок по данным (план 8.9) (база 8.8, --twin-human none)",
+   "what": "время увидеть беду ×1,658, неверный диагноз 0,05, пропуск шага 0,00473 [числа открытых работ других отраслей]",
+   "kind": "модельный опыт, N = 100",
+   "command": "run_exp23.py (nov_main, nov_rep, nov_lo, nov_hi)",
+   "ci": "95 % ДИ, BCa"
+  },
+  "energy": {
+   "title": "Энергия и CO₂ основного опыта (база 8.8, --twin-human none)",
+   "what": "МВт·ч на смену и на тонну меди, 0,64 т CO₂/МВт·ч",
+   "kind": "модельный опыт, N = 100",
+   "command": "trial --aggregate",
+   "ci": "95 % ДИ"
+  },
+  "worse": {
+   "title": "Смены, где двойник хуже опытного (база 8.8, --twin-human none)",
+   "what": "строки основного опыта и повтора",
+   "kind": "выборка смен",
+   "command": "trial --aggregate",
+   "ci": "нет"
+  },
+  "p80": {
+   "title": "Наклон извлечения по P80 (аналог Бозшаколя) (база 8.8, --twin-human none)",
+   "what": "двойник − опытный при наклоне 0,3 / 1,2 / 1,95 п.п. на 10 мкм",
+   "kind": "модельный опыт, N = 100",
+   "command": "run_exp23.py (sens_p80_*)",
+   "ci": "95 % ДИ"
+  },
+  "scen_seed42": {
+   "title": "Сценарии на модели, seed 42",
+   "what": "один прогон каждого сценария 08:00–20:00, копия «факт» без нажатий; иллюстрация, а не распределение",
+   "kind": "один прогон, иллюстрация",
+   "command": "python -I aktogay/run.py verify --write aktogay/web/static/verify.json",
+   "ci": "нет"
+  },
+  "legacy_22_10": {
+   "title": "Прежний опыт 22.10.2026",
+   "what": "библиотека бед без уровня S, база «как сейчас»; историческая запись",
+   "kind": "модельный опыт, N = 100, прежний код",
+   "command": "python -I aktogay/run.py trial --n 100 --seed0 1001 --no-twin (sim/data/trial_n100.json)",
+   "ci": "95 % ДИ, BCa"
+  },
+  "hist_earlier": {
+   "title": "Чувствительность 22.10.2026 на более ранней копии кода",
+   "what": "посчитано на коде до замены базы; не пересчитывалось, документ это оговаривает",
+   "kind": "историческая запись",
+   "command": "нет сохранённых файлов",
+   "ci": "—"
+  },
+  "literature": {
+   "title": "Числа других работ",
+   "what": "приведены для масштаба, источник в таблице «С чем сравнивать»",
+   "kind": "литература",
+   "command": "—",
+   "ci": "—"
+  },
+  "stock_sens_A": {
+   "title": "Сценарии на 10 seed (1001–1010), живая часть склада 40 кт",
+   "what": "среднее и размах т Cu к 20:00, факт − база, без нажатий в интерфейсе; та же модель, что в таблице seed 42, но десять прогонов",
+   "kind": "10 прогонов",
+   "command": "python -I aktogay/run.py stock_sens --jobs 4 --write aktogay/sim/data/stock_sens.json",
+   "ci": "минимум и максимум"
+  },
+  "stock_trial": {
+   "title": "Опыт «вкл/выкл» при двух трактовках склада",
+   "what": "главный опыт (100 смен, seed 1001–1100, полная библиотека) повторён на коде 24.10.2026 при живой части склада 40 кт (A) и 163 кт (B); B − A на тех же сменах",
+   "kind": "модельный опыт, N = 100",
+   "command": "python -I aktogay/run.py stock_sens --trial-summary A.json B.json aktogay/sim/data/stock_sens_trial.json",
+   "ci": "95 % ДИ, BCa"
+  },
+  "sym_24_10": {
+   "title": "Основной опыт 24.10.2026, симметричная база",
+   "what": "100 парных смен модели, seed 1001–1100 и 2001–2100, полная библиотека бед с уровнем S; двойник добавлен к людям и не видит громкую беду раньше них; тихие потери находит модуль за измеренное время; твёрдая руда «как сейчас» узнана при выемке (R1, R2) или на SAG (R3, R4)",
+   "kind": "модельный опыт, N = 100",
+   "command": "python -I -B -X utf8 aktogay/sim/data/exp24/run_exp24.py, затем python -I aktogay/run.py exp24 --write aktogay/sim/data/experiment_24.json",
+   "ci": "95 % ДИ, бутстрэп BCa, 10 000 повторов"
+  },
+  "sym_stock": {
+   "title": "Опыт 24.10.2026 при живой части склада 163 кт",
+   "what": "те же прогоны R1–R4 при другой трактовке слова ПЭК о складе (R6, R6b, R7, R7b)",
+   "kind": "модельный опыт, N = 100",
+   "command": "run_exp24.py (R6, R6b, R7, R7b)",
+   "ci": "95 % ДИ, BCa"
+  },
+  "sym_paired": {
+   "title": "Парные разности прогонов",
+   "what": "разность «двойник − как сейчас» двух прогонов на одних и тех же сменах (твёрдая руда на SAG против выемки, склад B против A, симметричная база против прежней)",
+   "kind": "модельный опыт, N = 100",
+   "command": "python -I aktogay/run.py exp24 --write aktogay/sim/data/experiment_24.json",
+   "ci": "95 % ДИ, BCa"
+  },
+  "sym_control": {
+   "title": "Контроль кода: прежняя база на слитом коде",
+   "what": "--twin-human none на коде с симметричной базой воспроизводит +1,09 и +1,01 опыта 8.8 (R5, R5b)",
+   "kind": "модельный опыт, N = 100",
+   "command": "run_exp24.py (R5, R5b)",
+   "ci": "95 % ДИ, BCa"
+  },
+  "sym_energy": {
+   "title": "Энергия и CO₂ симметричного опыта",
+   "what": "МВт·ч на смену и на тонну меди, 0,64 т CO₂/МВт·ч (R1)",
+   "kind": "модельный опыт, N = 100",
+   "command": "python -I aktogay/run.py exp24",
+   "ci": "95 % ДИ"
+  },
+  "sym_novice": {
+   "title": "Новичок по данным на симметричной базе",
+   "what": "те же четыре прогона nov_main, nov_rep, nov_lo, nov_hi (VALIDATION 8.9, 8.10) с --twin-human same",
+   "kind": "модельный опыт, N = 100",
+   "command": "python -I -B -X utf8 aktogay/sim/data/exp24/run_nov24.py, затем run.py exp24",
+   "ci": "95 % ДИ, BCa"
+  }
+ },
+ "claims": [
+  {
+   "id": "main_twin",
+   "text": "+1,07",
+   "experiment": "main_24_10",
+   "check": "history",
+   "meaning": "двойник − опытная смена без двойника, т Cu за смену",
+   "ci_text": [
+    "+0,89",
+    "+1,31"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b3_d1.main_full.pairs.twin-expert.cu"
+   },
+   "note": "прежний главный результат на несимметричной базе (VALIDATION 8.8); сохранён как история, текущий итог — x24_R1_mean"
+  },
+  {
+   "id": "rep_twin",
+   "text": "+1,01",
+   "experiment": "rep_24_10",
+   "check": "history",
+   "meaning": "то же на новых seed 2001–2100",
+   "ci_text": [
+    "+0,41",
+    "+1,45"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b3_d1.rep_full.pairs.twin-expert.cu"
+   },
+   "note": "прежний главный результат на несимметричной базе (VALIDATION 8.8); сохранён как история, текущий итог — x24_R1_mean"
+  },
+  {
+   "id": "delay_hour",
+   "text": "+5,36",
+   "experiment": "b1_delay",
+   "check": "auto",
+   "meaning": "час задержки вызова бригады, т Cu",
+   "ci_text": [
+    "+4,29",
+    "+6,76"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b1.slope_t_cu_per_h_all_troubles"
+   }
+  },
+  {
+   "id": "delay_hour_r1",
+   "text": "+5,4",
+   "experiment": "b1_delay",
+   "check": "auto",
+   "meaning": "то же с одним знаком после запятой",
+   "ci_text": [
+    "+4,3",
+    "+6,8"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b1.slope_t_cu_per_h_all_troubles"
+   }
+  },
+  {
+   "id": "lab_hour",
+   "text": "+0,008",
+   "experiment": "b2_lab",
+   "check": "auto",
+   "meaning": "час задержки лаборатории, т Cu",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b2.slope_t_cu_per_h.mean"
+   }
+  },
+  {
+   "id": "kwh_per_t",
+   "text": "−33",
+   "experiment": "energy",
+   "check": "auto",
+   "meaning": "энергия на тонну меди, кВт·ч",
+   "ci_text": [
+    "−42",
+    "−27"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "energy_co2.twin_minus_expert.kwh_per_t_cu"
+   }
+  },
+  {
+   "id": "co2_per_t",
+   "text": "−21",
+   "experiment": "energy",
+   "check": "auto",
+   "meaning": "CO₂ на тонну меди, кг",
+   "ci_text": [
+    "−27",
+    "−17"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "energy_co2.twin_minus_expert.co2_kg_per_t_cu"
+   }
+  },
+  {
+   "id": "co2_abs",
+   "text": "+0,7",
+   "experiment": "energy",
+   "check": "auto",
+   "meaning": "CO₂ смены в абсолютных тоннах (выпуск больше — энергии больше)",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "energy_co2.twin_minus_expert.co2_t_per_shift_absolute.mean"
+   }
+  },
+  {
+   "id": "e4_det_k1",
+   "text": "+0,85",
+   "experiment": "e4_crews",
+   "check": "auto",
+   "meaning": "вклад находки, одна бригада, т Cu",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b4.1.contrasts_cu.detection.mean"
+   }
+  },
+  {
+   "id": "e4_ord_k1",
+   "text": "+0,23",
+   "experiment": "e4_crews",
+   "check": "auto",
+   "meaning": "вклад порядка вызова «по $», одна бригада, т Cu",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b4.1.contrasts_cu.order.mean"
+   }
+  },
+  {
+   "id": "e4_det_k2",
+   "text": "+1,00",
+   "experiment": "e4_crews",
+   "check": "auto",
+   "meaning": "вклад находки, две бригады, т Cu",
+   "also": [
+    "+1,0"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b4.2.contrasts_cu.detection.mean"
+   }
+  },
+  {
+   "id": "e4_ord_k2",
+   "text": "+0,06",
+   "experiment": "e4_crews",
+   "check": "auto",
+   "meaning": "вклад порядка вызова, две бригады, т Cu",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b4.2.contrasts_cu.order.mean"
+   }
+  },
+  {
+   "id": "tor_base",
+   "text": "+1,32",
+   "experiment": "tornado",
+   "check": "auto",
+   "meaning": "основание торнадо (цикл 5 мин), т Cu",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "tornado[0].benefit.mean"
+   }
+  },
+  {
+   "id": "tor_lab12",
+   "text": "+1,44",
+   "experiment": "tornado",
+   "check": "auto",
+   "meaning": "лаборатория 12 ч: влияние исчезает",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "tornado[3].benefit.mean"
+   }
+  },
+  {
+   "id": "tor_comp50",
+   "text": "+0,76",
+   "experiment": "tornado",
+   "check": "auto",
+   "meaning": "советы выполняют на 50 %",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "tornado[5].benefit.mean"
+   }
+  },
+  {
+   "id": "tor_det150",
+   "text": "+0,97",
+   "experiment": "tornado",
+   "check": "auto",
+   "meaning": "тихую беду находят за 150 мин",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "tornado[8].benefit.mean"
+   }
+  },
+  {
+   "id": "p80_03",
+   "text": "+1,32",
+   "experiment": "p80",
+   "check": "auto",
+   "meaning": "польза двойника при наклоне 0,3 п.п. на 10 мкм",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "p80_slope[\"0.3\"].twin_minus_expert.mean"
+   }
+  },
+  {
+   "id": "p80_12",
+   "text": "+1,29",
+   "experiment": "p80",
+   "check": "auto",
+   "meaning": "при наклоне 1,2",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "p80_slope[\"1.2\"].twin_minus_expert.mean"
+   }
+  },
+  {
+   "id": "p80_195",
+   "text": "+1,26",
+   "experiment": "p80",
+   "check": "auto",
+   "meaning": "при наклоне 1,95",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "p80_slope[\"1.95\"].twin_minus_expert.mean"
+   }
+  },
+  {
+   "id": "nov_exp_main",
+   "text": "+1,08",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "опытный − новичок по данным, т Cu",
+   "ci_text": [
+    "+0,80",
+    "+1,54"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_main.pairs.expert-nov_r.cu"
+   }
+  },
+  {
+   "id": "nov_exp_main_neg",
+   "text": "−1,08",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "то же со знаком «новичок − опытный»",
+   "ci_text": [
+    "−1,54",
+    "−0,80"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_main.pairs.expert-nov_r.cu"
+   },
+   "note": "negated: знак обратный (новичок − опытный), границы поменяны местами"
+  },
+  {
+   "id": "nov_exp_rep",
+   "text": "+0,46",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "то же, повтор",
+   "ci_text": [
+    "+0,09",
+    "+0,67"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_rep.pairs.expert-nov_r.cu"
+   }
+  },
+  {
+   "id": "nov_twin_main",
+   "text": "+2,15",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "двойник − новичок по данным",
+   "ci_text": [
+    "+1,75",
+    "+2,69"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_main.pairs.twin-nov_r.cu"
+   }
+  },
+  {
+   "id": "nov_twin_rep",
+   "text": "+1,47",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "то же, повтор",
+   "ci_text": [
+    "+0,83",
+    "+1,85"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_rep.pairs.twin-nov_r.cu"
+   }
+  },
+  {
+   "id": "nov_twin_exp_main",
+   "text": "+1,00",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "новичок с двойником − опытный без двойника",
+   "ci_text": [
+    "+0,80",
+    "+1,24"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_main.pairs.nov_twin-expert.cu"
+   }
+  },
+  {
+   "id": "nov_twin_exp_rep",
+   "text": "+1,00",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "то же, повтор",
+   "ci_text": [
+    "+0,39",
+    "+1,44"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_rep.pairs.nov_twin-expert.cu"
+   }
+  },
+  {
+   "id": "nov_lo",
+   "text": "+0,11",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "цена неопытности у нижней границы параметров",
+   "ci_text": [
+    "−0,01",
+    "+0,43"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_lo.pairs.expert-nov_r.cu"
+   }
+  },
+  {
+   "id": "nov_hi",
+   "text": "+3,49",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "цена неопытности у верхней границы",
+   "ci_text": [
+    "+2,70",
+    "+4,54"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_hi.pairs.expert-nov_r.cu"
+   }
+  },
+  {
+   "id": "nov_hi_twin",
+   "text": "+0,67",
+   "experiment": "novice",
+   "check": "auto",
+   "meaning": "новичок с двойником − опытный, верхняя граница",
+   "ci_text": [
+    "+0,33",
+    "+0,93"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "novice_data.runs.nov_hi.pairs.nov_twin-expert.cu"
+   }
+  },
+  {
+   "id": "novice_plan",
+   "text": "−0,00",
+   "experiment": "main_24_10",
+   "check": "auto",
+   "meaning": "«новичок по одной беде» против опытного: не отличим",
+   "ci_text": [
+    "−0,02",
+    "+0,03"
+   ],
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "b3_d1.main_full.pairs.expert-novice.cu"
+   }
+  },
+  {
+   "id": "worse_main_1",
+   "text": "−0,14",
+   "experiment": "worse",
+   "check": "auto",
+   "meaning": "худшая смена основного прогона (seed 1078), т Cu",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "worse_shifts.main_full.rows[0].d_cu"
+   }
+  },
+  {
+   "id": "worse_main_3",
+   "text": "−0,07",
+   "experiment": "worse",
+   "check": "auto",
+   "meaning": "третья по худшести смена основного прогона (seed 1005)",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "worse_shifts.main_full.rows[2].d_cu"
+   }
+  },
+  {
+   "id": "worse_rep",
+   "text": "−17",
+   "experiment": "worse",
+   "check": "auto",
+   "meaning": "худшая смена повтора (seed 2079), т Cu",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "worse_shifts.rep_full.worst"
+   }
+  },
+  {
+   "id": "rep_wo_2079",
+   "text": "+1,19",
+   "experiment": "worse",
+   "check": "manual",
+   "meaning": "повтор без смены seed 2079 (99 смен)",
+   "ci_text": [
+    "+0,93",
+    "+1,71"
+   ],
+   "note": "посчитано при разборе смен (VALIDATION 8.11) без сохранённого файла; повтор с этой сменой — rep_twin"
+  },
+  {
+   "id": "h2210_all",
+   "text": "+1,26",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "прежний опыт 22.10: двойник целиком, т Cu за смену",
+   "ci_text": [
+    "+1,06",
+    "+1,52"
+   ],
+   "source": {
+    "file": "sim/data/trial_n100.json",
+    "path": "summary.twin_cu_t_2000"
+   }
+  },
+  {
+   "id": "h2210_pct",
+   "text": "+0,39",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, % выпуска смены (1 т Cu = 0,306 %)",
+   "ci_text": [
+    "+0,32",
+    "+0,47"
+   ],
+   "source": {
+    "file": "sim/data/trial_n100.json",
+    "path": "summary.twin_cu_t_2000",
+    "scale": 0.306
+   }
+  },
+  {
+   "id": "h2210_pp",
+   "text": "+0,34",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, п.п. извлечения в эквиваленте (1 т = 0,266 п.п.)",
+   "ci_text": [
+    "+0,28",
+    "+0,40"
+   ],
+   "source": {
+    "file": "sim/data/trial_n100.json",
+    "path": "summary.twin_cu_t_2000",
+    "scale": 0.266
+   }
+  },
+  {
+   "id": "h2210_det",
+   "text": "+0,98",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "из них раньше видны громкие беды и твёрдая руда",
+   "ci_text": [
+    "+0,77",
+    "+1,24"
+   ],
+   "note": "разложение 22.10 не хранится отдельным файлом"
+  },
+  {
+   "id": "h2210_det_pct",
+   "text": "+0,30",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, % выпуска",
+   "ci_text": [
+    "+0,24",
+    "+0,38"
+   ],
+   "note": "см. h2210_det"
+  },
+  {
+   "id": "h2210_det_pp",
+   "text": "+0,26",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, п.п. экв.",
+   "ci_text": [
+    "+0,21",
+    "+0,33"
+   ],
+   "note": "см. h2210_det"
+  },
+  {
+   "id": "h2210_silent",
+   "text": "+0,20",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "из них находка тихих потерь",
+   "ci_text": [
+    "+0,07",
+    "+0,33"
+   ],
+   "note": "разложение 22.10 не хранится отдельным файлом"
+  },
+  {
+   "id": "h2210_silent_pct",
+   "text": "+0,06",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, % выпуска",
+   "ci_text": [
+    "+0,02",
+    "+0,10"
+   ],
+   "note": "см. h2210_silent"
+  },
+  {
+   "id": "h2210_silent_pp",
+   "text": "+0,05",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, п.п. экв.",
+   "ci_text": [
+    "+0,02",
+    "+0,09"
+   ],
+   "note": "см. h2210_silent"
+  },
+  {
+   "id": "h2210_order",
+   "text": "+0,08",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "из них порядок вызова «по $», т Cu",
+   "ci_text": [
+    "+0,05",
+    "+0,23"
+   ],
+   "source": {
+    "file": "sim/data/trial_n100.json",
+    "path": "summary.d_cu_t_2000"
+   }
+  },
+  {
+   "id": "h2210_order_pct",
+   "text": "+0,03",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, % выпуска",
+   "ci_text": [
+    "+0,01",
+    "+0,07"
+   ],
+   "source": {
+    "file": "sim/data/trial_n100.json",
+    "path": "summary.d_cu_t_2000",
+    "scale": 0.306
+   }
+  },
+  {
+   "id": "h2210_order_pp",
+   "text": "+0,02",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, п.п. экв.",
+   "ci_text": [
+    "+0,01",
+    "+0,06"
+   ],
+   "source": {
+    "file": "sim/data/trial_n100.json",
+    "path": "summary.d_cu_t_2000",
+    "scale": 0.266
+   }
+  },
+  {
+   "id": "h2210_gross",
+   "text": "+1,26",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же +1,26 т как валовая стоимость",
+   "source": {
+    "file": "sim/data/trial_n100.json",
+    "path": "summary.twin_cu_t_2000.mean"
+   }
+  },
+  {
+   "id": "h2210_p10",
+   "text": "+0,11",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "P10 выигрыша по сменам 22.10",
+   "source": {
+    "file": "sim/data/experiment_23.json",
+    "path": "bridge.legacy_check_22_10_settings.twin_cu_t_2000.p10"
+   },
+   "note": "сверяется с перепрогоном настроек 22.10 на коде 24.10"
+  },
+  {
+   "id": "h2210_p90",
+   "text": "+2,92",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "P90 выигрыша по сменам 22.10",
+   "note": "перепрогон настроек 22.10 на коде 24.10 даёт +2,87 (bridge.legacy_check_22_10_settings.twin_cu_t_2000.p90); +2,92 — значение прогона 22.10"
+  },
+  {
+   "id": "h2210_shared",
+   "text": "+0,43",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "порядок вызова в сменах с одной бригадой на две беды (10 из 100), т Cu",
+   "also": [
+    "+0,05"
+   ],
+   "note": "прогон 22.10, отдельный файл не хранится"
+  },
+  {
+   "id": "h2210_lab2",
+   "text": "+1,18",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "задержка лаборатории 2 ч: двойник целиком",
+   "ci_text": [
+    "+0,98",
+    "+1,44"
+   ],
+   "source": {
+    "file": "sim/data/sens_lab_2h.json",
+    "path": "summary.twin_cu_t_2000"
+   }
+  },
+  {
+   "id": "h2210_lab2_s",
+   "text": "+0,12",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, находка тихих потерь",
+   "ci_text": [
+    "+0,06",
+    "+0,19"
+   ],
+   "note": "разложение 22.10 не хранится отдельным файлом"
+  },
+  {
+   "id": "h2210_lab6",
+   "text": "+1,33",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "задержка лаборатории 6 ч: двойник целиком",
+   "ci_text": [
+    "+1,11",
+    "+1,59"
+   ],
+   "source": {
+    "file": "sim/data/sens_lab_6h.json",
+    "path": "summary.twin_cu_t_2000"
+   }
+  },
+  {
+   "id": "h2210_lab6_s",
+   "text": "+0,27",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "то же, находка тихих потерь",
+   "ci_text": [
+    "+0,11",
+    "+0,43"
+   ],
+   "note": "разложение 22.10 не хранится отдельным файлом"
+  },
+  {
+   "id": "hist_order_lab",
+   "text": "+0,08",
+   "experiment": "legacy_22_10",
+   "check": "history",
+   "meaning": "порядок вызова во всех трёх строках чувствительности",
+   "source": {
+    "file": "sim/data/trial_n100.json",
+    "path": "summary.d_cu_t_2000"
+   }
+  },
+  {
+   "id": "hist_early",
+   "text": "+0,03",
+   "experiment": "hist_earlier",
+   "check": "history",
+   "meaning": "порядок при вдвое меньшем числе тихих бед",
+   "also": [
+    "+0,14",
+    "+0,13",
+    "+0,54",
+    "+0,25",
+    "+0,05",
+    "+0,09",
+    "−0,01"
+   ],
+   "note": "прогоны 22.10 на более ранней копии кода со старой базой; документ это оговаривает; не пересчитывались"
+  },
+  {
+   "id": "hist_silent_weak",
+   "text": "+0,13",
+   "experiment": "hist_earlier",
+   "check": "history",
+   "meaning": "тихие беды вдвое слабее: находка",
+   "ci_text": [
+    "−0,01",
+    "+0,25"
+   ],
+   "note": "ранний код 22.10, не пересчитывалось"
+  },
+  {
+   "id": "pres_rounded",
+   "text": "+1",
+   "experiment": "main_24_10",
+   "check": "manual",
+   "meaning": "«+1 т за смену»: округление главного результата +1,07 в тексте слайда",
+   "note": "круглое число в объяснении единиц, не отдельный результат"
+  },
+  {
+   "id": "sc_c1",
+   "text": "−0,74",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "С1 «Встала дробилка» к 20:00, т Cu (один прогон seed 42: механик успел раньше склада)",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "crusher:1@1.diff.fact.cu_t"
+   }
+  },
+  {
+   "id": "sc_c3",
+   "text": "+1,09",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "С3 «Твёрдая руда» к 20:00, т Cu",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "hard:1@1.diff.fact.cu_t"
+   }
+  },
+  {
+   "id": "sc_c3_next",
+   "text": "−7,2",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "С3 до 08:00 следующих суток, т Cu",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "hard:1@1.next_day_cu_t.diff_total"
+   }
+  },
+  {
+   "id": "sc_c3_night",
+   "text": "−8,3",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "С3, ночная смена, т Cu",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "hard:1@1.next_day_cu_t.night_shift"
+   }
+  },
+  {
+   "id": "fork_find_k1",
+   "text": "+0,85",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "«Два сразу», seed 42, одна бригада: находка, т Cu (один прогон, иллюстрация)",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "fork@1.fork_cu_t.detection_cu_t"
+   }
+  },
+  {
+   "id": "fork_order_k1",
+   "text": "+2,18",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "то же: порядок вызова",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "fork@1.fork_cu_t.order_cu_t"
+   }
+  },
+  {
+   "id": "fork_all_k1",
+   "text": "+3,02",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "то же: двойник целиком",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "fork@1.fork_cu_t.total_cu_t"
+   }
+  },
+  {
+   "id": "fork_find_k2",
+   "text": "+2,22",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "две бригады: находка",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "fork@2.fork_cu_t.detection_cu_t"
+   }
+  },
+  {
+   "id": "fork_order_k2",
+   "text": "+0,11",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "две бригады: порядок",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "fork@2.fork_cu_t.order_cu_t"
+   }
+  },
+  {
+   "id": "fork_all_k2",
+   "text": "+2,33",
+   "experiment": "scen_seed42",
+   "check": "auto",
+   "meaning": "две бригады: целиком",
+   "source": {
+    "file": "web/static/verify.json",
+    "path": "fork@2.fork_cu_t.total_cu_t"
+   }
+  },
+  {
+   "id": "ss_c1",
+   "text": "−15,2",
+   "experiment": "stock_sens_A",
+   "check": "auto",
+   "meaning": "С1 «Встала дробилка», среднее по 10 seed (в seed 42 потеря мала: механик успел раньше склада)",
+   "ci_text": [
+    "−28,1",
+    "−5,9"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens.json",
+    "path": "scenarios[\"crusher:1\"].A.d_cu_t"
+   }
+  },
+  {
+   "id": "ss_c2",
+   "text": "−13,1",
+   "experiment": "stock_sens_A",
+   "check": "auto",
+   "meaning": "С2 «Сеть урезала мощность»",
+   "ci_text": [
+    "−13,3",
+    "−12,9"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens.json",
+    "path": "scenarios[\"grid\"].A.d_cu_t"
+   }
+  },
+  {
+   "id": "ss_c3",
+   "text": "−8,4",
+   "experiment": "stock_sens_A",
+   "check": "auto",
+   "meaning": "С3 «Твёрдая руда» (в seed 42 +1,09: партия доходит до SAG около 20:00)",
+   "ci_text": [
+    "−18,0",
+    "−1,8"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens.json",
+    "path": "scenarios[\"hard:1\"].A.d_cu_t"
+   }
+  },
+  {
+   "id": "ss_c4",
+   "text": "−162,7",
+   "experiment": "stock_sens_A",
+   "check": "auto",
+   "meaning": "С4 «Перефутеровка SAG»",
+   "ci_text": [
+    "−184,9",
+    "−144,3"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens.json",
+    "path": "scenarios[\"reline:1\"].A.d_cu_t"
+   }
+  },
+  {
+   "id": "ss_water",
+   "text": "−6,3",
+   "experiment": "stock_sens_A",
+   "check": "auto",
+   "meaning": "«Вода»",
+   "ci_text": [
+    "−14,0",
+    "−2,5"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens.json",
+    "path": "scenarios[\"water\"].A.d_cu_t"
+   }
+  },
+  {
+   "id": "ss_fire",
+   "text": "−5,4",
+   "experiment": "stock_sens_A",
+   "check": "auto",
+   "meaning": "«Пожар HPGR»",
+   "ci_text": [
+    "−6,3",
+    "−4,6"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens.json",
+    "path": "scenarios[\"hpgr_fire\"].A.d_cu_t"
+   }
+  },
+  {
+   "id": "st_A",
+   "text": "+1,09",
+   "experiment": "stock_trial",
+   "check": "auto",
+   "meaning": "двойник − опытный, повтор главного опыта на коде 24.10.2026, живая часть склада 40 кт",
+   "ci_text": [
+    "+0,90",
+    "+1,33"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens_trial.json",
+    "path": "A"
+   }
+  },
+  {
+   "id": "st_A3",
+   "text": "+1,086",
+   "experiment": "stock_trial",
+   "check": "auto",
+   "meaning": "то же с тремя знаками",
+   "source": {
+    "file": "sim/data/stock_sens_trial.json",
+    "path": "A.mean"
+   }
+  },
+  {
+   "id": "st_B",
+   "text": "+0,81",
+   "experiment": "stock_trial",
+   "check": "auto",
+   "meaning": "двойник − опытный при живой части склада 163 кт (трактовка B)",
+   "ci_text": [
+    "+0,66",
+    "+1,00"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens_trial.json",
+    "path": "B"
+   }
+  },
+  {
+   "id": "st_BA",
+   "text": "−0,28",
+   "experiment": "stock_trial",
+   "check": "auto",
+   "meaning": "B − A на тех же сменах",
+   "ci_text": [
+    "−0,43",
+    "−0,16"
+   ],
+   "source": {
+    "file": "sim/data/stock_sens_trial.json",
+    "path": "B_minus_A"
+   }
+  },
+  {
+   "id": "x24_R1_mean",
+   "text": "+0,61",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: среднее двойник − «как сейчас», т Cu за смену (symmetric base, hard ore seen by «как сейчас» at the start of digging; seeds 1001-1100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,23",
+    "+2,18"
+   ]
+  },
+  {
+   "id": "x24_R1_median",
+   "text": "+0,09",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R1_trim1",
+   "text": "+0,26",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R1_p90",
+   "text": "+1,00",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R1_min",
+   "text": "−0,10",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R1_min_d1",
+   "text": "−0,1",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R1_wt",
+   "text": "+0,26",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.without_top_shift"
+   },
+   "ci_text": [
+    "+0,18",
+    "+0,35"
+   ]
+  },
+  {
+   "id": "x24_R1_det",
+   "text": "+0,22",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.detection"
+   },
+   "ci_text": [
+    "+0,15",
+    "+0,31"
+   ]
+  },
+  {
+   "id": "x24_R1_ord",
+   "text": "+0,39",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.order"
+   },
+   "ci_text": [
+    "+0,04",
+    "+1,79"
+   ]
+  },
+  {
+   "id": "x24_R1_top",
+   "text": "+35,3",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R1_top_d2",
+   "text": "+35,35",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R1_gain_dose_or_cyclone",
+   "text": "+0,45",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R1_gainwt_dose_or_cyclone",
+   "text": "+0,45",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R1_gain_hard_ore",
+   "text": "+0,24",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R1_gainwt_hard_ore",
+   "text": "+0,24",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R1_gain_other",
+   "text": "+1,15",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R1_gainwt_other",
+   "text": "+0,01",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R2_mean",
+   "text": "+0,31",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: среднее двойник − «как сейчас», т Cu за смену (the same on new seeds 2001-2100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,21",
+    "+0,47"
+   ]
+  },
+  {
+   "id": "x24_R2_median",
+   "text": "+0,01",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R2_trim1",
+   "text": "+0,28",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R2_p90",
+   "text": "+0,83",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R2_min",
+   "text": "−0,01",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R2_min_d1",
+   "text": "−0,0",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R2_wt",
+   "text": "+0,28",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.without_top_shift"
+   },
+   "ci_text": [
+    "+0,19",
+    "+0,43"
+   ]
+  },
+  {
+   "id": "x24_R2_det",
+   "text": "+0,24",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.detection"
+   },
+   "ci_text": [
+    "+0,14",
+    "+0,38"
+   ]
+  },
+  {
+   "id": "x24_R2_ord",
+   "text": "+0,07",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.order"
+   },
+   "ci_text": [
+    "+0,05",
+    "+0,14"
+   ]
+  },
+  {
+   "id": "x24_R2_top",
+   "text": "+3,2",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R2_top_d2",
+   "text": "+3,24",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R2_gain_dose_or_cyclone",
+   "text": "+0,63",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R2_gainwt_dose_or_cyclone",
+   "text": "+0,56",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R2_gain_hard_ore",
+   "text": "+0,16",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R2_gainwt_hard_ore",
+   "text": "+0,16",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R2_gain_other",
+   "text": "+0,01",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R2_gainwt_other",
+   "text": "+0,01",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R2: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R2.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R3_mean",
+   "text": "+1,19",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: среднее двойник − «как сейчас», т Cu за смену (symmetric base, hard ore seen by «как сейчас» only at the SAG; seeds 1001-1100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,77",
+    "+2,81"
+   ]
+  },
+  {
+   "id": "x24_R3_median",
+   "text": "+0,14",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R3_trim1",
+   "text": "+0,86",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R3_p90",
+   "text": "+2,88",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R3_min",
+   "text": "−0,12",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R3_min_d1",
+   "text": "−0,1",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R3_wt",
+   "text": "+0,85",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.without_top_shift"
+   },
+   "ci_text": [
+    "+0,63",
+    "+1,11"
+   ]
+  },
+  {
+   "id": "x24_R3_det",
+   "text": "+0,80",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.detection"
+   },
+   "ci_text": [
+    "+0,59",
+    "+1,05"
+   ]
+  },
+  {
+   "id": "x24_R3_ord",
+   "text": "+0,39",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.order"
+   },
+   "ci_text": [
+    "+0,04",
+    "+2,06"
+   ]
+  },
+  {
+   "id": "x24_R3_top",
+   "text": "+35,3",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R3_top_d2",
+   "text": "+35,35",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R3_gain_dose_or_cyclone",
+   "text": "+1,07",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R3_gainwt_dose_or_cyclone",
+   "text": "+1,07",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R3_gain_hard_ore",
+   "text": "+1,41",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R3_gainwt_hard_ore",
+   "text": "+1,41",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R3_gain_other",
+   "text": "+1,15",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R3_gainwt_other",
+   "text": "+0,01",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R3: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R3.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R4_mean",
+   "text": "+0,81",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: среднее двойник − «как сейчас», т Cu за смену (the same on new seeds 2001-2100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,58",
+    "+1,14"
+   ]
+  },
+  {
+   "id": "x24_R4_median",
+   "text": "+0,14",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R4_trim1",
+   "text": "+0,76",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R4_p90",
+   "text": "+2,79",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R4_min",
+   "text": "−1,85",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R4_min_d1",
+   "text": "−1,8",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R4_wt",
+   "text": "+0,73",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.without_top_shift"
+   },
+   "ci_text": [
+    "+0,53",
+    "+0,98"
+   ]
+  },
+  {
+   "id": "x24_R4_det",
+   "text": "+0,74",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.detection"
+   },
+   "ci_text": [
+    "+0,51",
+    "+1,05"
+   ]
+  },
+  {
+   "id": "x24_R4_ord",
+   "text": "+0,07",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.order"
+   },
+   "ci_text": [
+    "+0,05",
+    "+0,14"
+   ]
+  },
+  {
+   "id": "x24_R4_top",
+   "text": "+8,4",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R4_top_d2",
+   "text": "+8,39",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R4_gain_dose_or_cyclone",
+   "text": "+0,95",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R4_gainwt_dose_or_cyclone",
+   "text": "+0,77",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R4_gain_hard_ore",
+   "text": "+1,52",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R4_gainwt_hard_ore",
+   "text": "+1,52",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R4_gain_other",
+   "text": "+0,01",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R4_gainwt_other",
+   "text": "+0,01",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R4: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R4.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R5_mean",
+   "text": "+1,09",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: среднее двойник − «как сейчас», т Cu за смену (control, --twin-human none (the base of 8.8) on the merged code; seeds 1001-1100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,90",
+    "+1,33"
+   ]
+  },
+  {
+   "id": "x24_R5_median",
+   "text": "+0,71",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R5_trim1",
+   "text": "+1,05",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R5_p90",
+   "text": "+2,48",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R5_min",
+   "text": "−0,14",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R5_min_d1",
+   "text": "−0,1",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R5_wt",
+   "text": "+1,04",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.without_top_shift"
+   },
+   "ci_text": [
+    "+0,86",
+    "+1,24"
+   ]
+  },
+  {
+   "id": "x24_R5_det",
+   "text": "+0,99",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.detection"
+   },
+   "ci_text": [
+    "+0,81",
+    "+1,23"
+   ]
+  },
+  {
+   "id": "x24_R5_ord",
+   "text": "+0,09",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.order"
+   },
+   "ci_text": [
+    "+0,07",
+    "+0,13"
+   ]
+  },
+  {
+   "id": "x24_R5_top",
+   "text": "+5,8",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R5_top_d2",
+   "text": "+5,78",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R5_gain_dose_or_cyclone",
+   "text": "+0,95",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R5_gainwt_dose_or_cyclone",
+   "text": "+0,95",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R5_gain_hard_ore",
+   "text": "+1,16",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R5_gainwt_hard_ore",
+   "text": "+1,16",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R5_gain_other",
+   "text": "+1,19",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R5_gainwt_other",
+   "text": "+1,04",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R5b_mean",
+   "text": "+1,01",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: среднее двойник − «как сейчас», т Cu за смену (control, --twin-human none; seeds 2001-2100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,41",
+    "+1,46"
+   ]
+  },
+  {
+   "id": "x24_R5b_median",
+   "text": "+0,60",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R5b_trim1",
+   "text": "+1,05",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R5b_p90",
+   "text": "+2,80",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R5b_min",
+   "text": "−17,22",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R5b_min_d1",
+   "text": "−17,2",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R5b_wt",
+   "text": "+0,87",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.without_top_shift"
+   },
+   "ci_text": [
+    "+0,17",
+    "+1,16"
+   ]
+  },
+  {
+   "id": "x24_R5b_det",
+   "text": "+1,07",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.detection"
+   },
+   "ci_text": [
+    "+0,82",
+    "+1,62"
+   ]
+  },
+  {
+   "id": "x24_R5b_ord",
+   "text": "−0,06",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.order"
+   },
+   "ci_text": [
+    "−0,85",
+    "+0,14"
+   ]
+  },
+  {
+   "id": "x24_R5b_top",
+   "text": "+15,2",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R5b_top_d2",
+   "text": "+15,15",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R5b_gain_dose_or_cyclone",
+   "text": "+0,86",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R5b_gainwt_dose_or_cyclone",
+   "text": "+0,86",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R5b_gain_hard_ore",
+   "text": "+1,41",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R5b_gainwt_hard_ore",
+   "text": "+0,88",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R5b_gain_other",
+   "text": "+0,88",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R5b_gainwt_other",
+   "text": "+0,88",
+   "experiment": "sym_control",
+   "check": "auto",
+   "meaning": "R5b: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R5b.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R6_mean",
+   "text": "+0,59",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: среднее двойник − «как сейчас», т Cu за смену (R1 under the other reading of the PEK stockpile sentence (live 163 kt), seeds 1001-1100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,21",
+    "+2,32"
+   ]
+  },
+  {
+   "id": "x24_R6_median",
+   "text": "+0,03",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R6_trim1",
+   "text": "+0,24",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R6_p90",
+   "text": "+0,92",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R6_min",
+   "text": "−0,02",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R6_min_d1",
+   "text": "−0,0",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R6_wt",
+   "text": "+0,24",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.without_top_shift"
+   },
+   "ci_text": [
+    "+0,17",
+    "+0,36"
+   ]
+  },
+  {
+   "id": "x24_R6_det",
+   "text": "+0,20",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.detection"
+   },
+   "ci_text": [
+    "+0,13",
+    "+0,31"
+   ]
+  },
+  {
+   "id": "x24_R6_ord",
+   "text": "+0,39",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.order"
+   },
+   "ci_text": [
+    "+0,04",
+    "+2,13"
+   ]
+  },
+  {
+   "id": "x24_R6_top",
+   "text": "+35,3",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R6_top_d2",
+   "text": "+35,31",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R6_gain_dose_or_cyclone",
+   "text": "+0,45",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R6_gainwt_dose_or_cyclone",
+   "text": "+0,45",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R6_gain_hard_ore",
+   "text": "+0,19",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R6_gainwt_hard_ore",
+   "text": "+0,19",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R6_gain_other",
+   "text": "+1,14",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R6_gainwt_other",
+   "text": "+0,01",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R6b_mean",
+   "text": "+0,27",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: среднее двойник − «как сейчас», т Cu за смену (R2 under the same reading, seeds 2001-2100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,18",
+    "+0,40"
+   ]
+  },
+  {
+   "id": "x24_R6b_median",
+   "text": "+0,01",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R6b_trim1",
+   "text": "+0,24",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R6b_p90",
+   "text": "+0,78",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R6b_min",
+   "text": "−0,01",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R6b_min_d1",
+   "text": "−0,0",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R6b_wt",
+   "text": "+0,24",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.without_top_shift"
+   },
+   "ci_text": [
+    "+0,17",
+    "+0,35"
+   ]
+  },
+  {
+   "id": "x24_R6b_det",
+   "text": "+0,19",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.detection"
+   },
+   "ci_text": [
+    "+0,11",
+    "+0,31"
+   ]
+  },
+  {
+   "id": "x24_R6b_ord",
+   "text": "+0,08",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.order"
+   },
+   "ci_text": [
+    "+0,05",
+    "+0,15"
+   ]
+  },
+  {
+   "id": "x24_R6b_top",
+   "text": "+3,0",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R6b_top_d2",
+   "text": "+2,95",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R6b_gain_dose_or_cyclone",
+   "text": "+0,58",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R6b_gainwt_dose_or_cyclone",
+   "text": "+0,52",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R6b_gain_hard_ore",
+   "text": "+0,08",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R6b_gainwt_hard_ore",
+   "text": "+0,08",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R6b_gain_other",
+   "text": "+0,01",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R6b_gainwt_other",
+   "text": "+0,01",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R6b: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R6b.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R7_mean",
+   "text": "+1,06",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: среднее двойник − «как сейчас», т Cu за смену (R3 under the same reading, seeds 1001-1100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,63",
+    "+2,55"
+   ]
+  },
+  {
+   "id": "x24_R7_median",
+   "text": "+0,16",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R7_trim1",
+   "text": "+0,72",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R7_p90",
+   "text": "+2,37",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R7_min",
+   "text": "−0,02",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R7_min_d1",
+   "text": "−0,0",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R7_wt",
+   "text": "+0,71",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.without_top_shift"
+   },
+   "ci_text": [
+    "+0,52",
+    "+0,97"
+   ]
+  },
+  {
+   "id": "x24_R7_det",
+   "text": "+0,67",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.detection"
+   },
+   "ci_text": [
+    "+0,48",
+    "+0,92"
+   ]
+  },
+  {
+   "id": "x24_R7_ord",
+   "text": "+0,39",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.order"
+   },
+   "ci_text": [
+    "+0,04",
+    "+1,80"
+   ]
+  },
+  {
+   "id": "x24_R7_top",
+   "text": "+35,3",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R7_top_d2",
+   "text": "+35,31",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R7_gain_dose_or_cyclone",
+   "text": "+0,91",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R7_gainwt_dose_or_cyclone",
+   "text": "+0,91",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R7_gain_hard_ore",
+   "text": "+1,19",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R7_gainwt_hard_ore",
+   "text": "+1,19",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R7_gain_other",
+   "text": "+1,14",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R7_gainwt_other",
+   "text": "+0,01",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R7b_mean",
+   "text": "+0,67",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: среднее двойник − «как сейчас», т Cu за смену (R4 under the same reading, seeds 2001-2100)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.twin_minus_asis"
+   },
+   "ci_text": [
+    "+0,47",
+    "+0,95"
+   ]
+  },
+  {
+   "id": "x24_R7b_median",
+   "text": "+0,14",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: медиана разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.twin_minus_asis.median"
+   }
+  },
+  {
+   "id": "x24_R7b_trim1",
+   "text": "+0,62",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: среднее без одной наибольшей и одной наименьшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.twin_minus_asis.trim1"
+   }
+  },
+  {
+   "id": "x24_R7b_p90",
+   "text": "+2,12",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: P90 разности",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.twin_minus_asis.p90"
+   }
+  },
+  {
+   "id": "x24_R7b_min",
+   "text": "−0,66",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: наименьшая смена",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R7b_min_d1",
+   "text": "−0,7",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: наименьшая смена (округление до 1 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.twin_minus_asis.min"
+   }
+  },
+  {
+   "id": "x24_R7b_wt",
+   "text": "+0,60",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: среднее без наибольшей смены",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.without_top_shift"
+   },
+   "ci_text": [
+    "+0,43",
+    "+0,83"
+   ]
+  },
+  {
+   "id": "x24_R7b_det",
+   "text": "+0,59",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: вклад находки («по громкости» − «как сейчас»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.detection"
+   },
+   "ci_text": [
+    "+0,39",
+    "+0,87"
+   ]
+  },
+  {
+   "id": "x24_R7b_ord",
+   "text": "+0,08",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: вклад порядка вызова («по $» − «по громкости»)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.order"
+   },
+   "ci_text": [
+    "+0,05",
+    "+0,15"
+   ]
+  },
+  {
+   "id": "x24_R7b_top",
+   "text": "+6,9",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: наибольшая смена, т Cu",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R7b_top_d2",
+   "text": "+6,87",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: наибольшая смена, т Cu (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.top_shift.d_cu_t"
+   }
+  },
+  {
+   "id": "x24_R7b_gain_dose_or_cyclone",
+   "text": "+0,79",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: средний выигрыш в сменах класса dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.gain_sits_in.dose_or_cyclone.mean"
+   }
+  },
+  {
+   "id": "x24_R7b_gainwt_dose_or_cyclone",
+   "text": "+0,64",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: то же без смены-выброса, класс dose_or_cyclone",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.gain_sits_in.dose_or_cyclone.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R7b_gain_hard_ore",
+   "text": "+1,23",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: средний выигрыш в сменах класса hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.gain_sits_in.hard_ore.mean"
+   }
+  },
+  {
+   "id": "x24_R7b_gainwt_hard_ore",
+   "text": "+1,23",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: то же без смены-выброса, класс hard_ore",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.gain_sits_in.hard_ore.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_R7b_gain_other",
+   "text": "+0,01",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: средний выигрыш в сменах класса other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.gain_sits_in.other.mean"
+   }
+  },
+  {
+   "id": "x24_R7b_gainwt_other",
+   "text": "+0,01",
+   "experiment": "sym_stock",
+   "check": "auto",
+   "meaning": "R7b: то же без смены-выброса, класс other",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R7b.gain_sits_in.other.mean_without_top_shift"
+   }
+  },
+  {
+   "id": "x24_pair_hard_ore_at_sag_vs_dig_s1001",
+   "text": "+0,58",
+   "experiment": "sym_paired",
+   "check": "auto",
+   "meaning": "парная разность hard_ore_at_sag_vs_dig_s1001, т Cu за смену",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "paired.hard_ore_at_sag_vs_dig_s1001"
+   },
+   "ci_text": [
+    "+0,40",
+    "+0,82"
+   ]
+  },
+  {
+   "id": "x24_pair_hard_ore_at_sag_vs_dig_s2001",
+   "text": "+0,50",
+   "experiment": "sym_paired",
+   "check": "auto",
+   "meaning": "парная разность hard_ore_at_sag_vs_dig_s2001, т Cu за смену",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "paired.hard_ore_at_sag_vs_dig_s2001"
+   },
+   "ci_text": [
+    "+0,32",
+    "+0,75"
+   ]
+  },
+  {
+   "id": "x24_pair_stock_b_vs_a_dig_s1001",
+   "text": "−0,01",
+   "experiment": "sym_paired",
+   "check": "auto",
+   "meaning": "парная разность stock_b_vs_a_dig_s1001, т Cu за смену",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "paired.stock_b_vs_a_dig_s1001"
+   },
+   "ci_text": [
+    "−0,05",
+    "+0,04"
+   ]
+  },
+  {
+   "id": "x24_pair_stock_b_vs_a_dig_s2001",
+   "text": "−0,04",
+   "experiment": "sym_paired",
+   "check": "auto",
+   "meaning": "парная разность stock_b_vs_a_dig_s2001, т Cu за смену",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "paired.stock_b_vs_a_dig_s2001"
+   },
+   "ci_text": [
+    "−0,11",
+    "0,00"
+   ]
+  },
+  {
+   "id": "x24_pair_stock_b_vs_a_sag_s1001",
+   "text": "−0,13",
+   "experiment": "sym_paired",
+   "check": "auto",
+   "meaning": "парная разность stock_b_vs_a_sag_s1001, т Cu за смену",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "paired.stock_b_vs_a_sag_s1001"
+   },
+   "ci_text": [
+    "−0,23",
+    "+0,03"
+   ]
+  },
+  {
+   "id": "x24_pair_stock_b_vs_a_sag_s2001",
+   "text": "−0,15",
+   "experiment": "sym_paired",
+   "check": "auto",
+   "meaning": "парная разность stock_b_vs_a_sag_s2001, т Cu за смену",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "paired.stock_b_vs_a_sag_s2001"
+   },
+   "ci_text": [
+    "−0,25",
+    "−0,06"
+   ]
+  },
+  {
+   "id": "x24_pair_symmetric_vs_none_s1001",
+   "text": "−0,48",
+   "experiment": "sym_paired",
+   "check": "auto",
+   "meaning": "парная разность symmetric_vs_none_s1001, т Cu за смену",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "paired.symmetric_vs_none_s1001"
+   },
+   "ci_text": [
+    "−0,88",
+    "+0,95"
+   ]
+  },
+  {
+   "id": "x24_pair_symmetric_vs_none_s2001",
+   "text": "−0,70",
+   "experiment": "sym_paired",
+   "check": "auto",
+   "meaning": "парная разность symmetric_vs_none_s2001, т Cu за смену",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "paired.symmetric_vs_none_s2001"
+   },
+   "ci_text": [
+    "−1,11",
+    "−0,13"
+   ]
+  },
+  {
+   "id": "x24_R1_kwh",
+   "text": "−28",
+   "experiment": "sym_energy",
+   "check": "auto",
+   "meaning": "R1: кВт·ч на тонну меди, двойник − «как сейчас»",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.energy_co2.twin_minus_expert.kwh_per_t_cu"
+   },
+   "ci_text": [
+    "−112",
+    "−7"
+   ]
+  },
+  {
+   "id": "x24_R1_co2",
+   "text": "−18",
+   "experiment": "sym_energy",
+   "check": "auto",
+   "meaning": "R1: кг CO₂ на тонну меди",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.energy_co2.twin_minus_expert.co2_kg_per_t_cu"
+   },
+   "ci_text": [
+    "−72",
+    "−5"
+   ]
+  },
+  {
+   "id": "x24_R1_co2abs",
+   "text": "+0,2",
+   "experiment": "sym_energy",
+   "check": "auto",
+   "meaning": "R1: т CO₂ за смену, абсолютно",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.energy_co2.twin_minus_expert.co2_t_per_shift_absolute"
+   }
+  },
+  {
+   "id": "x24_R1_co2abs_d2",
+   "text": "+0,19",
+   "experiment": "sym_energy",
+   "check": "auto",
+   "meaning": "R1: т CO₂ за смену, абсолютно (округление до 2 знака)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.energy_co2.twin_minus_expert.co2_t_per_shift_absolute"
+   }
+  },
+  {
+   "id": "x24_R1_split_ore",
+   "text": "+0,46",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: часть через больший расход руды",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.decomposition.via_more_ore_t"
+   }
+  },
+  {
+   "id": "x24_R1_split_rec",
+   "text": "+0,15",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: часть через извлечение",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.decomposition.via_recovery_t"
+   }
+  },
+  {
+   "id": "x24_R1_split_stop",
+   "text": "+0,35",
+   "experiment": "sym_24_10",
+   "check": "auto",
+   "meaning": "R1: часть через полный простой линии",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "runs.R1.decomposition.line_stop_part_t"
+   }
+  },
+  {
+   "id": "x24_nov_main_expert_nov_r",
+   "text": "+1,09",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: опытный − новичок по данным, seed 1001–1100",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.expert-nov_r.cu"
+   },
+   "ci_text": [
+    "+0,80",
+    "+1,57"
+   ]
+  },
+  {
+   "id": "x24_nov_main_twin_nov_r",
+   "text": "+1,70",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: двойник − новичок по данным",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.twin-nov_r.cu"
+   },
+   "ci_text": [
+    "+1,20",
+    "+3,14"
+   ]
+  },
+  {
+   "id": "x24_nov_main_twin_expert",
+   "text": "+0,61",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: двойник − опытный (контроль кода, равен R1)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.twin-expert.cu"
+   },
+   "ci_text": [
+    "+0,23",
+    "+2,38"
+   ]
+  },
+  {
+   "id": "x24_nov_main_nov_twin_nov_r",
+   "text": "+1,62",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: новичок с двойником − новичок",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.nov_twin-nov_r.cu"
+   },
+   "ci_text": [
+    "+1,14",
+    "+3,09"
+   ]
+  },
+  {
+   "id": "x24_nov_main_nov_twin_expert",
+   "text": "+0,53",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: новичок с двойником − опытный без двойника",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.nov_twin-expert.cu"
+   },
+   "ci_text": [
+    "+0,14",
+    "+2,00"
+   ]
+  },
+  {
+   "id": "x24_nov_main_twin_nov_twin",
+   "text": "+0,08",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: двойник − новичок с двойником",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.twin-nov_twin.cu"
+   },
+   "ci_text": [
+    "+0,02",
+    "+0,29"
+   ]
+  },
+  {
+   "id": "x24_nov_main_expert_nov_det",
+   "text": "+0,64",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: опытный − nov_det (только время увидеть)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.expert-nov_det.cu"
+   },
+   "ci_text": [
+    "+0,50",
+    "+0,83"
+   ]
+  },
+  {
+   "id": "x24_nov_main_expert_nov_err",
+   "text": "+0,43",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: опытный − nov_err (только промахи)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.expert-nov_err.cu"
+   },
+   "ci_text": [
+    "+0,20",
+    "+0,87"
+   ]
+  },
+  {
+   "id": "x24_nov_rep_expert_nov_r",
+   "text": "+0,46",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: то же на seed 2001–2100",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_rep.pairs.expert-nov_r.cu"
+   },
+   "ci_text": [
+    "+0,08",
+    "+0,68"
+   ]
+  },
+  {
+   "id": "x24_nov_rep_twin_nov_r",
+   "text": "+0,77",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: двойник − новичок, seed 2001–2100",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_rep.pairs.twin-nov_r.cu"
+   },
+   "ci_text": [
+    "+0,40",
+    "+1,00"
+   ]
+  },
+  {
+   "id": "x24_nov_rep_nov_twin_expert",
+   "text": "+0,42",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: новичок с двойником − опытный, seed 2001–2100",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_rep.pairs.nov_twin-expert.cu"
+   },
+   "ci_text": [
+    "+0,26",
+    "+0,89"
+   ]
+  },
+  {
+   "id": "x24_nov_lo_expert_nov_r",
+   "text": "+0,11",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: нижняя граница параметров новичка",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_lo.pairs.expert-nov_r.cu"
+   },
+   "ci_text": [
+    "−0,01",
+    "+0,43"
+   ]
+  },
+  {
+   "id": "x24_nov_lo_twin_nov_r",
+   "text": "+0,71",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: двойник − новичок, нижняя граница",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_lo.pairs.twin-nov_r.cu"
+   },
+   "ci_text": [
+    "+0,31",
+    "+2,24"
+   ]
+  },
+  {
+   "id": "x24_nov_lo_nov_twin_expert",
+   "text": "+0,61",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: новичок с двойником − опытный, нижняя граница",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_lo.pairs.nov_twin-expert.cu"
+   },
+   "ci_text": [
+    "+0,23",
+    "+2,09"
+   ]
+  },
+  {
+   "id": "x24_nov_hi_expert_nov_r",
+   "text": "+3,51",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: верхняя граница параметров новичка",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_hi.pairs.expert-nov_r.cu"
+   },
+   "ci_text": [
+    "+2,71",
+    "+4,55"
+   ]
+  },
+  {
+   "id": "x24_nov_hi_twin_nov_r",
+   "text": "+4,12",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: двойник − новичок, верхняя граница",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_hi.pairs.twin-nov_r.cu"
+   },
+   "ci_text": [
+    "+3,20",
+    "+5,82"
+   ]
+  },
+  {
+   "id": "x24_nov_hi_nov_twin_expert",
+   "text": "+0,16",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок на симметричной базе: новичок с двойником − опытный, верхняя граница",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_hi.pairs.nov_twin-expert.cu"
+   },
+   "ci_text": [
+    "−0,29",
+    "+1,58"
+   ]
+  },
+  {
+   "id": "x24_nov_main_expert_nov_r_neg",
+   "text": "−1,09",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок теряет против опытного (со знаком минус)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_main.pairs.expert-nov_r.cu"
+   },
+   "negate": true,
+   "ci_text": [
+    "−1,57",
+    "−0,80"
+   ]
+  },
+  {
+   "id": "x24_nov_rep_expert_nov_r_neg",
+   "text": "−0,46",
+   "experiment": "sym_novice",
+   "check": "auto",
+   "meaning": "новичок теряет против опытного, повтор (со знаком минус)",
+   "source": {
+    "file": "sim/data/experiment_24.json",
+    "path": "novice_data.runs.nov_rep.pairs.expert-nov_r.cu"
+   },
+   "negate": true
+  }
+ ]
+}

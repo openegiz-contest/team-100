@@ -97,32 +97,26 @@ export async function create(AKT, stage, opts, onFail) {
 
   /* ----------------------------------------------------------- renderer */
   /* программный WebGL (SwiftShader, llvmpipe): без сглаживания, плотность пикселей 1 */
-  let soft = false, gpuName = '';
-  try {
-    const pc = document.createElement('canvas');
-    const gl = pc.getContext('webgl2') || pc.getContext('webgl');
-    if (gl) {
-      const ext = gl.getExtension('WEBGL_debug_renderer_info');
-      gpuName = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
-      soft = /swiftshader|llvmpipe|software|basic render/i.test(gpuName);
-      if (soft) FRAME_MS_LITE = 120;
-      const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
-    }
-  } catch (e) { /* проба необязательна */ }
+  const gpu = AKT.gl.probe();
+  const soft = gpu.soft, gpuName = gpu.name;
+  if (soft) FRAME_MS_LITE = 120;
   /* ?q=0.7 — плотность пикселей холста вручную (проверка скорости), иначе 1 на программном WebGL */
   const qParam = parseFloat(AKT.params.get('q'));
   /* на программном WebGL — не больше ≈ 0,8 млн пикселей холста (1920 × 1080: плотность ≈ 0,82), иначе 1 */
   const SOFT_PX = 800000;
   const softRatio = () => Math.max(0.6, Math.min(1, Math.sqrt(SOFT_PX / Math.max(1, wrap.clientWidth * wrap.clientHeight))));
-  let pixelRatio = qParam > 0.2 && qParam <= 2 ? qParam : (soft ? Math.round(softRatio() * 100) / 100 : Math.min(1.5, window.devicePixelRatio || 1));
-  const pixelRatio0 = pixelRatio;
+  const pixelRatio0 = qParam > 0.2 && qParam <= 2 ? qParam : (soft ? Math.round(softRatio() * 100) / 100 : Math.min(1.5, window.devicePixelRatio || 1));
+  /* the first frames at 70 % of the density on software WebGL: the first draw of a heavy scene under load is what fails; the speed check below raises it */
+  let pixelRatio = soft && !(qParam > 0.2) ? Math.max(0.5, Math.round(pixelRatio0 * 70) / 100) : pixelRatio0;
   let lite = false, liteChoice = null;            // liteChoice: null = само по fps, '1' = включён, '0' = выключен руками
   try { liteChoice = localStorage.getItem('dio-lite'); } catch (e) { /* хранилище необязательно */ }
   if (AKT.params.get('lite') === '1' || AKT.params.get('lite') === '0') liteChoice = AKT.params.get('lite');
   let setLite = () => { /* ниже, когда есть холст */ };
   /* холст нужного размера до создания контекста: смена размера буфера на SwiftShader стоит ≈ 0,5 с */
   canvas.width = Math.floor(Math.max(200, wrap.clientWidth) * pixelRatio); canvas.height = Math.floor(Math.max(200, wrap.clientHeight) * pixelRatio);
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !soft, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+  const glCtx = await AKT.gl.acquire(canvas, !soft);
+  if (!glCtx) throw new Error('браузер не создал контекст WebGL');
+  const renderer = new THREE.WebGLRenderer({ canvas, context: glCtx, antialias: !soft, powerPreference: 'high-performance', preserveDrawingBuffer: false });
   /* плотность пикселей ведём сами: буфер холста = размер × pixelRatio, у three.js плотность 1 (одна смена буфера, не две) */
   renderer.shadowMap.enabled = false;
   const scene = new THREE.Scene();

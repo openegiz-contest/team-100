@@ -1079,7 +1079,8 @@ def initial_state(prm, seed: int | None = None, mode: str = "free", t0_min: floa
             st.waste_excavators.append(ExcavatorState(eid, line=0, tph=prm["pit_exc_waste_tph"], duty="waste",
                                                       block=""))
     roster = s.truck_roster(prm)
-    trip = prm["fleet_trip_min"]
+    from . import haul
+    trip = {n: haul.cycle_min(prm, n) for n in (0, 1, 2)}
     by_duty: dict[tuple[str, int], int] = {}
     for _tid, _m, _pk, duty, line in roster:
         by_duty[(duty, line)] = by_duty.get((duty, line), 0) + 1
@@ -1089,7 +1090,7 @@ def initial_state(prm, seed: int | None = None, mode: str = "free", t0_min: floa
         seen[(duty, line)] = j + 1
         # trucks of one route spread evenly over the cycle
         st.trucks.append(TruckState(tid, model, prm[p_key], duty, line, k,
-                                    phase_min=trip * j / by_duty[(duty, line)], cycle_min=trip))
+                                    phase_min=trip[line] * j / by_duty[(duty, line)], cycle_min=trip[line]))
     exc_bench = {}
     for fid, exc, kind, bench in s.FACES:
         st.faces[fid] = FaceState(fid, exc, kind, int(bench), blasted_t=prm["pit_face_blasted_t0"])
@@ -1110,9 +1111,10 @@ def initial_state(prm, seed: int | None = None, mode: str = "free", t0_min: floa
                           truck_kio_shift=prm["fleet_kio"])
     if st.trucks:
         ore_t = sum(tr.payload_t for tr in st.trucks if tr.duty == "ore")
-        st.fleet.haul_tph = ore_t * prm["fleet_kio"] * MIN_PER_H / trip
+        st.fleet.haul_tph = sum(tr.payload_t * MIN_PER_H / tr.cycle_min for tr in st.trucks if tr.duty == "ore") * prm["fleet_kio"]
     else:
-        st.fleet.haul_tph = st.fleet.trucks_ready * prm["fleet_payload_t"] * MIN_PER_H / trip
+        st.fleet.haul_tph = (st.fleet.trucks_ready * prm["fleet_payload_t"] * MIN_PER_H
+                             / haul.mean_ore_cycle_min(prm))
     st.conc_stock = ConcStockState(stock_t=prm["cstock_t0"])
     st.water = WaterState(pond_m3=prm["pond_m3_0"], piezo_kpa=prm["pond_piezo_kpa0"],
                           evap_m3h=prm["water_evap_m3h"], intake_cap_m3h=prm["water_intake_cap_m3h"])

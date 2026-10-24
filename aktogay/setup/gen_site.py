@@ -47,7 +47,18 @@ def _num(key: str) -> float:
 def _src_of(key: str) -> str:
     """things.json source key for a parameter row by its label."""
     label = _tbl(key).label
+    if key == "fleet_payload_793_t":
+        return "kaz_ar2020"
     return {"fact": "vesti2024", "vendor": "cat_spec", "assumption": "assume", "calc": "calc"}.get(label, "assume")
+
+
+_ROAD_KM = {1: "fleet_ramp_km_1", 2: "fleet_ramp_km_2", 0: "fleet_waste_km"}
+
+
+def _cycle(duty: str, line: int) -> float:
+    from sim import haul
+    from sim.params import default
+    return haul.cycle_min(default(), line if duty == "ore" else 0)
 
 
 def _bort_item(bort: tuple[str, str, str]) -> list:
@@ -102,7 +113,8 @@ def generated_things(s) -> list[dict]:
         out.append({"name": rid, "type": "road", "name_ru": ru, "parent": "pit",
                     "responsible": {"role": "mine_dispatcher"},
                     "passport": {"leads_to": [f"crusher-{line}" if line else "отвал вскрыши", "", "assume"],
-                                 "length": ["нет открытых данных", "", "assume", "длина откатки и съезды не опубликованы"],
+                                 "length": [_num(_ROAD_KM[line]), "km", "stand_map",
+                                            "расчёт по карте: забой → съезд → ЦПД (отвал: забой → дорога); съезд нарисован нами"],
                                  "detour_mult": [_num("pit_road_detour"), "-", "assume",
                                                  "цикл самосвала при закрытом съезде (объезд)"]}})
     roster = s.truck_roster()
@@ -118,7 +130,9 @@ def generated_things(s) -> list[dict]:
                                  "payload_t": [_num(p_key), "t", _src_of(p_key), _tbl(p_key).note],
                                  "duty": [f"руда, ЦПД-{line}" if duty == "ore" else "вскрыша", "", "assume",
                                           "деление парка руда / вскрыша — допущение"],
-                                 "cycle_min": [_num("fleet_trip_min"), "min", "assume"]}})
+                                 "cycle_min": [round(_cycle(duty, line), 1), "min", "calc",
+                                               "расчёт: погрузка + ход гружёным + очередь + разгрузка + порожний ход (sim/haul.py); "
+                                               "доля расчётной скорости fleet_speed_eff — калиброванное допущение"]}})
     for did, bort, model, face in getattr(s, "DRILLS", ()):
         out.append({"name": did, "type": "drill", "name_ru": f"Буровой станок {bort} ({model})", "parent": "pit",
                     "responsible": {"role": "mine_dispatcher"},

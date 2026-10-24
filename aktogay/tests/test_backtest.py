@@ -170,11 +170,12 @@ class ResultFileTest(unittest.TestCase):
         self.assertEqual(self.doc["fit_year"], 2025)
 
     def test_nothing_is_refitted_to_the_test_quarters(self):
-        # the fitted parameters are the ones of the annual 2025 fit (calib quick table: 0.9206 / 0.4885 / 93.187)
+        # the fitted parameters are the ones of the annual 2025 fit; since the own stops of the crusher (24.10.2026, VALIDATION 6.2) the
+        # fit gives 0.9298 / 0.4872 / 93.34 (0.9225 / 0.4883 before: the mill availability makes up for the ore the crusher stops cost)
         f = self.doc["fit"]
-        self.assertAlmostEqual(f["cal_avail"], 0.9206, delta=0.002)
-        self.assertAlmostEqual(f["sag_k"], 0.4885, delta=0.002)
-        self.assertAlmostEqual(f["flot_rinf0_pct"], 93.187, delta=0.05)
+        self.assertAlmostEqual(f["cal_avail"], 0.9298, delta=0.002)
+        self.assertAlmostEqual(f["sag_k"], 0.4872, delta=0.002)
+        self.assertAlmostEqual(f["flot_rinf0_pct"], 93.34, delta=0.05)
         tol = self.doc["tolerances"]
         self.assertEqual(tol["rec_pp"], TABLE["tol_rec_pp"].value)
         self.assertEqual(tol["cu_frac"], TABLE["tol_cu_frac"].value)

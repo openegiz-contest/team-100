@@ -1,5 +1,6 @@
 """Block of 24.10.2026 (consistency pass): the pages «Экономика» / «Калибровка» / «Спросить двойник» read the result of the
-experiment of 24.10.2026 (exp23.json, built from sim/data/experiment_23.json), the old headline +1,26 stays only as history,
+experiment of 24.10.2026 on the symmetric people / twin base (exp23.json, built from sim/data/experiment_24.json and experiment_23.json),
+the old headlines +1,26 (22.10) and +1,07 (8.8, asymmetric base) stay only as history,
 the «3D» switch above the map and the WebGL notice, one number of twin types in the documents, the menu in README."""
 import json
 import os
@@ -11,14 +12,13 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC = os.path.join(ROOT, "web", "static")
-DOCS = os.path.dirname(ROOT)
+DOCS = os.path.join(os.path.dirname(ROOT), "final_docs")
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
 from sim import exp23_view  # noqa: E402
 
-WEBGL_NOTE = ("3D требует WebGL (видеокарта или Chrome с флагом --enable-unsafe-swiftshader); "
-              "все данные и последствия сценариев показаны на 2D-плане")
+WEBGL_NOTE = '3D не запустился: браузер не дал создать контекст WebGL. Чтобы увидеть 3D: включите аппаратное ускорение в настройках браузера (Chrome: Настройки → Система) и обновите страницу; на компьютере без видеокарты запустите Chrome с флагом --enable-unsafe-swiftshader. Все данные и последствия сценариев показаны на 2D-плане.'
 
 NODE_RENDER = r"""global.window={};global.document={};const fs=require('fs');
 global.AKT={esc:s=>String(s),fmt:(v,d=0)=>(v==null||!isFinite(v))?'-':new Intl.NumberFormat('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d}).format(v),money:v=>'$'+Math.round(v)};
@@ -44,16 +44,33 @@ class Exp23DataTest(unittest.TestCase):
         self.assertEqual(read(STATIC, "exp23.json"), exp23_view.json_text())
 
     def test_headline_numbers(self):
+        """The headline is R1 of VALIDATION 8.17 (symmetric base); the base of 8.8 is kept next to it as history."""
         m = self.d["main"]
-        self.assertAlmostEqual(m["cu"]["mean"], 1.07, delta=0.005)
-        self.assertAlmostEqual(m["cu"]["ci95"][0], 0.89, delta=0.005)
-        self.assertAlmostEqual(m["cu"]["ci95"][1], 1.31, delta=0.005)
-        self.assertAlmostEqual(m["usd"]["mean"], 14900, delta=60)
-        self.assertAlmostEqual(m["down_min"]["mean"], -12.0, delta=0.05)
-        self.assertAlmostEqual(m["kwh_per_t_cu"]["mean"], -33.0, delta=0.6)
-        self.assertAlmostEqual(m["share_worse"], 0.03, delta=0.001)
+        self.assertAlmostEqual(m["cu"]["mean"], 0.61, delta=0.005)
+        self.assertAlmostEqual(m["cu"]["ci95"][0], 0.23, delta=0.005)
+        self.assertAlmostEqual(m["cu"]["ci95"][1], 2.18, delta=0.005)
+        self.assertAlmostEqual(m["median"], 0.09, delta=0.005)
+        self.assertAlmostEqual(m["without_top"]["mean"], 0.26, delta=0.005)
+        self.assertEqual(m["top_seed"], 1066)
+        self.assertAlmostEqual(m["top_d_cu"], 35.35, delta=0.01)
+        self.assertAlmostEqual(m["usd"]["mean"], 8387, delta=60)
+        self.assertAlmostEqual(m["down_min"]["mean"], -6.2, delta=0.05)
+        self.assertAlmostEqual(m["kwh_per_t_cu"]["mean"], -28.4, delta=0.1)
+        self.assertAlmostEqual(m["share_worse"], 0.01, delta=0.001)
         self.assertEqual(self.d["replication"]["seeds"], [2001, 2100])
-        self.assertAlmostEqual(self.d["replication"]["cu"]["mean"], 1.01, delta=0.005)
+        self.assertAlmostEqual(self.d["replication"]["cu"]["mean"], 0.31, delta=0.005)
+        a = self.d["history"]["asym_8_8"]                                       # the base of 8.8 stays as history
+        self.assertAlmostEqual(a["main"]["cu"]["mean"], 1.07, delta=0.005)
+        self.assertAlmostEqual(a["main"]["cu"]["ci95"][0], 0.89, delta=0.005)
+        self.assertAlmostEqual(a["replication"]["cu"]["mean"], 1.01, delta=0.005)
+        self.assertAlmostEqual(a["control_on_the_merged_code"]["cu"]["mean"], 1.09, delta=0.01)
+        s = self.d["sym"]                                                       # both edges of the hard-ore assumption, both readings of the stockpile
+        self.assertAlmostEqual(s["sag"]["R3"]["cu"]["mean"], 1.19, delta=0.005)
+        self.assertAlmostEqual(s["sag"]["R4"]["cu"]["mean"], 0.81, delta=0.005)
+        self.assertAlmostEqual(s["stock_b"]["R6"]["cu"]["mean"], 0.59, delta=0.005)
+        self.assertAlmostEqual(s["stock_b"]["R7"]["cu"]["mean"], 1.06, delta=0.005)
+        self.assertEqual(set(s["ladder"]), {"S1_s1001", "S3_s1001", "S5_s1001", "S1_s2001", "S3_s2001"})
+        self.assertAlmostEqual(s["ladder"]["S5_s1001"]["cu"]["mean"], m["cu"]["mean"], delta=1e-3)       # S5 is R1 shift for shift
 
     def test_delay_detection_lab_tornado(self):
         dl = self.d["delay"]
@@ -86,17 +103,21 @@ class Exp23DataTest(unittest.TestCase):
         d = n["data"]
         self.assertEqual((d["n"], d["seeds"]), (100, [1001, 1100]))
         p = d["pairs"]
-        self.assertAlmostEqual(p["expert-nov_r"]["cu"]["mean"], 1.08, delta=0.005)
+        self.assertAlmostEqual(p["expert-nov_r"]["cu"]["mean"], 1.09, delta=0.005)
         self.assertAlmostEqual(p["expert-nov_r"]["cu"]["ci95"][0], 0.80, delta=0.005)
-        self.assertAlmostEqual(p["expert-nov_r"]["cu"]["ci95"][1], 1.54, delta=0.005)
-        self.assertAlmostEqual(p["twin-expert"]["cu"]["mean"], self.d["main"]["cu"]["mean"], delta=1e-3)   # code control: 8.8 is reproduced (rounded in the file)
-        self.assertGreater(p["nov_twin-expert"]["cu"]["ci95"][0], 0.05)                                   # a novice with the twin beats the expert without it
-        self.assertAlmostEqual(p["nov_twin-nov_r"]["cu"]["mean"], 2.08, delta=0.005)
-        self.assertTrue(all(d["expectations"].values()))
+        self.assertAlmostEqual(p["expert-nov_r"]["cu"]["ci95"][1], 1.57, delta=0.005)
+        self.assertAlmostEqual(p["twin-expert"]["cu"]["mean"], self.d["main"]["cu"]["mean"], delta=1e-3)   # code control: the headline is reproduced
+        self.assertEqual(p["twin-expert"]["cu"]["ci95"], self.d["main"]["cu"]["ci95"])                    # one interval for one quantity on the pages
+        self.assertGreater(p["nov_twin-expert"]["cu"]["ci95"][0], 0.05)                                   # a novice with the twin still beats the expert without it
+        self.assertAlmostEqual(p["nov_twin-expert"]["cu"]["mean"], 0.53, delta=0.005)                    # ... by half a tonne, not by a tonne
+        self.assertAlmostEqual(p["nov_twin-nov_r"]["cu"]["mean"], 1.62, delta=0.005)
+        self.assertTrue(all(v for v in d["expectations"].values() if v is not None))
         rg = d["ranges"]
         self.assertFalse(rg["lo"]["pairs"]["expert-nov_r"]["effect"])                                     # at the low end of every row there is no effect
         self.assertTrue(rg["lo"]["pairs"]["expert-nov_r"]["cu"]["ci95"][0] < 0.05)
         self.assertAlmostEqual(rg["hi"]["pairs"]["expert-nov_r"]["cu"]["mean"], 3.5, delta=0.05)
+        self.assertLess(rg["hi"]["pairs"]["nov_twin-expert"]["cu"]["ci95"][0], 0.0)                       # at the upper edge the novice with the twin is not above the expert
+        self.assertGreater(rg["hi"]["pairs"]["nov_twin-expert"]["share_worse"], 0.15)
         self.assertAlmostEqual(rg["rep"]["pairs"]["expert-nov_r"]["cu"]["mean"], 0.46, delta=0.005)
         self.assertEqual(rg["rep"]["seeds"], [2001, 2100])
         self.assertAlmostEqual(d["parts"]["seeing"]["mean"] + d["parts"]["slips"]["mean"], p["expert-nov_r"]["cu"]["mean"], delta=0.05)
@@ -104,17 +125,14 @@ class Exp23DataTest(unittest.TestCase):
             self.assertNotRegex(read(STATIC, name), r"Новичок и опытный в модели не различаются")
 
     def test_shifts_where_the_twin_is_worse_are_explained(self):
+        """On the symmetric base the twin is never later than the people, so it is worse than «as now» almost never; it is not a proof of use."""
         w = self.d["worse"]
         m = w["main_full"]
-        self.assertEqual((m["n"], m["n_worse"]), (100, 3))
-        self.assertEqual([r["seed"] for r in m["rows"]], [1078, 1067, 1005])
-        for r in m["rows"]:
-            self.assertIn("roping", r["kinds"])                       # the 20 minutes between 55 (people) and 75 (twin) minutes
-            self.assertGreater(r["d_cu"], -0.15)
-        self.assertEqual(w["rep_full"]["rows"][0]["seed"], 2079)
-        self.assertLess(w["rep_full"]["rows"][0]["d_cu"], -17.0)
-        self.assertTrue(w["rep_full"]["rows"][0]["shared_crew"])
-        self.assertEqual(w["rep_full"]["n_worse"], 5)
+        self.assertEqual((m["n"], m["n_worse"]), (100, 1))
+        self.assertEqual([r["seed"] for r in m["rows"]], [1009])
+        self.assertGreater(m["rows"][0]["d_cu"], -0.15)
+        self.assertEqual((w["rep_full"]["n"], w["rep_full"]["n_worse"]), (100, 0))
+        self.assertEqual(w["rep_full"]["rows"], [])
 
     def test_every_issue_kind_with_a_price_of_the_hour_exists_in_the_module(self):
         from modules import priority
@@ -133,7 +151,7 @@ class Exp23DataTest(unittest.TestCase):
         from sim.params import default
         self.assertAlmostEqual(e["co2_t_per_mwh"], default()["econ_co2_t_mwh"], places=2)
         self.assertAlmostEqual(e["co2_t_per_mwh"], 2308e3 / (13.06e9 / 3.6e3), places=2)             # group Scope 2 / group electricity
-        self.assertAlmostEqual(e["d_kwh_per_t_cu"]["mean"], -33.5, delta=0.1)
+        self.assertAlmostEqual(e["d_kwh_per_t_cu"]["mean"], -28.4, delta=0.1)
         self.assertAlmostEqual(e["d_co2_kg_per_t_cu"]["mean"], e["d_kwh_per_t_cu"]["mean"] * e["co2_t_per_mwh"], delta=0.1)
         self.assertGreater(e["d_mwh"]["mean"], 0.0)                      # the twin shift burns a little more energy, for more copper
         self.assertLess(e["d_co2_t_shift_same_output"]["mean"], -5.0)
@@ -173,31 +191,44 @@ class PageWiringTest(unittest.TestCase):
             for i, line in enumerate(read(STATIC, name).splitlines(), 1):
                 if re.search(r"1[.,]26", line):
                     self.assertRegex(line, r"22\.10|историч|Прежн", f"{name}:{i}")
-        for name in ("README.md", "SUBMISSION.md"):
+        for name in ("README_aktogay.md", "SUBMISSION.md"):
             t = read(DOCS, name)
-            self.assertIn("+1,07", t, name)
+            if name == "SUBMISSION.md":                     # the «Concept» section is the participant's text and is checked by check_numbers.py (reported, not edited)
+                t = t[:t.index("## Concept")] + t[t.index("## Почему это важно"):]
+            self.assertIn("+1,07", t, name)                 # the base of 8.8 stays as history ...
             self.assertIn("+0,89; +1,31", t, name)
+            self.assertIn("+0,61", t, name)                 # ... next to the headline of the symmetric base
+            self.assertIn("+0,23; +2,18", t, name)
+            for i, line in enumerate(t.splitlines(), 1):
+                if "+1,07" in line:
+                    self.assertRegex(line, r"22\.10|историч|Прежн|прежн|8\.8|none|база|баз", f"{name}:{i}")
 
     @unittest.skipUnless(shutil.which("node"), "node is not installed")
     def test_rendering_with_node(self):
         r = subprocess.run(["node", "-e", NODE_RENDER, STATIC], capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(r.returncode, 0, r.stderr)
         o = json.loads(r.stdout)
-        self.assertIn("+1,07", o["s"])
-        self.assertIn("[+0,89; +1,31]", o["s"])
+        self.assertIn("+0,61 т Cu за смену против «как сейчас»", o["s"])
+        self.assertIn("[+0,23; +2,18]", o["s"])
+        self.assertIn("медиана +0,09", o["s"])
+        self.assertIn("только на SAG — +1,19 [+0,77; +2,81] и +0,81 [+0,58; +1,14]", o["s"])
+        self.assertIn("163 кт", o["s"])                                               # both readings of the stockpile are on the page
+        self.assertIn("добавка", o["s"])
         self.assertIn("<svg", o["t"])
         self.assertEqual(o["t"].count("<circle"), len(json.loads(read(STATIC, "exp23.json"))["tornado"]))
         self.assertIn("5,36", o["d"])
-        self.assertIn("+1,01 [+0,41; +1,45]", o["m"])
-        self.assertAlmostEqual(o["tw"]["mean"], 1.07, delta=0.005)
+        self.assertIn("+0,31 [+0,21; +0,47]", o["m"])
+        self.assertIn("прежняя база 8.8", o["m"])
+        self.assertIn("+1,09 [+0,90; +1,33]", o["m"])                                  # the control run of the base of 8.8 on the merged code
+        self.assertAlmostEqual(o["tw"]["mean"], 0.61, delta=0.005)
         self.assertIn("опытный − новичок по данным", o["m"])
-        self.assertIn("+1,08 [+0,80; +1,54]", o["m"])
+        self.assertIn("+1,09 [+0,80; +1,57]", o["m"])
         self.assertIn("новичок с двойником", o["n"])
         self.assertIn("выше опытного без двойника", o["n"])
         self.assertIn("эффект не найден", o["n"])                          # the low end of the rows: no effect
-        self.assertIn("канатирование", o["w"])
-        self.assertIn("2079", o["w"])
-        self.assertIn("21 кг CO₂", o["c"])
+        self.assertIn("1009", o["w"])
+        self.assertIn("не доказательство пользы", o["w"])
+        self.assertIn("18 кг CO₂", o["c"])
         self.assertIn("7,8 т CO₂-экв.", o["c"])
         self.assertIn("7,73 т Cu", o["h"])
         self.assertIn("поломка дробилки", o["h"])
@@ -227,7 +258,7 @@ class Toggle3dTest(unittest.TestCase):
         self.assertIn(WEBGL_NOTE, site)
         self.assertEqual(site.count("none: WEBGL_NOTE"), 2)
         self.assertNotIn("В этом браузере нет WebGL", site)
-        readme = read(DOCS, "README.md")
+        readme = read(DOCS, "README_aktogay.md")
         req = readme[readme.index("### Требования"):readme.index("### Запуск")]
         self.assertIn("WebGL", req)
         self.assertIn("--enable-unsafe-swiftshader", req)
@@ -240,14 +271,14 @@ class DocsConsistencyTest(unittest.TestCase):
     def test_one_number_of_types(self):
         n = len(json.loads(read(ROOT, "setup", "things.json"))["types"])
         self.assertEqual(n, 45)
-        for name in ("README.md", "SUBMISSION.md"):
+        for name in ("README_aktogay.md", "SUBMISSION.md"):
             t = read(DOCS, name)
             for m in re.finditer(r"\b(\d+)\s+тип(?:а|ов)\b", t):
                 self.assertEqual(int(m.group(1)), n, f"{name}: {m.group(0)}")
-        self.assertIn("45 типов", read(DOCS, "README.md"))
+        self.assertIn("45 типов", read(DOCS, "README_aktogay.md"))
 
     def test_readme_describes_the_live_menu(self):
-        readme = read(DOCS, "README.md")
+        readme = read(DOCS, "README_aktogay.md")
         m = re.search(r"const MENU4 = \[(.*?)\n\];", read(STATIC, "app.js"), re.S)
         groups = re.findall(r"\['(?:now|shift|analysis|learn)', '([^']+)'", m.group(1))
         self.assertEqual(groups, ["Сейчас", "Смена", "Анализ", "Обучение и справка"])

@@ -4,10 +4,10 @@ who is called and the backup, short checklist, closure, check (scenario, test, r
 
 One table for three readers: the troubles of `priority.py` take the checklist and the closure from it (text of the
 card), the page «Как проверить» shows the table «беда → сигнал на реальной фабрике → откуда данные» from
-`web/static/readiness.json`, and `READINESS.md` is the same table in full. Both files are written by
+`web/static/readiness.json`, and `final_docs/READINESS.md` is the same table in full. Both files are written by
 this module and a test keeps them equal to it:
 
-  python -I modules/readiness.py --write-json web/static/readiness.json --write-md ../READINESS.md
+  python -I modules/readiness.py --write-json web/static/readiness.json --write-md ../final_docs/READINESS.md
 
 The checklists carry only what a source says (Safety Rules, order of the Ministry of Investment and Development of
 Kazakhstan no. 348 of 30.12.2014, items 12, 63, 315, 316); where no source exists the line says «уточнить по
@@ -103,7 +103,7 @@ READY: tuple[dict, ...] = (
     },
     {
         "id": "fc_liner", "kind": "прогноз", "title": "Износ футеровки SAG и срок перефутеровки", "who_kind": "reline",
-        "problem": ("футеровка SAG изнашивается, пропускная способность меняется по кампании, остановку ≈ 96 ч надо "
+        "problem": ("футеровка SAG изнашивается, пропускная способность меняется по кампании, остановку ≈ 84 ч надо "
                     "планировать; факт: перефутеровки SAG в IV кв. 2023 (обе линии) и III кв. 2025 (линия 2)"),
         "source": ("отчёты KAZ Minerals за IV кв. 2023 и III кв. 2025, с. 2–3 [факт]; износ торца 20,41 мм/Мт — Bradken "
                    "[вендор]; форма кривой — Powell и др. 2006 (только направление) [аналог]"),

@@ -19,7 +19,7 @@ WEB = os.path.join(ROOT, "web")
 if WEB not in sys.path:
     sys.path.insert(0, WEB)
 STATIC = os.path.join(WEB, "static")
-FINAL = os.path.dirname(ROOT)
+FINAL = os.path.join(os.path.dirname(ROOT), "final_docs")
 
 from tests import mod_support as ms  # noqa: E402
 from tests.test_mod_priority import T0, fork_ov, fork_store, modules, run_fork  # noqa: E402
@@ -522,9 +522,10 @@ class ReplayTest(unittest.TestCase):
         self.assertAlmostEqual(mean, self.data["summary"]["mean_cu_t"], places=1)
 
     def test_one_seed_repeats_its_times_on_the_current_code(self):
-        """The stored times are those of the trial of 22.10; a single seed (not the N = 100) repeats them exactly."""
+        """The stored times are those of the trial of 22.10 (the base where the twin sees a loud trouble in its first minute,
+        `--twin-human none`); a single seed (not the N = 100) repeats them exactly."""
         stored = json.loads(read(ROOT, "sim", "data", "trial_n100.json"))["shifts"][0]
-        row = trial.run_shift((1001, dict(trial.DEFAULTS, no_twin=True)))
+        row = trial.run_shift((1001, dict(trial.DEFAULTS, no_twin=True, twin_human="none")))
         self.assertEqual(row["bookings"]["no_twin"], stored["bookings"]["no_twin"])
         self.assertEqual(row["bookings"]["by_value"], stored["bookings"]["by_value"])
         self.assertAlmostEqual(row["cu_t_2000"]["no_twin"] / stored["cu_t_2000"]["no_twin"], 1.0, delta=0.001)
@@ -559,23 +560,40 @@ class ParamSummaryTest(unittest.TestCase):
         sec = doc[doc.index("### 12.1 Чего модель не умеет"):doc.index("## 13. Источники отчётных чисел")]
         d = self.data
         lab = {x["key"]: x["total"] for x in d["labels"]}
-        self.assertIn(f"{d['rows']} чисел", sec)
-        self.assertIn(f"**{lab['assumption']} допущений ({str(d['assumption_pct']).replace('.', ',')} %)**", sec)
+        def plural(n, one, few, many):          # 762 числа, 540 допущений, 541 допущение, 11 чисел
+            n10, n100 = n % 10, n % 100
+            return one if n10 == 1 and n100 != 11 else few if 2 <= n10 <= 4 and not 12 <= n100 <= 14 else many
+        self.assertIn(f"{d['rows']} {plural(d['rows'], 'число', 'числа', 'чисел')}", sec)
+        self.assertIn(f"**{lab['assumption']} {plural(lab['assumption'], 'допущение', 'допущения', 'допущений')} ({str(d['assumption_pct']).replace('.', ',')} %)**", sec)
         for key, ru in (("fact", "фактов"), ("vendor", "вендор"), ("analog", "аналог"), ("project", "проект"), ("calc", "расчёт")):
             self.assertIn(f"{lab[key]} {ru}", sec)
-        self.assertIn("64 — допущения", sec)
+        self.assertIn("63 — допущения", sec)
         self.assertIn("78 новых строк", sec)
         self.assertRegex(sec, r"не лучше константы")
-        self.assertIn("1,73 п.п. против 1,40 п.п.", sec)
+        self.assertIn("1,76 п.п. против 1,40 п.п.", sec)
         self.assertRegex(sec, r"Реальных журналов смен нет")
         par = read(FINAL, "PARAMETERS.md")
         self.assertIn(f"({lab['assumption']} из {d['rows']})", par)
+        # the label counts are quoted by the submission and the presentation as well (the presentation still said 537 of 757 after the tables moved)
+        pct = str(d["assumption_pct"]).replace(".", ",")
+        sub = read(FINAL, "SUBMISSION.md")
+        self.assertIn(f"В таблицах модели и модулей {d['rows']} {plural(d['rows'], 'число', 'числа', 'чисел')}: {lab['assumption']} допущений ({pct} %), {lab['fact']} фактов, {lab['vendor']} вендор, "
+                      f"{lab['analog']} аналог, {lab['project']} проект, {lab['calc']} расчёт", sub)
+        stage = os.path.dirname(ROOT)
+        pres = next((p for p in (os.environ.get("AKT_PRES"), os.path.join(stage, "pres", "index.html"),
+                                 os.path.join(os.path.dirname(stage), "pres", "index.html")) if p and os.path.exists(p)), "")
+        if pres:
+            with open(pres, encoding="utf-8") as f:
+                html = f.read()
+            self.assertIn(f"допущения: {lab['assumption']} из {d['rows']}", html)
+            self.assertIn(f'<div class="big">{pct} %</div>', html)
+            self.assertIn(f"Остальные: {lab['fact']} фактов, {lab['vendor']} вендор, {lab['analog']} аналог, {lab['project']} проект, {lab['calc']} расчёт", html)
 
     def test_the_calibration_page_shows_the_summary_and_the_limits(self):
         js = read(STATIC, "views.js")
         for w in ("params_summary.json", "cb-params", "cb-limits", "Чего модель не умеет", "На чём стоят числа модели"):
             self.assertIn(w, js)
-        self.assertEqual(self.data["tier_s"]["assumptions"], 64)
+        self.assertEqual(self.data["tier_s"]["assumptions"], 63)
         self.assertTrue(any("не лучше константы" in x for x in self.data["limits"]))
 
 

@@ -337,6 +337,83 @@ class TestWater(unittest.TestCase):
         self.assertEqual(w.pond_m3, p["pond_m3_0"])
         self.assertGreater(w.intake_m3h, 0.0)
 
+    def test_regulator_floor_returns_what_the_fresh_water_cap_cannot_supply(self):
+        """VALIDATION 9.4: a pond at the bottom of its band (1.0 Mm3 of 1.0-1.5) no longer holds the return water back until the plant
+        is short of process water: while the pond has water the return is at least proc - overflow_used - water_intake_cap_m3h."""
+        p = self.p
+        fl = steady_flows(p, p["tgt_2025_grade_pct"], p["tgt_2025_rec_pct"])
+        proc = p["water_proc_m3_t"] * fl.ore_tph
+        cap = proc - min(fl.thick_overflow_m3h, proc)
+        floor = cap - p["water_intake_cap_m3h"]
+        self.assertGreater(floor, 0.0)                              # the cap binds at the base rate: the case the floor is for
+        for pond in (1.0e6, 1.02e6, 1.1e6, p["pond_m3_0"]):
+            w = WaterState(pond_m3=pond)
+            ut.water_step(w, fl, 10.0, p, 0.0)
+            self.assertGreaterEqual(w.pond_return_m3h, floor - 1e-9, pond)
+            self.assertEqual(w.short_m3h, 0.0, pond)
+            self.assertNotEqual(w.state, "SHORT", pond)
+        w = WaterState(pond_m3=1.0e6)
+        for _ in range(24):
+            ut.water_step(w, fl, 10.0, p, 0.0)
+        self.assertGreater(w.pond_m3, 1.0e6)                        # the pond rises: net inflow positive at the base rate
+        self.assertEqual(w.state, "NORMAL")
+        self.assertLess(abs(w.residual_pct), 1e-6)
+
+    def test_the_floor_is_limited_by_the_water_in_the_pond(self):
+        p = self.p
+        fl = steady_flows(p, p["tgt_2025_grade_pct"], p["tgt_2025_rec_pct"])
+        w = WaterState(pond_m3=0.0)                                 # an empty pond has nothing to return: fresh water at its cap, ore cut
+        ut.water_step(w, fl, 10.0, p, 0.0)
+        self.assertGreater(w.short_m3h, 0.0)
+        self.assertEqual(w.state, "SHORT")
+        w = WaterState(pond_m3=3000.0)                              # a few thousand m3 last minutes, not hours: no more than the pond holds
+        ut.water_step(w, fl, 10.0, p, 0.0)
+        self.assertLessEqual(w.pond_return_m3h, w.pond_in_m3h + 3000.0 * 6.0 + 1e-6)
+        self.assertGreaterEqual(w.pond_m3, 0.0)
+
+    def test_rounding_is_not_a_deficit(self):
+        """A short below 1e-6 m3/h is the rounding of the sums (the floor lands exactly on the cap): never SHORT."""
+        p = self.p
+        fl = steady_flows(p, p["tgt_2025_grade_pct"], p["tgt_2025_rec_pct"])
+        for k in range(60):
+            pond = 1.0e6 + 7919.0 * k
+            for scale in (1.0, 0.97, 1.0 + 1e-9):
+                f = WaterFlows(ore_tph=fl.ore_tph * scale, tails_tph=fl.tails_tph * scale, cake_tph=fl.cake_tph * scale,
+                               cake_moist_pct=fl.cake_moist_pct, thick_overflow_m3h=fl.thick_overflow_m3h * scale)
+                w = WaterState(pond_m3=pond)
+                ut.water_step(w, f, 1.0, p, 0.0)
+                self.assertTrue(w.short_m3h == 0.0 or w.short_m3h >= 1e-6, (pond, scale, w.short_m3h))
+                self.assertEqual(w.state == "SHORT", w.short_m3h > 0.0)
+
+    def test_scenario_water_results_do_not_move(self):
+        """The scenarios of the catalog keep their results (verify.json): winter 0, water -3.47 t Cu, crusher:1 -0.74, reline:1 -145.25 (seed 42, one run; the file is recomputed by test_doc_claims)."""
+        import json
+        with open(os.path.join(ROOT, "web", "static", "verify.json"), encoding="utf-8") as f:
+            runs = {"%s@%d" % (r["id"], r["kip"]): r for r in json.load(f)["runs"]}
+        self.assertAlmostEqual(runs["water@1"]["diff"]["fact"]["cu_t"], -3.47, places=2)
+        self.assertAlmostEqual(runs["winter@1"]["diff"]["fact"]["cu_t"], 0.0, places=2)
+        self.assertAlmostEqual(runs["crusher:1@1"]["diff"]["fact"]["cu_t"], -0.74, places=2)
+        self.assertAlmostEqual(runs["reline:1@1"]["diff"]["fact"]["cu_t"], -145.25, places=2)
+
+
+class TestPondAtThePlantLevel(unittest.TestCase):
+    """The plant, not only the water function: 1 Mm3 in the pond (the bottom of the band) must not cut the ore."""
+
+    def test_a_pond_at_the_band_floor_cuts_nothing(self):
+        from sim.params import default
+        from sim.plant import Plant
+        pl = Plant(default().copy(pond_m3_0=1.0e6), 42, mode="scenario")
+        pl.warmup()
+        t0 = pl.t_min
+        pl.run_until(t0 + 120.0)
+        w = pl.state.water
+        self.assertEqual(w.cut_tph, 0.0)
+        self.assertEqual(w.short_m3h, 0.0)
+        self.assertNotEqual(w.state, "SHORT")
+        self.assertGreater(w.pond_m3, 1.0e6)
+        for ln in pl.state.lines:
+            self.assertAlmostEqual(ln.sag.feed_tph, 3853.0, delta=1.0)
+
 
 class TestMoney(unittest.TestCase):
     @needs_impl

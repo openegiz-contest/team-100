@@ -1,0 +1,1117 @@
+{
+ "kind": "akt-plausibility",
+ "version": 1,
+ "checks": [
+  {
+   "id": "b_cu_line",
+   "group": "balance",
+   "ru": "Медь: питание = концентрат + хвосты (по линиям, показания расходомеров и анализаторов)",
+   "unit": "%",
+   "items": [
+    {
+     "terms": [
+      [
+       0.01,
+       "line-1.tph",
+       "flot-1.feed_cu"
+      ],
+      [
+       -0.01,
+       "flot-1.conc_tph",
+       "flot-1.conc_cu"
+      ],
+      [
+       -0.01,
+       "line-1.tph",
+       "flot-1.tail_cu"
+      ],
+      [
+       0.01,
+       "flot-1.conc_tph",
+       "flot-1.tail_cu"
+      ]
+     ],
+     "scale": 100.0,
+     "den": [
+      [
+       0.01,
+       "line-1.tph",
+       "flot-1.feed_cu"
+      ]
+     ],
+     "name": "линия 1"
+    },
+    {
+     "terms": [
+      [
+       0.01,
+       "line-2.tph",
+       "flot-2.feed_cu"
+      ],
+      [
+       -0.01,
+       "flot-2.conc_tph",
+       "flot-2.conc_cu"
+      ],
+      [
+       -0.01,
+       "line-2.tph",
+       "flot-2.tail_cu"
+      ],
+      [
+       0.01,
+       "flot-2.conc_tph",
+       "flot-2.tail_cu"
+      ]
+     ],
+     "scale": 100.0,
+     "den": [
+      [
+       0.01,
+       "line-2.tph",
+       "flot-2.feed_cu"
+      ]
+     ],
+     "name": "линия 2"
+    }
+   ],
+   "lo": -0.5,
+   "hi": 0.5,
+   "src": "закон сохранения массы; допуск tol_balance_pct (допущение, PARAMETERS.md)",
+   "label": "calc",
+   "note": ""
+  },
+  {
+   "id": "b_cu_mod",
+   "group": "balance",
+   "ru": "Медь: невязка модуля потерь за 2 ч модели (весы, расходомеры, анализаторы)",
+   "unit": "%",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "mod-losses.cu_residual_pct"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "модуль"
+    }
+   ],
+   "lo": -0.5,
+   "hi": 0.5,
+   "src": "закон сохранения массы; считает akt-losses по показаниям приборов",
+   "label": "calc",
+   "note": ""
+  },
+  {
+   "id": "b_water",
+   "group": "balance",
+   "ru": "Вода: забор = вода с хвостами + испарение + влага кека + изменение пруда",
+   "unit": "%",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "water.residual_pct"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "шаг модели"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "mod-losses.water_residual_pct"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "модуль, 2 ч"
+    }
+   ],
+   "lo": -0.5,
+   "hi": 0.5,
+   "src": "закон сохранения массы; допуск tol_balance_pct",
+   "label": "calc",
+   "note": ""
+  },
+  {
+   "id": "b_conc",
+   "group": "balance",
+   "ru": "Концентрат: питание сгустителя = разгрузка на фильтр + изменение запаса",
+   "unit": "%",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "mod-losses.conc_residual_pct"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "модуль"
+    }
+   ],
+   "lo": -0.5,
+   "hi": 0.5,
+   "src": "закон сохранения массы; считает akt-losses",
+   "label": "calc",
+   "note": ""
+  },
+  {
+   "id": "b_ore",
+   "group": "balance",
+   "ru": "Руда: расход склада = питание SAG (по линиям)",
+   "unit": "%",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "stockpile-1.out_tph"
+      ],
+      [
+       -1.0,
+       "sag-1.feed_tph"
+      ]
+     ],
+     "scale": 100.0,
+     "den": [
+      [
+       1.0,
+       "sag-1.feed_tph"
+      ]
+     ],
+     "name": "линия 1"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "stockpile-2.out_tph"
+      ],
+      [
+       -1.0,
+       "sag-2.feed_tph"
+      ]
+     ],
+     "scale": 100.0,
+     "den": [
+      [
+       1.0,
+       "sag-2.feed_tph"
+      ]
+     ],
+     "name": "линия 2"
+    }
+   ],
+   "lo": -5.0,
+   "hi": 5.0,
+   "src": "реклаймер подаёт на SAG всё, что берёт со склада; допуск 5 %: точки двух вещей уходят в Ditto с разницей в несколько секунд (до 3–4 мин модели при x60), на живой странице расхождение до 2,4 % видно",
+   "label": "assumption",
+   "note": ""
+  },
+  {
+   "id": "b_energy",
+   "group": "balance",
+   "ru": "Энергия: нагрузка площадки = измельчение + дробление и ленты + прочее",
+   "unit": "МВт",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "power.site_mw"
+      ],
+      [
+       -1.0,
+       "power.grinding_mw"
+      ],
+      [
+       -1.0,
+       "power.other_mw"
+      ],
+      [
+       -0.001,
+       "crusher-1.power_kw"
+      ],
+      [
+       -0.001,
+       "crusher-2.power_kw"
+      ],
+      [
+       -0.001,
+       "conveyor-1.power_kw"
+      ],
+      [
+       -0.001,
+       "conveyor-2.power_kw"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "площадка"
+    }
+   ],
+   "lo": -2.0,
+   "hi": 2.0,
+   "src": "баланс мощности (sim/utilities.power_balance); допуск 2 МВт — шум 1 % у 8 измерителей мощности",
+   "label": "calc",
+   "note": ""
+  },
+  {
+   "id": "l_sag",
+   "group": "limit",
+   "ru": "Мощность SAG не выше 28 МВт",
+   "unit": "МВт",
+   "items": [
+    {
+     "terms": [
+      [
+       0.001,
+       "sag-1.power_kw"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "SAG 1"
+    },
+    {
+     "terms": [
+      [
+       0.001,
+       "sag-2.power_kw"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "SAG 2"
+    }
+   ],
+   "lo": 0.0,
+   "hi": 28.0,
+   "src": "mining-technology.com 02.2018: SAG 28 МВт, шаровые 2 × 22 МВт (facts_pit_line2)",
+   "label": "vendor",
+   "note": ""
+  },
+  {
+   "id": "l_ball",
+   "group": "limit",
+   "ru": "Мощность шаровой мельницы не выше 22 МВт",
+   "unit": "МВт",
+   "items": [
+    {
+     "terms": [
+      [
+       0.001,
+       "ball-1a.power_kw"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "шаровая 1a"
+    },
+    {
+     "terms": [
+      [
+       0.001,
+       "ball-1b.power_kw"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "шаровая 1b"
+    },
+    {
+     "terms": [
+      [
+       0.001,
+       "ball-2a.power_kw"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "шаровая 2a"
+    },
+    {
+     "terms": [
+      [
+       0.001,
+       "ball-2b.power_kw"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "шаровая 2b"
+    }
+   ],
+   "lo": 0.0,
+   "hi": 22.0,
+   "src": "mining-technology.com 02.2018: SAG 28 МВт, шаровые 2 × 22 МВт (facts_pit_line2)",
+   "label": "vendor",
+   "note": ""
+  },
+  {
+   "id": "l_grid",
+   "group": "limit",
+   "ru": "Нагрузка площадки не выше предела сети",
+   "unit": "МВт",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "power.site_mw"
+      ],
+      [
+       -1.0,
+       "power.grid_limit_mw"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "запас"
+    }
+   ],
+   "lo": null,
+   "hi": 0.5,
+   "src": "предел сети pow_grid_limit_mw (допущение, PARAMETERS.md); при урезании сети двойник сбрасывает нагрузку",
+   "label": "assumption",
+   "note": ""
+  },
+  {
+   "id": "l_stock",
+   "group": "limit",
+   "ru": "Склад руды: не меньше 0 и не больше рабочего объёма",
+   "unit": "т",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "stockpile-1.level_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "склад 1"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "stockpile-2.level_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "склад 2"
+    }
+   ],
+   "lo": 0.0,
+   "hi": 163000.0,
+   "src": "ПЭК ТОО «KAZ Minerals Aktogay» 2023–2024, с. 10: рабочий объём склада 163 000 т",
+   "label": "project",
+   "note": ""
+  },
+  {
+   "id": "l_pond",
+   "group": "limit",
+   "ru": "Пруд хвостохранилища не отрицателен",
+   "unit": "м³",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "water.pond_m3"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "пруд"
+    }
+   ],
+   "lo": 0.0,
+   "hi": null,
+   "src": "физика: объём не бывает отрицательным",
+   "label": "calc",
+   "note": ""
+  },
+  {
+   "id": "l_crusher",
+   "group": "limit",
+   "ru": "Производительность дробилки не выше проектной (4 386–5 044 т/ч)",
+   "unit": "т/ч",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "crusher-1.tph"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "ЦПД 1"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "crusher-2.tph"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "ЦПД 2"
+    }
+   ],
+   "lo": 0.0,
+   "hi": 5043.9,
+   "src": "ОВОС Актогай 2018 (минедокс, таблицы 1.5.1–1.5.2), с. 26",
+   "label": "project",
+   "note": ""
+  },
+  {
+   "id": "l_truck",
+   "group": "limit",
+   "ru": "Загрузка самосвала не выше номинала модели (793D — 236 т)",
+   "unit": "т",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-01.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-01 CAT 777"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-02.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-02 CAT 777"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-03.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-03 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-04.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-04 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-05.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-05 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-06.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-06 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-07.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-07 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-08.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-08 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-09.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-09 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-10.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-10 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-11.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-11 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-12.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-12 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-13.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-13 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-14.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-14 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-15.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-15 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-16.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-16 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-17.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-17 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-18.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-18 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-19.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-19 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-20.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-20 CAT 785"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-21.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-21 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-22.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-22 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-23.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-23 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-24.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-24 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-25.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-25 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-26.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-26 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-27.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-27 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-28.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-28 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-29.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-29 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-30.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-30 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-31.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-31 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-32.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-32 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-33.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-33 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-34.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-34 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-35.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-35 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-36.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-36 CAT 793"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "truck-37.load_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "truck-37 CAT 793"
+    }
+   ],
+   "lo": 0.0,
+   "hi": 236.0,
+   "src": "KAZ Minerals, годовой отчёт 2020, с. 61: Aktogay 793D, 236 т (facts_round2 H1); 785 — 136 т, 777 — около 90 т (Caterpillar)",
+   "label": "fact",
+   "note": "предел по самосвалу: CAT 777 90 т; CAT 785 136 т; CAT 793 236 т",
+   "item_hi": [
+    90.0,
+    90.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    136.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0,
+    236.0
+   ]
+  },
+  {
+   "id": "r_sag_e",
+   "group": "range",
+   "ru": "Удельная энергия SAG (проект 6,6; измерено 7,25 кВт·ч/т)",
+   "unit": "кВт·ч/т",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "sag-1.e_kwh_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "SAG 1"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "sag-2.e_kwh_t"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "SAG 2"
+    }
+   ],
+   "lo": 5.0,
+   "hi": 11.0,
+   "src": "Bradken + KAZ Minerals 2021, таблица 1 (с. 3) и с. 12: 6,6 проект, 7,25 измерено в сентябре 2017 – марте 2019 (facts_round2, Раунд 5, E1); вилка широкая: голодный SAG и твёрдые блоки поднимают кВт·ч/т на часы, вилка A*b 23–96 (Josemaria, PARAMETERS.md) — допущение; на год подгонки модель даёт 6,74 (VALIDATION, раздел 4)",
+   "label": "vendor",
+   "note": ""
+  },
+  {
+   "id": "r_site_e",
+   "group": "range",
+   "ru": "Электроэнергия площадки на тонну руды",
+   "unit": "кВт·ч/т",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "power.site_mw"
+      ]
+     ],
+     "scale": 1.0,
+     "den": [
+      [
+       0.001,
+       "site.tph"
+      ]
+     ],
+     "name": "площадка"
+    }
+   ],
+   "lo": 30.0,
+   "hi": 45.0,
+   "src": "KAZ Minerals, энергия 2024: 2 033 ГВт·ч на 58,3 Мт руды = 34,9 кВт·ч/т (facts_round2 R7); верхняя граница выше среднего года: постоянная нагрузка 112 МВт при недогрузке растёт на т",
+   "label": "fact",
+   "note": ""
+  },
+  {
+   "id": "r_water",
+   "group": "range",
+   "ru": "Свежая вода на тонну руды",
+   "unit": "м³/т",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "water.intake_m3h"
+      ]
+     ],
+     "scale": 1.0,
+     "den": [
+      [
+       1.0,
+       "site.tph"
+      ]
+     ],
+     "name": "забор"
+    }
+   ],
+   "lo": 0.5,
+   "hi": 1.0,
+   "src": "KAZ Minerals, вода 2024: 34,852 млн м³ на 58,3 Мт = 0,60 м³/т; проект 0,63–0,99 (ОВОС)",
+   "label": "fact",
+   "note": ""
+  },
+  {
+   "id": "r_rec",
+   "group": "range",
+   "ru": "Извлечение меди по линии",
+   "unit": "%",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "line-1.recovery"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "линия 1"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "line-2.recovery"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "линия 2"
+    }
+   ],
+   "lo": 80.0,
+   "hi": 91.0,
+   "src": "отчёты KAZ Minerals 2018–2025 (kaz_quarterly.csv, 32 квартала): 80,9–90,7 %",
+   "label": "fact",
+   "note": ""
+  },
+  {
+   "id": "r_conc",
+   "group": "range",
+   "ru": "Содержание меди в концентрате",
+   "unit": "% Cu",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "flot-1.conc_cu"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "линия 1"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "flot-2.conc_cu"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "линия 2"
+    }
+   ],
+   "lo": 18.0,
+   "hi": 34.6,
+   "src": "ОВОС Актогай 2018 (минедокс, таблицы 1.5.1–1.5.2): проект 24,3 %; верхняя граница — стехиометрия халькопирита 34,6 %",
+   "label": "project",
+   "note": ""
+  },
+  {
+   "id": "r_tails",
+   "group": "range",
+   "ru": "Медь в хвостах",
+   "unit": "% Cu",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "flot-1.tail_cu"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "линия 1"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "flot-2.tail_cu"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "линия 2"
+    }
+   ],
+   "lo": 0.03,
+   "hi": 0.075,
+   "src": "0,41 % × (1 − 87,2 %) = 0,053 % (отчёт 2025); 0,075 % — порог тревоги анализатора",
+   "label": "calc",
+   "note": ""
+  },
+  {
+   "id": "r_p80",
+   "group": "range",
+   "ru": "Крупность слива циклонов P80",
+   "unit": "мкм",
+   "items": [
+    {
+     "terms": [
+      [
+       1.0,
+       "cyclones-1.p80_um"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "линия 1"
+    },
+    {
+     "terms": [
+      [
+       1.0,
+       "cyclones-2.p80_um"
+      ]
+     ],
+     "scale": 1.0,
+     "name": "линия 2"
+    }
+   ],
+   "lo": 110.0,
+   "hi": 230.0,
+   "src": "Bradken 2021: 180 мкм; суточные P80 фабрики 120–180 мкм (Satbayev 2025, facts_round2 R5/R6)",
+   "label": "vendor",
+   "note": ""
+  }
+ ],
+ "n": 20,
+ "groups": {
+  "balance": 6,
+  "limit": 7,
+  "range": 7
+ }
+}

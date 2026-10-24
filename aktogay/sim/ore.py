@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import math
 
+from . import haul
 from .params import ParamSet
 from .state import (MIN_PER_H, NO_VALUE, Batch, OreProps, Parcel, PlantState, StockpileState,
                     base_ore, batch_name, normal, u01)
@@ -94,6 +95,18 @@ def blend(parts: list[tuple[float, OreProps]]) -> OreProps:
     return OreProps(cu_t / m, ascu, axb, bwi_m / m)
 
 
+def plan_walk(seed: int, block_no: int, prm: ParamSet) -> tuple[float, float, float]:
+    """Slow mine-plan noise at a block: three unit-variance values (Cu, A*b, ASCu), smooth between knots
+    blk_plan_len_blocks apart (smoothstep between normal draws of stream "blk-plan"), so neighbouring blocks share them."""
+    length = max(1.0, prm["blk_plan_len_blocks"])
+    k = int(block_no // length)
+    f = (block_no % length) / length
+    w = f * f * (3.0 - 2.0 * f)
+    norm = math.sqrt((1.0 - w) ** 2 + w ** 2)
+    return tuple(((1.0 - w) * normal(seed, k, "blk-plan", j) + w * normal(seed, k + 1, "blk-plan", j)) / norm
+                 for j in range(3))
+
+
 def draw_block(seed: int, block_no: int, prm: ParamSet) -> tuple[OreProps, OreProps]:
     """Block-model estimate and truth for block block_no; returns (est, true).
 
@@ -114,12 +127,20 @@ def draw_block(seed: int, block_no: int, prm: ParamSet) -> tuple[OreProps, OrePr
     def ln1(sigma: float, stream: str, k: int) -> float:
         return math.exp(sigma * z(stream, k) - 0.5 * sigma * sigma)
 
-    axb = _clamp(prm["blk_axb_mean"] * ln1(prm["blk_axb_cv"], "blk-est", 0),
+    f_axb = f_cu = 1.0
+    d_ascu = 0.0
+    if prm["blk_plan_on"] > 0.5:                       # mine-plan variability: slow, shared by neighbouring blocks
+        x = plan_walk(seed, block_no, prm)
+        s_cu, s_axb = prm["blk_plan_sigma_cu"], prm["blk_plan_sigma_axb"]
+        f_cu = math.exp(s_cu * x[0] - 0.5 * s_cu * s_cu)
+        f_axb = math.exp(s_axb * x[1] - 0.5 * s_axb * s_axb)
+        d_ascu = prm["blk_plan_sigma_ascu_pp"] * x[2]
+    axb = _clamp(prm["blk_axb_mean"] * f_axb * ln1(prm["blk_axb_cv"], "blk-est", 0),
                  prm["blk_axb_lo"], prm["blk_axb_hi"])
     cu_mean = prm["blk_cu_mean_pct"]
-    cu = _clamp(cu_mean * ln1(prm["blk_cu_cv"], "blk-est", 1),
+    cu = _clamp(cu_mean * f_cu * ln1(prm["blk_cu_cv"], "blk-est", 1),
                 cu_mean * prm["blk_cu_lo_frac"], cu_mean * prm["blk_cu_hi_frac"])
-    ascu = max(0.0, prm["blk_ascu_mean_pct"] + prm["blk_ascu_sd_pp"] * z("blk-est", 2))
+    ascu = max(0.0, prm["blk_ascu_mean_pct"] + d_ascu + prm["blk_ascu_sd_pp"] * z("blk-est", 2))
     est = OreProps(cu, ascu, axb, bwi_from_axb(axb, prm))
 
     t_axb = axb * ln1(prm["blk_err_axb_sigma"], "blk-err", 0)
@@ -224,9 +245,10 @@ def fleet_step(st: PlantState, prm: ParamSet) -> None:
 
     Each truck is ready when u01(seed, model hour, "fleet", k) < fleet_kio (k = truck index),
     so every plant copy sees the same trucks. With a truck roster (st.trucks, site file):
-    haul_tph = sum over ready ore trucks of payload * 60 / cycle, cycle = fleet_trip_min
-    (x pit_road_detour while the ramp of the truck's line is CLOSED); without one the aggregate
-    trucks_ready * fleet_payload_t * 60 / fleet_trip_min of fleet_trucks trucks.
+    haul_tph = sum over ready ore trucks of payload * 60 / cycle, cycle = haul.cycle_min of the truck's route
+    (load + haul loaded + queue + dump + return from the map distance, sim/haul.py; x pit_road_detour while the
+    ramp of the truck's line is CLOSED); without a roster the aggregate trucks_ready * fleet_payload_t * 60 / the
+    mean ore cycle of fleet_trucks trucks.
     exc_total / exc_ready count ore and stripping excavators; truck_kio_shift = shift mean
     of the ready share (shifts start cal_shift_start_h, length cal_shift_h);
     SHORT when haul_tph < sum of pit.target_tph, else NORMAL.
@@ -257,15 +279,15 @@ def fleet_step(st: PlantState, prm: ParamSet) -> None:
         fl.trucks_ready = ready
         fl.last_draw_h = period
     if trucks:
-        trip = prm["fleet_trip_min"]
-        haul = 0.0
-        rm = {n: route_mult(st, n, prm) for n in set(tr.line for tr in trucks if tr.duty == "ore")}
+        trip = {n: haul.cycle_min(prm, n) for n in set(tr.line for tr in trucks if tr.duty == "ore")}
+        total = 0.0
+        rm = {n: route_mult(st, n, prm) for n in trip}
         for tr in trucks:
             if tr.ready and tr.duty == "ore":
-                haul += tr.payload_t * MIN_PER_H / (trip * rm[tr.line])
-        fl.haul_tph = haul
+                total += tr.payload_t * MIN_PER_H / (trip[tr.line] * rm[tr.line])
+        fl.haul_tph = total
     else:
-        fl.haul_tph = fl.trucks_ready * prm["fleet_payload_t"] * MIN_PER_H / prm["fleet_trip_min"]
+        fl.haul_tph = fl.trucks_ready * prm["fleet_payload_t"] * MIN_PER_H / haul.mean_ore_cycle_min(prm)
     fl.state = "SHORT" if fl.haul_tph < sum(st.pit.target_tph.values()) - _EPS_TPH else "NORMAL"
 
 

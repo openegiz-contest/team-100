@@ -1088,7 +1088,7 @@ def check_reline_quarter(prm: ParamSet, seed: int = 42, dt_min: float | None = N
     return [
         _row("reline", "line 2 tonnes Q3 vs Q2 2025", pct, prm["tgt_reline_q_pct"], "%", prm["tol_reline_pp"],
              f"SAG reline of line 2 in August 2025 named in the Q3 2025 report (p. 3); its length "
-             f"{prm['liner_reline_h']:.0f} h is an assumption, not taken from this quarter; hours alone "
+             f"{prm['liner_reline_h']:.0f} h is an analog (Minera Chinalco, 84 h), not taken from this quarter; hours alone "
              f"give {hours_only:+.1f} %; model adds stockpile, stops and the liner campaign (peak before, "
              f"new-liner ramp after); run hours Q2 {q2['hours_l2']:.0f} h, Q3 {q3['hours_l2']:.0f} h"),
         _row("reline", "line 2 ore Q2 2025", l2_q2, prm["tgt_q2_2025_l2_kt"], "kt", -1.0, "annual 2025 run"),

@@ -54,6 +54,8 @@ S_KAZ23 = ("KAZ Minerals Q4 2023 production report (FY2023), p. 3: "
            "https://www.kazminerals.com/media/23062/q4-2023-production-report-final.pdf")
 S_KAZQ3 = ("KAZ Minerals Q3 2025 production report, p. 3: "
            "https://www.kazminerals.com/app/uploads/2025/12/q3-2025-production-report_final.pdf")
+S_KAZQ1_24 = ("KAZ Minerals Q1 2024 production report, p. 3: "
+              "https://www.kazminerals.com/media/23119/q1-2024-production-report-final.pdf")
 S_KAZQ2_24 = ("KAZ Minerals Q2 2024 production report, p. 3: "
               "https://www.kazminerals.com/media/23193/q2-2024-production-report-final.pdf")
 S_KAZQ3_23 = ("KAZ Minerals Q3 2023 production report, p. 3: "
@@ -74,8 +76,9 @@ S_OVOS_RK = ("OVOS 'Reconstruction of concentrators 1 and 2, stage 1' (ecoportal
              "https://ecoportal.kz/Rubric/RubService/LoadFile/9406")
 S_SITE15 = ("KAZ Minerals site visit presentation 01.06.2015, slide 28 (Bozshakol fleet, analog): "
             "https://www.kazminerals.com/media/2834/site-visit-presentation-vfinal-010615.pdf")
-S_BOZ14 = ("KAZ Minerals Projects Update 11.12.2014 (Bozshakol, analog; file not opened, numbers from search "
-           "snippets, not verified): https://www.kazminerals.com/media/2828/projects_update_111214.pdf")
+S_BOZ14 = ("KAZ Minerals Projects Update 11.12.2014 (Bozshakol, analog; opened and checked 24.10.2026: p. 12 gyratory crusher "
+           "750 kW, 4 186 t/h; p. 13 overland belt 3.8 km, 1.6 m, 4 880 t/h, 3 640 kW; p. 16 SAG; p. 17 ball mill; p. 18 regrind; "
+           "p. 19 thickeners; p. 36): https://www.kazminerals.com/media/2828/projects_update_111214.pdf")
 S_CAT785 = ("Cat 785C specification sheet: rated payload 136 t; 18 per line in the Bozshakol analog fleet, "
             + S_SITE15)
 S_HITACHI = ("Hitachi EX3600-6 shovel, bucket 21-23 m3 (ritchiespecs): "
@@ -145,10 +148,11 @@ S_KEGOC = ("KEGOC via Zakon.kz, line outage 14.08.2026 (event only): "
 S_ME58 = ("Order of the Ministry of Energy of Kazakhstan No. 58 (emergency control in the grid), items 21-23, 34, 40: "
           "https://zakon.uchet.kz/rus/docs/V1500010552")
 S_OSM = ("OpenStreetMap way/773805065, main conveyor crushing -> plant, 2.45 km (Overpass 18.10.2026, "
-         "osm/core.geojson, not in the repository), (c) OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/way/773805065")
-S_STOCK = ("911metallurgist, calculating stockpile capacity (live share of a conical pile with bottom reclaim): "
-           "https://www.911metallurgist.com/blog/calculating-stockpile-capacity/; Ferreira 2022, table 2 (live share 17-21 % "
-           "with one draw point, 26.5 % with three; residence about 40 h): "
+         "stage/osm/core.geojson), (c) OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/way/773805065")
+S_STOCK = ("911metallurgist, calculating stockpile capacity (live share of a conical pile with bottom reclaim; the 26.5 % is "
+           "one geometry with three outlets, an example): "
+           "https://www.911metallurgist.com/blog/calculating-stockpile-capacity/; Ferreira and Luz 2022, RSD 11(6), table 2 "
+           "(live volume fraction 17.74 / 17.79 %, one outlet, a sand rig): "
            "https://rsdjournal.org/index.php/rsd/article/download/28908/25055/332357")
 S_FLS_GYR = "FLSmidth gyratory crushers (TS 60x113 drive up to 1 000 kW): https://fls.com/equipment/crushing/gyratory-crushers"
 S_RAPTOR = ("FLSmidth Raptor cone crusher brochure, p. 9 (Raptor 1100: 549-798 t/h): "
@@ -167,6 +171,11 @@ S_BULK = ("bulk-online, overland conveyor belt speeds 3.4-6.0 m/s: "
           "https://www.bulk-online.com/sites/default/files/public/old_images/forum/42300.pdf")
 S_RME = ("RME mill relining benchmarking scorecard (2-5 % of the year on relines): "
          "https://www.rmeglobal.com/mill-relining-benchmarking-scorecard/")
+S_CHINALCO = ("Metso Outotec case study, Minera Chinalco Peru SAG1 mill liner change: planned 96 h, done in 84 h "
+              "(14 % faster; vendor page, one mine, no date): "
+              "https://www.metso.com/insights/case-studies/mining-and-metals/minera-chinalco-mill-liner-change-with-less-downtime/")
+S_AUSENCO_AV = ("Ausenco, Designing Circuits for High Availability (primary crushing target 75 %, lower because of mine "
+                "requirements and truck scheduling): https://ausenco.com/assets/documents/Designing-Circuits-for-High-Availability.pdf")
 S_LI24 = ("Li 2024 (Chalmers), table 1 p. 37 (SAG pebbles 16-23 % soft, 22-40 % hard ore; ball mill F80 2.2-2.7 mm): "
           "https://research.chalmers.se/publication/542450/file/542450_Fulltext.pdf")
 S_911EXP = ("911metallurgist, grinding circuit expansion (mill setpoint 90-95 % of installed power): "
@@ -194,6 +203,22 @@ S_RGUPS = ("RGUPS, freight wagons built in Kazakhstan, p. 3 (wagon 69.5 t): "
            "https://lib.rgups.ru/site/assets/files/6720/gruzovye_vagony_sozdannye_v_kazakhstane.pdf")
 S_KRIST = ("Kristjanpoller 2020, p. 7 (truck availability 0.79-0.93, cycle 20-30 min; Chile analog): "
            "https://ein.org.pl/pdf-158944-85231?filename=Equivalent-availability-i.pdf")
+S_SPECALOG = ("Caterpillar 793D Specalog AEHQ5600-01, p. 1 and 20 (engine 3516B 1 801 kW gross, gross machine operating weight "
+              "383 749 kg, nominal payload 218 t, body raise 20.25 s, power down 17.51 s, float 19.26 s, top speed 54.3 km/h; "
+              "the retarding charts on pp. 23-24 are images): https://www.vost-tech.ru/files/catalog/OHT/793d_specalog.pdf")
+S_AR20 = ("KAZ Minerals annual report 2020, p. 61 (PDF p. 63), photo caption: 'Aktogay 793D haul truck with lightweight "
+          "tray, 236 t payload': https://www.kazminerals.com/media/22033/kaz-minerals-ar-2020.pdf")
+S_793F = ("Caterpillar 793F brochure PEDJ0470-01 (2020), p. 5: '12.9 kph / 8 mph on 10% grade' (marketing figure, the speed "
+          "of gear 1; 793F, not 793D): https://mujstroj.zeppelin.cz/fileadmin/helios_files/JPG/ToM/OHT/793F/"
+          "793F_PEDJ0470-01_Product_Brochure_2020.pdf")
+S_MAP = ("stand map web/static/plan.json (OpenStreetMap quarry way/773805067 and crusher way/773805064, ODbL; the ramp "
+         "polyline is drawn by us): length of face -> ramp -> crusher, 'расчёт по карте'")
+S_AZO = ("AZoMining 20.01.2026, 'Optimizing Slurry Analysis to Maximize Mineral Recovery' (Thermo Fisher, sponsored): six streams "
+         "of a concentrator on one analyser, 1 min each, 'total measurement cycle time is 8 minutes': "
+         "https://www.azomining.com/Article.aspx?ArticleID=1908")
+S_SKOURIES = ("Skouries NI 43-101 July 2011, p. 63 (17.3 coarse ore stockpile): 'live capacity of 21,000 t, about 33% of total volume'; "
+              "three apron feeders (two duty, one standby); Constancia (Ausenco): 'design live capacity of 16 hours': "
+              "https://www.eldoradogold.com/sites/eldorado-gold/files/eldorado/assets/growth-projects/skouries/skouries-technical-report-july-2011.pdf")
 S_SILVA = ("Silva and Boisvert 2014 (block grade error: Cu about 9 % monthly to 18 % per block): "
            "https://www.scielo.org.za/scielo.php?pid=S2225-62532014000300017&script=sci_arttext")
 S_MILHDBK = ("reliabilityanalytics.com, maintainability theory (lognormal repair times; MIL-HDBK-338 example sigma_ln "
@@ -202,6 +227,8 @@ S_IPB = ("repository.ipb.ac.id, crusher MTTR about 5.5 h (weak source): "
          "https://repository.ipb.ac.id/handle/123456789/174360?show=full")
 S_METSO_AN = ("Metso Courier 5X/6X SL analyser brochure, p. 12 (sigma 1-6 %, cycle 12-16 min): "
               "https://www.metso.com/globalassets/portfolio/brochure-courier-5x-6x-sl-online-analyzers-4924-11-23-en-mng.pdf")
+S_REMES = ("Remes et al., Minerals Engineering 2007, p. 3 (accuracy of on-stream analysis 'can vary between 1% and 10%'; a zero-mean random "
+           "error, not a bias, p. 8): https://skoge.folk.ntnu.no/prost/proceedings/npc07/TKK/TKK01.pdf")
 S_METSO_WP = ("Metso whitepaper, p. 6 (lab composite every 6 h, analyser 5-6 min): "
               "https://metso.com/contentassets/fef70fdec0d64edb8c7809bc86a0bbbf/whitepaper")
 S_GOST_LAB = "GOST R 56856-2016, table 1 (lab Cu assay: about 7 % relative at 0.35 % Cu; tails 5-17 %)"
@@ -220,6 +247,9 @@ S_TAILS = "settled copper tailings, dry density 1.4-1.5 t/m3 (literature range; 
 S_KAZ_WINTER = ("KAZ Minerals ESG, Enhancing winter safety at Aktogay (opened 23.10.2026, page undated): winter conditions "
                 "increase the risk of road accidents, snowstorms and strong winds; no thresholds or lengths: "
                 "https://kazminerals.com/esg/enhancing-winter-safety-at-aktogay/")
+S_ERA5 = ("ERA5 hourly reanalysis (ECMWF / Copernicus C3S) through the Open-Meteo Historical Weather API, 2018-2025, 70 128 h at "
+          "46.95 N 79.93 E, our calculation of 24.10.2026 (VALIDATION.md 10.2; label: fact ERA5/Open-Meteo, calculation); data licence "
+          "CC BY 4.0, 'Weather data by Open-Meteo.com': https://open-meteo.com/en/licence")
 S_HITACHI36 = ("Hitachi EX3600-6 brochure KS-EN056T, p. 11 (contamination sensor alerts the operator; Global e-Service needs the "
                "optional DTU and a contract, p. 11): https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf")
 S_ABDU = ("Abduazizov et al., Mining of Mineral Deposits 20(2), 2026, p. 31 and 33 (working fluid contamination is about 70 % of "
@@ -392,22 +422,50 @@ _ROWS = [
     _p("fleet_payload_t", 136, 136, 136, "t", S_CAT785, "vendor", "Cat 785 rated payload (not 140)"),
     _p("fleet_kio", 0.85, 0.75, 0.93, "-", S_D4 + "; " + S_KRIST, "assumption",
        "truck availability; 0.79-0.93 at a Chilean mine (analog)"),
-    _p("fleet_trip_min", 30, 20, 40, "min", S_D4 + "; " + S_KRIST, "assumption", "round trip; analog 20-30 min"),
+    _p("fleet_trip_min", 30, 20, 40, "min", S_D4 + "; " + S_KRIST, "calc",
+       "mean cycle of the two ore routes = the reference of the 2025 fit; since 24.10.2026 a result of sim/haul.py "
+       "(fleet_speed_eff is calibrated to it), not an input; analog 20-30 min"),
     _p("fleet_redraw_h", 1, 1, 1, "h", S_D4, "assumption", "each truck ready with fleet_kio, drawn hourly"),
     _p("fleet_n_777", 2, 2, 2, "-", S_VESTI, "fact", "CAT 777 trucks at 06.06.2024; the 2026 fleet is not confirmed"),
     _p("fleet_n_785", 18, 18, 18, "-", S_VESTI, "fact", "CAT 785 trucks at 06.06.2024"),
     _p("fleet_n_793", 17, 17, 17, "-", S_VESTI, "fact", "CAT 793 trucks at 06.06.2024"),
     _p("fleet_payload_777_t", 90, 85, 95, "t", S_CATSPEC, "vendor", "CAT 777 rated payload; not verified here"),
-    _p("fleet_payload_793_t", 240, 220, 250, "t", S_VESTI, "fact",
-       "'more than 240 t at a time' (head of the pit); the vendor rating of a 793F is lower (about 227 t, "
-       "not verified here)"),
+    _p("fleet_payload_793_t", 236, 218, 240, "t", S_AR20, "fact",
+       "Aktogay 793D with lightweight tray, 236 t payload (annual report 2020, p. 61); the press tour's 'more than 240 t' "
+       "is the 240 short tons (218 t) of the Specalog rating; 240 t was used before 24.10.2026"),
     _p("fleet_ore_785", 6, 0, 18, "-", S_D4, "assumption",
        "CAT 785 on ore (3 per line), the rest on waste: with the 17 CAT 793 the ore haul per cycle is "
        "17 x 240 + 6 x 136 = 4 896 t, the former aggregate of 36 x 136 t"),
     _p("fleet_ore_793", 17, 0, 17, "-", S_D4, "assumption", "all CAT 793 on ore (9 line 1, 8 line 2)"),
     _p("fleet_load_min", 3, 2, 5, "min", S_D4, "assumption", "truck cycle: loading at the face"),
     _p("fleet_queue_min", 2, 0, 5, "min", S_D4, "assumption", "truck cycle: queue at the crusher or dump"),
-    _p("fleet_dump_min", 1, 1, 2, "min", S_D4, "assumption", "truck cycle: dumping; haul and return share the rest"),
+    _p("fleet_body_raise_s", 20.25, 20.25, 20.25, "s", S_SPECALOG, "vendor", "793D body raise, high idle, p. 20"),
+    _p("fleet_body_lower_s", 17.51, 17.51, 17.51, "s", S_SPECALOG, "vendor",
+       "793D body power down, high idle, p. 20 (float lower 19.26 s)"),
+    _p("fleet_spot_min", 0.5, 0.2, 1.0, "min", S_D4, "assumption", "positioning at the crusher pocket or the dump, before the raise"),
+    _p("fleet_nom_payload_793_t", 218, 218, 218, "t", S_SPECALOG, "vendor", "793D nominal payload (240 short tons)"),
+    _p("fleet_gmw_793_t", 383.749, 383.749, 383.749, "t", S_SPECALOG, "vendor",
+       "793D gross machine operating weight, 846 000 lb; empty mass = this - nominal payload"),
+    _p("fleet_power_793_kw", 1801, 1801, 1801, "kW", S_SPECALOG, "vendor", "3516B HD EUI gross; net 1 743 kW"),
+    _p("fleet_vmax_kmh", 54.3, 54.3, 54.3, "km/h", S_SPECALOG, "vendor", "793D top speed loaded, gear 6 (gear 1: 11.8 km/h)"),
+    _p("fleet_eta_drive", 0.85, 0.75, 0.90, "-", S_793F, "assumption",
+       "share of the gross engine power at the wheels on a ramp; 0.89 reproduces 12.9 km/h on 10 % of the 793F brochure "
+       "(rolling resistance 3 %), 0.85 kept for the lower net power"),
+    _p("fleet_rr", 0.03, 0.02, 0.05, "-", S_D4, "assumption", "rolling resistance of the haul road, fraction of the weight"),
+    _p("fleet_v_empty_kmh", 35.0, 25.0, 45.0, "km/h", S_SPECALOG, "assumption",
+       "empty return speed down the ramp (retarder and speed limit); the 793D top speed is 54.3 km/h"),
+    _p("fleet_speed_eff", 0.516, 0.35, 1.0, "-", S_D4, "assumption",
+       "the ONE calibrated factor: real average speed over the calculated speed (curves, acceleration, speed limits, dust, "
+       "waiting for the shovel); value from sim/haul.calibrate so that the mean ore cycle is the 30 min of the 2025 fit"),
+    _p("fleet_ramp_km_1", 2.216, 2.216, 2.216, "km", S_MAP, "calc",
+       "face-1 -> ramp-1 (1.946 km) -> crusher-1, polyline of the stand map; the straight line is 2.128 km"),
+    _p("fleet_ramp_km_2", 2.700, 2.700, 2.700, "km", S_MAP, "calc",
+       "face-2 -> ramp-2 (2.411 km) -> crusher-2; the straight line is 2.591 km"),
+    _p("fleet_waste_km", 1.515, 1.515, 1.515, "km", S_MAP, "calc", "face-4 -> road-dump, polyline of the stand map"),
+    _p("fleet_rise_m_1", 120, 100, 160, "m", S_D4 + "; bench 10 m: " + S_PEK, "assumption",
+       "ore face of line 1 on bench 12 (site file, assumption) x 10 m; the pit is up to 230 m deep (fact)"),
+    _p("fleet_rise_m_2", 110, 90, 150, "m", S_D4 + "; bench 10 m: " + S_PEK, "assumption", "ore face of line 2 on bench 11 x 10 m"),
+    _p("fleet_rise_m_w", 65, 40, 100, "m", S_D4 + "; bench 10 m: " + S_PEK, "assumption", "stripping faces on benches 6-7 x 10 m"),
     _p("pit_exc_waste_count", 2, 0, 2, "-", S_VESTI, "calc",
        "5 Hitachi excavators (fact) - 3 on ore = 2 on stripping (the split is an assumption)"),
     _p("pit_exc_waste_tph", 3000, 2700, 3700, "t/h", S_VESTI, "fact",
@@ -420,7 +478,11 @@ _ROWS = [
        "scenario pitstop: every ore excavator stands this long (blast clearance, weather or a fault; the cause and the "
        "length are not published); the stockpile then carries the plant"),
     _p("conv_repair_h", 2.0, 1.0, 4.0, "h", S_D5, "assumption",
-       "median repair of a stopped main conveyor after the crew arrives (scenario conveyor:N); no published figure"),
+       "median repair of a stopped main conveyor after the crew arrives (scenario conveyor:N); no Aktogay figure. Analogs verified "
+       "24.10.2026 (copper mine, Peru, 3 years of history, ucsm.edu.pe thesis p. 60-61): damaged belt 1.44 h (5 events) and 1.69 h "
+       "(13 events, primary crushing belt), drive 2.62 h (5), idlers and frame 0.70 h (10), mean over the 37 events 1.5 h; vendor "
+       "case of a belt cover repair 'back up and running within two hours' (Devcon). 2.0 h sits inside the analog range; the "
+       "value stays an assumption because modules/scenarios.py mirrors this row"),
     _p("pit_drill_holes_shift", 8, 4, 20, "1/shift", S_D4 + "; " + S_KAZEQ, "assumption",
        "blast holes per rig and shift; 6 rigs x 8 x pit_drill_t_hole about equals the dig of a shift "
        "(ore 7 706 + waste about 3 000 t/h); rigs and models are fact, the rate is ours"),
@@ -456,6 +518,20 @@ _ROWS = [
     _p("blk_err_cu_sigma", 0.05, 0.03, 0.18, "-", S_D4 + "; " + S_SILVA, "assumption",
        "relative; literature 9 % (monthly) to 18 % (per block)"),
     _p("blk_err_ascu_pp", 1.0, 0.5, 2.0, "pp", S_D4, "assumption", "additive"),
+    _p("blk_plan_on", 0, 0, 1, "flag", S_D4, "assumption",
+       "1 = mine-plan variability on: slow changes of grade, hardness and ASCu from one stretch of the pit to the next "
+       "(quarter-to-quarter spread). Off in the paired runs (shift trials, quarterly back-test), where it cancels or only adds "
+       "noise; on in the spread check (sim/fidelity.py)"),
+    _p("blk_plan_len_blocks", 500, 100, 1000, "blocks", S_D4, "assumption",
+       "blocks between two knots of the slow mine-plan variability (500 x 15 kt = 7.5 Mt, about two months)"),
+    _p("blk_plan_sigma_cu", 0.059, 0.0, 0.20, "-", S_KAZ25, "calc",
+       "slow lognormal sigma of the block Cu; calibrated so that the quarter-to-quarter spread of the quarter-mean grade "
+       "equals the reported one (SD of the change of ln grade over the 28 test quarters)"),
+    _p("blk_plan_sigma_axb", 0.06, 0.0, 0.15, "-", S_D4, "assumption",
+       "slow lognormal sigma of A*b along the mine plan; no quarterly hardness is published, the value is a choice"),
+    _p("blk_plan_sigma_ascu_pp", 1.86, 0.0, 3.0, "pp", S_D4, "assumption",
+       "slow sd of the acid-soluble Cu share along the mine plan; sets the unexplained quarterly spread of recovery "
+       "(-1.043 pp per pp ASCu); calibrated to the SD of the reported recovery residual"),
     _p("ore_density_t_m3", 2.66, 2.6, 2.77, "t/m3", S_BRAD, "vendor",
        "design specific gravity 2.66 (bulk 1.6), Bradken sample 2.69; OVOS-18 states 2.77 for the ore (page not "
        "located): kept at the Bradken design value used by the Aktogay engineers, 2.77 is the range top; DWi and "
@@ -474,10 +550,28 @@ _ROWS = [
     _p("ui_axb_hard", 30, 30, 30, "-", S_D6 + "; " + S_JK, "assumption", "colour class 'harder than the base ore' below 30"),
 
     # ---------------- crusher, conveyor ----------------
-    _p("crush_cap_tph", 4386, 4386, 5043.9, "t/h", S_OVOS + ", p. 26", "project", "4 386-5 043.9 t/h"),
-    _p("crush_kio", 0.78, 0.78, 0.78, "-", S_OVOS + ", p. 25-26", "project", "passport only"),
+    _p("crush_cap_tph", 4386, 4386, 5043.9, "t/h", S_OVOS + ", p. 26", "project",
+       "4 386-5 043.9 t/h is the design rate of the coarse-crushing AREA with the irregularity factor 1.15 (25 Mt / 5 700 h = 4 386; "
+       "x 1.15 = 5 043.9), not a crusher nameplate; no crusher nameplate was found. In the model the crusher has only "
+       "533 t/h of headroom over the mill (4 386 - 3 853), so the stock refills slowly and the cost of crusher troubles is "
+       "probably overstated"),
+    _p("crush_kio", 0.78, 0.78, 0.78, "-", S_OVOS + ", p. 25-26", "project",
+       "equipment utilisation ratio of coarse crushing = 285 of 365 days (a share of days, not of hours); the design hours are "
+       "285 d x 2 shifts x 10 h = 5 700 h = 65.1 % of the hours of a year; the 0.92 of the other areas and the 1.15 "
+       "irregularity factor are in the same table"),
     _p("crush_power_mw", 0.75, 0.75, 1.0, "MW", S_FLS_GYR + "; " + S_BOZ14, "vendor",
-       "TS 60x113 drive up to 1 000 kW (FLSmidth); 750 kW from the Bozshakol 2014 update, not verified"),
+       "TS 60x113 drive up to 1 000 kW (FLSmidth); 750 kW from the Bozshakol 2014 update, p. 12 (analog; Aktogay's own crusher "
+       "drive is not published)"),
+    _p("crush_plan_every_d", 28, 14, 56, "d", S_D3 + "; " + S_AUSENCO_AV, "assumption",
+       "calib and free run only: a planned maintenance window of the primary crusher (greasing, bolts, liner check) comes once in this "
+       "many days at a random time; the stockpile carries the mill meanwhile"),
+    _p("crush_plan_h", 8, 4, 12, "h", S_D3 + "; " + S_AUSENCO_AV, "assumption", "length of that window"),
+    _p("crush_plan_wait_d", 3, 1, 7, "d", S_D3, "assumption",
+       "planned crusher work is done while the mill of the line stands (the pile carries the mill only about 3 h at the draw column); "
+       "if no mill stop comes in this many days it is done anyway"),
+    _p("crush_stop_per_day", 1.0, 0.5, 2.0, "1/d", S_D3 + "; " + S_AUSENCO_AV, "assumption",
+       "short stoppages of the crusher (oversize rock in the pocket, rock breaker, blocked pocket), a Poisson stream"),
+    _p("crush_stop_min", 20, 10, 40, "min", S_D3 + "; " + S_AUSENCO_AV, "assumption", "length of a short stoppage (calib run)"),
     _p("crush_lube_kpa", 250, 200, 300, "kPa", S_D3, "assumption", "normal lube pressure"),
     _p("crush_lube_noise_kpa", 5, 2, 10, "kPa", S_D4, "assumption"),
     _p("crush_lube_trip_kpa", 150, 120, 180, "kPa", S_D4, "assumption", "protection trip below"),
@@ -486,11 +580,13 @@ _ROWS = [
     _p("conv_length_km", _CONV_KM, _CONV_KM, _CONV_KM, "km", S_PEK + ", p. 18 (concentrator 2: 2 504 m; concentrator 1 "
        "about 2.5 km, p. 10); cross-check " + S_OSM, "project",
        "main conveyor crushing -> plant (the 3.8 km of the design file was the Bozshakol belt)"),
-    _p("conv_belt_m", 1.6, 1.6, 1.6, "m", S_BOZ14, "analog", "Bozshakol overland belt; not verified"),
-    _p("conv_cap_tph", 4880, 4880, 4880, "t/h", S_BOZ14, "analog", "Bozshakol overland belt; not verified"),
+    _p("conv_belt_m", 1.6, 1.6, 1.6, "m", S_BOZ14, "analog",
+       "Bozshakol overland belt, p. 13 (the Bozshakol belt is 3.8 km, Aktogay's is 2.5 km); belt width of Aktogay not published"),
+    _p("conv_cap_tph", 4880, 4880, 4880, "t/h", S_BOZ14, "analog",
+       "Bozshakol overland belt, p. 13 (4 880 t/h, 5 m/s at most; 3.8 km against Aktogay's 2.5 km); the code does not read this row"),
     _p("conv_power_mw", 3.64, 3.64, 3.64, "MW", S_BOZ14, "analog",
-       "Bozshakol 3.8 km belt drive; not verified; Aktogay drive power not in open sources, kept as the upper "
-       "estimate for the 2.45 km belt"),
+       "Bozshakol 3.8 km belt drive, p. 13 (3 640 kW); Aktogay's drive power is not in open sources, kept as the upper "
+       "estimate for the 2.5 km belt"),
     _p("conv_speed_ms", 4.5, 3.4, 6.0, "m/s", S_D3 + "; " + S_BULK, "assumption", "overland belts run 3.4-6.0 m/s"),
     _p("conv_transit_min", _CONV_KM * 1000 / 4.5 / 60, _CONV_KM * 1000 / 6.0 / 60, _CONV_KM * 1000 / 3.4 / 60,
        "min", S_PEK + ", p. 18", "calc", "2.504 km / 4.5 m/s = 9.3 min (the 14 min of the design file was 3.8 km)"),
@@ -498,18 +594,23 @@ _ROWS = [
     # ---------------- ore stockpile ----------------
     _p("stock_total_t", _STOCK_TOTAL_T, _STOCK_TOTAL_T, _STOCK_TOTAL_T, "t", S_OVOS_RK + ", p. 58", "project",
        "working volume of the ore stockpile, about 2 days of one line"),
-    _p("stock_live_frac", _STOCK_LIVE_FRAC, 0.17, 0.30, "-", S_STOCK, "assumption",
-       "live share of the working volume over the bottom reclaim: 17-21 % with one draw point, 26.5 % with "
-       "three (Ferreira 2022), about 25 % (911metallurgist); 0.245 keeps the 40 kt live stock of design "
-       "sections 3 and 7"),
+    _p("stock_live_frac", _STOCK_LIVE_FRAC, 0.17, 0.34, "-", S_STOCK + "; " + S_SKOURIES, "assumption",
+       "PEK 163 kt is the working volume of the WHOLE pile (2 days of grinding), not the live stock; the live part is this "
+       "share. Verified analogs 24.10.2026: Skouries 33 % of the total (live = 24 h of production), Constancia 16 h live; "
+       "here 40 kt = 24.5 % = 11.8 h of one line. "
+       "The PEK p. 10 names three belt feeders (FE-104, FE-105, FE-106) under the stockpile; the 26.5 % example of "
+       "911metallurgist (three outlets, one geometry) would give about 43 kt; Ferreira and Luz 2022, table 2, give 17.74 / "
+       "17.79 % for one outlet in a sand rig; Skouries 33 % with 3 feeders. 0.245 keeps the 40 kt live stock of design "
+       "sections 3 and 7; the value is an assumption"),
     _p("stock_live_t", _STOCK_TOTAL_T * _STOCK_LIVE_FRAC, _STOCK_TOTAL_T * 0.17, _STOCK_TOTAL_T * 0.30, "t",
        S_OVOS_RK + ", p. 58; " + S_STOCK, "calc",
        "live capacity = stock_total_t x stock_live_frac = 163 000 x 0.245 = 40 000 t; the rest of the 163 kt is "
        "dead stock on the sides"),
     _p("stock_column_frac", 0.30, 0.20, 0.40, "-", S_D3 + "; " + S_STOCK, "assumption",
-       "draw column share of live stock (Ferreira 2022: 17-26.5 % of the whole pile is live)"),
+       "draw column share of live stock (live share of the whole pile: 17.74 / 17.79 % for one outlet, Ferreira and Luz 2022, "
+       "table 2; 26.5 % for three outlets in one geometry, 911metallurgist)"),
     _p("stock_exchange_tau_h", 24, 12, 48, "h", S_D3 + "; " + S_STOCK, "assumption",
-       "sides to column exchange; mean residence about 40 h at 163 kt"),
+       "sides to column exchange; 163 000 t / 3 853 t/h = 42 h of one line [calc]"),
     _p("stock_reg_high_frac", 0.85, 0.80, 0.90, "-", S_D4, "assumption", "above: pit cuts mining"),
     _p("stock_reg_low_frac", 0.20, 0.10, 0.30, "-", S_D4, "assumption", "below: pit mines at max"),
     _p("stock_low_frac", 0.15, 0.10, 0.20, "-", S_D3, "assumption", "LOW state"),
@@ -538,7 +639,9 @@ _ROWS = [
        "ball charge alone over the mixed charge at J0, per m3: 0.6 x 7.8 / ((12 x 5.40 + 13 x 2.32) / 25) "
        "(voids 0.4, steel 7.8, ore 2.66, slurry 1.8 t/m3); ground-out power = this x f(Jb) / f(J0), "
        "about 70 % of P0 with the Austin load term"),
-    _p("sag_tau_min", 5, 3, 10, "min", S_D4, "assumption", "mill load inertia"),
+    _p("sag_tau_min", 5, 3, 10, "min", S_D4, "assumption",
+       "mill load inertia; the mean residence of the ore in the SAG is 4.2-4.8 min (about 311 t of ore / 3 853 t/h at J 25 %, "
+       "Jb 12 %, Bradken) [calc], and a residence time is not the time constant of the load"),
     _p("sag_starved_frac", 0.95, 0.90, 0.98, "-", S_D4, "assumption", "STARVED if feed below share of capacity"),
     _p("sag_f80_mm", 130, 128, 137, "mm", S_SMC, "assumption",
        "no Aktogay F80: between Touro 128 and Josemaria 137 mm (section 17.2.2 p. 140)"),
@@ -573,8 +676,10 @@ _ROWS = [
     _p("liner_x_peak", 0.70, 0.50, 0.85, "-", S_POWELL, "assumption", "shape assumed"),
     _p("liner_eta_end", 0.98, 0.95, 1.00, "-", S_POWELL, "assumption", "flattened profile at end; our number"),
     _p("liner_x0", 0.10, 0.0, 1.0, "-", S_D4, "assumption", "live snapshot campaign share (eta = 1.0)"),
-    _p("liner_reline_h", 96, 72, _RELINE_ALL_H, "h", S_RME, "assumption",
-       "full SAG reline, 4 days (2.4-4.3 % of the year on relines against the RME 2-5 %); not taken from the "
+    _p("liner_reline_h", 84, 72, _RELINE_ALL_H, "h", S_CHINALCO + "; " + S_RME, "analog",
+       "full SAG reline, 3.5 days: the verified case of Minera Chinalco Peru (84 h done, 96 h planned; one vendor case of "
+       "another copper mine), 2.1-3.8 % of the year on relines against the RME 2-5 %; was 96 h (assumption) until 24.10.2026, "
+       "which overstated the drop of the ore of a line in the five reported relines (-6.3 % against -4.8 %); not taken from the "
        "Q3 2025 quarter, whose change is not the net reline effect (file 05, s. 1.2); max = the whole line 2 "
        "Q3/Q2 2025 rate drop as hours (126.8 h)"),
 
@@ -712,7 +817,9 @@ _ROWS = [
        "of a plant; no source for its volume: 1.0-1.5 Mm3 is 10-16 days of the 2024 intake (95 200 m3/d)"),
     _p("pond_lo_m3", 1.0e6, 1.0e6, 1.0e6, "m3", S_D4, "assumption", "regulator band (decant pond, assumption)"),
     _p("pond_hi_m3", 1.5e6, 1.5e6, 1.5e6, "m3", S_D4, "assumption", "regulator band (decant pond, assumption)"),
-    _p("pond_reg_h", 48, 12, 96, "h", S_D4, "assumption", "recycle regulator time constant"),
+    _p("pond_reg_h", 48, 12, 96, "h", S_D4, "assumption",
+       "recycle regulator time constant; one node stands in for the thickener overflow, the process-water pond and the tailings pond "
+       "(the plant has three; no volumes or regulator rules are published)"),
     _p("pond_piezo_kpa0", 120, 100, 140, "kPa", S_D4, "assumption", "at pond_m3_0"),
     _p("pond_piezo_kpa_mm3", 40, 20, 60, "kPa/Mm3", S_D4, "assumption", "slope a"),
     _p("pond_piezo_sp_kpa", 150, 140, 170, "kPa", S_D4, "assumption", "safety setpoint (S0)"),
@@ -853,7 +960,10 @@ _ROWS = [
     _p("scen_leach_h", 8, 2, 12, "h", "our rounding", "assumption", "scenario leachcold: length of the cold spell on the leach pad"),
     _p("ox_cold_frac", 0.25, 0.10, 0.40, "-", S_OX, "analog",
        "share by which the cathode output falls below the level of the quarter during the scenario leachcold; the size is the fall of Q4 2024 against Q3 2024 (-25 %, a fact for that year, from fewer ore on the pads and colder conditions); applying it to a spell of hours is our choice"),
-    _p("scen_dust_wind_ms", 14, 10, 20, "m/s", "our rounding", "assumption", "scenario dust: wind in the spell"),
+    _p("scen_dust_wind_ms", 11, 10, 20, "m/s", S_ERA5, "calc",
+       "scenario dust: wind in the spell; fact: ERA5/Open-Meteo, calculation: median of the hourly wind in the 26 dusting events of 2018-2025 "
+       "(dry 3 days, T above 0, no snow, wind 10 m/s or more) is 10.8, 90th percentile 12.2, hourly maximum 15.6 m/s; the earlier 14 m/s "
+       "(an assumption) was reached for 3 h in 8 years and stays a rare maximum, not the typical event (VALIDATION.md 10.2)"),
     _p("scen_dust_dry_pct", 85, 60, 100, "%", "our rounding", "assumption", "scenario dust: dry beach in the spell"),
     _p("ball_media_gt", 800, 600, 1000, "g/t", S_CHILE_BALLS, "analog",
        "grinding media consumption per tonne of ore at the line; no Aktogay figure: analogs 754 g/t (Cyprus Pima, SAG + balls) "
@@ -876,10 +986,16 @@ _ROWS = [
     # T1: the winter now touches the pit (haul speed), not the throughput of the plant (KAZ Minerals Q1 2019 p. 1)
     _p("scen_icy_h", 6, 2, 12, "h", S_KAZ_WINTER, "assumption",
        "scenario icy: length of the ice and snowstorm spell on the haul roads (KAZ Minerals names the risk, not its length)"),
-    _p("scen_icy_wind_ms", 16, 10, 25, "m/s", S_KAZ_WINTER, "assumption",
-       "scenario icy: wind in the spell ('snowstorms and strong winds' - KAZ Minerals, Enhancing winter safety at Aktogay)"),
-    _p("scen_icy_temp_c", -14, -25, -5, "degC", S_NOAA, "analog",
-       "scenario icy: air temperature in the spell (January mean of Aktogay -13.7, NOAA 1991-2020)"),
+    _p("scen_icy_wind_ms", 11, 10, 25, "m/s", S_ERA5, "calc",
+       "scenario icy: sustained wind in the spell ('snowstorms and strong winds' - KAZ Minerals, Enhancing winter safety at Aktogay); "
+       "fact: ERA5/Open-Meteo, calculation (proxy of a snowstorm: snowfall at T below 0 with wind 10 m/s or gusts 15 m/s): median 10.2, "
+       "90th percentile 13.1 m/s, hourly mean wind of 16 m/s or more did not occur in 8 years (maximum 15.6), gusts of 16 m/s or more "
+       "126 h a year; the earlier 16 m/s reads as a gust (VALIDATION.md 10.2)"),
+    _p("scen_icy_temp_c", -5, -25, -5, "degC", S_ERA5, "calc",
+       "scenario icy: air temperature in the spell; fact: ERA5/Open-Meteo, calculation: ice proxy hours median -1.9, snowstorm proxy "
+       "median -4.5 (10th percentile -9.7), drifting-snow proxy minimum -8.2; T of -14 or below together with wind 10 m/s or more "
+       "was 3 h in 8 years. The earlier -14 (January mean of Aktogay -13.7, NOAA 1991-2020) stays a 'severe frost' variant: "
+       "`run.py trial --set scen_icy_temp_c=-14`; the stand has no separate scenario for it (VALIDATION.md 10.2)"),
     _p("pit_vis_clear_m", 10000, 5000, 20000, "m", "our rounding", "assumption", "visibility on the haul roads in clear weather"),
     _p("pit_vis_icy_m", 120, 40, 300, "m", S_KAZ_WINTER, "assumption", "visibility in the snowstorm spell (no figure in the source)"),
     _p("pit_grip_clear", 0.80, 0.60, 0.90, "-", "our rounding", "assumption",
@@ -964,12 +1080,23 @@ _ROWS = [
        "Aktogay figure not published"),
 
     # ---------------- sensors and control rule ----------------
-    _p("sens_an_cycle_min", 15, 12, 16, "min", S_D4 + "; " + S_METSO_AN, "assumption", "on-stream analyser; vendor 12-16 min"),
-    _p("sens_an_feed_sigma", 0.03, 0.01, 0.06, "-", S_D4 + "; " + S_METSO_AN, "assumption", "relative; vendor 1-6 %"),
-    _p("sens_an_tail_sigma", 0.05, 0.03, 0.10, "-", S_D4 + "; " + S_METSO_AN, "assumption", "relative; tails 5-10 %"),
-    _p("sens_an_conc_sigma", 0.03, 0.01, 0.06, "-", S_D4 + "; " + S_METSO_AN, "assumption", "relative; vendor 1-6 %"),
-    _p("sens_lab_every_h", 4, 4, 4, "h", S_D4 + "; " + S_METSO_WP, "assumption", "lab composites every 6 h at the vendor example"),
-    _p("sens_lab_delay_h", 2, 2, 2, "h", S_D4, "assumption"),
+    _p("sens_an_cycle_min", 15, 8, 16, "min", S_METSO_AN + "; " + S_AZO, "vendor",
+       "on-stream analyser: vendor 12-16 min for a Courier 5X/6X SL (p. 12); a six-stream central analyser measures every stream "
+       "once in 8 min (AZoMining, verified 24.10.2026), so 8 min is the lower bound; 15 min sits in the vendor interval"),
+    _p("sens_an_feed_sigma", 0.03, 0.01, 0.06, "-", S_METSO_AN, "vendor",
+       "relative; vendor: relative standard deviation 3-6 % for minor concentrations (the feed, 0.4 % Cu, is minor), 1-4 % for major ones; "
+       "3 % is the better end of the minor figure"),
+    _p("sens_an_tail_sigma", 0.05, 0.03, 0.10, "-", S_METSO_AN + "; " + S_REMES, "vendor",
+       "relative; vendor: 3-6 % for minor concentrations (the tails, 0.05 % Cu, are minor); the upper edge 10 % is Remes et al. 2007 "
+       "(1-10 %, random error); 5 % is inside the vendor interval. The analyser class of the Aktogay installation is not published"),
+    _p("sens_an_conc_sigma", 0.03, 0.01, 0.06, "-", S_METSO_AN, "vendor",
+       "relative; vendor: 1-4 % for major concentrations (the concentrate, 20-30 % Cu, is major); 3 % is inside, 6 % is the minor-concentration figure"),
+    _p("sens_lab_every_h", 4, 4, 12, "h", S_D4 + "; " + S_METSO_WP, "assumption",
+       "lab composites of rougher tails every 6 h at the vendor example (Metso whitepaper p. 6, one customer) and one composite "
+       "per shift at Caraiba (NI 43-101 s. 17.6, analog); the value stays 4 h, the range is 4-12 h"),
+    _p("sens_lab_delay_h", 2, 2, 2, "h", S_D4, "assumption",
+       "lab result delay; only the titration is published (Cu concentrate, 12-15 min per titrator, Nucomat datasheet p. 6, "
+       "verified 24.10.2026): sample preparation, queue and shift hand-over are not, so 2-24 h stay a sensitivity range (tornado)"),
     _p("sens_lab_sigma", 0.015, 0.01, 0.07, "-", S_D4 + "; " + S_GOST_LAB, "assumption",
        "relative; GOST R 56856-2016 table 1 gives about 7 % at 0.35 % Cu (tails 5-17 %): 1.5 % is optimistic"),
     _p("sens_weigher_sigma", 0.01, 0.005, 0.02, "-", S_D4 + "; " + S_OIML, "assumption", "relative; belt weigher class 1"),
@@ -991,6 +1118,12 @@ _ROWS = [
        "module finds silent issue (seed 42 run, 09:15); used for the 'loud first' copy"),
     _p("scen_safety_min", 10, 10, 10, "min", S_D7, "assumption", "piezometer alarm after start"),
     _p("scen_hard_lead_h", 2.0, 1.0, 3.0, "h", S_D7, "assumption", "hard block dug after scenario start"),
+    _p("asis_rope_see_min", 45, 30, 90, "min", S_D7, "assumption",
+       "trial, copy 'как сейчас': the shift sees cyclone roping on the screens (circulating load) this long after the start; "
+       "the call follows asis_notice_min later"),
+    _p("asis_mantle_see_min", 10, 5, 20, "min", S_D7, "assumption",
+       "trial, copy 'как сейчас': the shift sees a mantle change of the crusher this long after the start (the plant alarm "
+       "calls it earlier; the twin of the symmetric base uses the alarm too)"),
     _p("scen_fire_line", 1, 1, 2, "-", S_KURSIV26, "fact", "scenario hpgr_fire: HPGR of concentrator 1"),
     _p("scen_fire_people", 20, 20, 20, "-", S_KURSIV26, "fact", "people evacuated (text of the S0 issue)"),
     _p("scen_fire_safety_h", 2, 0.5, 6, "h", S_D7, "assumption",
@@ -1094,9 +1227,9 @@ class Reline:
 
 RELINE_CALENDAR: tuple[Reline, ...] = (
     Reline(1, 2024, 3, 15,
-           S_KAZQ2_24 + ": planned maintenance at Sulphide 1 in the first half of 2024; the kind of work and the "
-           "quarter are assumptions: line 1 tonnes rose in Q2 (6 921 vs 6 751 kt), so the stop is placed in Q1",
-           "assumption", "stop"),
+           S_KAZQ1_24 + ": planned maintenance of the quarter, 'including a SAG mill reline'; the quarter is the report's, "
+           "the month and the day are assumed (line 1 tonnes rose in Q2: 6 921 vs 6 751 kt)",
+           "fact", "reline"),
     Reline(2, 2024, 10, 15,
            S_KAZ24 + ": planned SAG maintenance at Sulphide 2 in October 2024, line 2 tonnes -4 % (7 244 vs 7 572 "
            "kt); 'reline' is not the report's word; day assumed",
@@ -1303,9 +1436,10 @@ for _rules in FEATURE_RULES.values():
 class ParamSet:
     """Mutable copy of table values for one run (calibration overrides)."""
 
-    __slots__ = ("_v",)
+    __slots__ = ("_v", "_memo")
 
     def __init__(self, overrides: dict[str, float] | None = None):
+        self._memo: dict = {}
         self._v = {k: p.value for k, p in TABLE.items()}
         for k, v in (overrides or {}).items():
             self.set(k, v)
@@ -1323,6 +1457,16 @@ class ParamSet:
         if key not in TABLE:
             raise KeyError("unknown parameter: " + key)
         self._v[key] = float(value)
+        if self._memo:
+            self._memo = {}                      # derived results (sim/haul.py) are valid for one set of values
+
+    def memo(self, key, fn):
+        """Result of fn() kept until any value of this set changes (derived numbers computed every step)."""
+        try:
+            return self._memo[key]
+        except KeyError:
+            v = self._memo[key] = fn()
+            return v
 
     def copy(self, **overrides: float) -> "ParamSet":
         out = ParamSet()
@@ -1357,7 +1501,7 @@ _PREFIX_USE = (
     ("filt_", "flotation"), ("cstock_", "flotation"), ("water_", "utilities"), ("pond_", "utilities"),
     ("pow_", "utilities"), ("crew_", "events"), ("nov_", "trial (novice policy)"), ("ox_", "oxide line (sim/oxide.py)"), ("issue_", "events, modules"), ("hc_", "events"),
     ("sens_", "sensors"), ("acs_", "sensors"), ("scen_", "events, plant"),
-    ("lev_", "levers (plant, service)"),
+    ("lev_", "levers (plant, service)"), ("asis_", "trial (the copy as now)"),
     ("season_", "utilities, plant"), ("winter_", "utilities"), ("wx_", "utilities"), ("beach_", "utilities"),
 )
 
