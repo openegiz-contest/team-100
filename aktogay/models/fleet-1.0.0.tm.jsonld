@@ -79,6 +79,30 @@
     },
     {
       "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fatigue"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fatigue_truck"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-degc-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "brake_oil_c"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "brake_truck"
+    },
+    {
+      "rel": "tm:submodel",
       "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "idSimulationRun"

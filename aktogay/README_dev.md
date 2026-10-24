@@ -25,23 +25,38 @@ aktogay/
     people.py         people of the shift: FREE / TRAVEL / WORK / OFF, location, free time
     utilities.py      power balance, load shedding, water balance with pond, leak and fresh-water cap,
                       money, CO2
+    wear.py           tier T of 24.10.2026: eight equipment troubles (gmd, idler, froth, rake, cloth, slurry, brake, track), scenario only;
+                      rows in params_t.py (module rows in modules/params_t.py); cards in modules/readiness_t.py, scenarios_t.py, inside_t.py, tiers_t.py
+    params_lev.py     rows of the what-if levers (lev_*); the levers themselves live in plant.py (set_levers), service.py (control.lever)
     events.py         scenario parsing and presets, hidden causes, random stops,
-                      calib downtime, crews, copy call policies
+                      calib downtime, crews, copy call policies; tier S tokens (icy, fatigue, oil, roping:N,
+                      phdrift:N, hpgr:2, mantle:N)
     sensors.py        noise, analyser, lab, control-system tails alarm, instruments (analysers,
                       weighers, flowmeters, piezometers), measured features, state_ru words
     site_aktogay.py   site passport: people, trucks by model, excavators, faces, roads, instruments,
                       the person responsible for each kind of node (library vs site, see below)
     plant.py          Plant (one copy, step order) and CopySet (fact/base/loud/no_twin)
+    backtest.py       quarterly back-test 2018-2025 on the KAZ Minerals reports (data/kaz_quarterly.csv -> data/backtest_q.json)
     calib.py          2025 fit (availability, K, R0), 2024 fit (other load, evaporation),
                       2024 and 2023 checks without refit, 2025 site check, reline quarter,
                       quarters, balances, 7 days
     calib_report.py   akt-calib: calibration rows + trial summary -> validation-calib (Ditto HTTP)
     data/trial_n100.json   summary of `trial --n 100 --no-twin` (seeds 1001-1100), shown in ?view=calib
+    replay.py         replay file «с двойником / без» from the stored rows of trial_n100.json (web/static/replay.json)
+    paramstat.py      labels of the parameter tables: fact / vendor / analog / project / calc / assumption (web/static/params_summary.json)
     publish.py        feature snapshots -> MQTT -> Ditto (catalog from setup/things.json, rate budget)
     service.py        akt-sim: Plant / CopySet in model time, commands from the control thing,
                       batches as things, baseline and validation-sim, barrier (optional)
     trial.py          on/off trial of the issue queue: "by value" vs "by loudness" vs "as now"
                       (fair baseline, default), paired seeds
+  modules/
+    tiers.py          troubles of tier S (winter road, tired driver, roping, pH sensor, HPGR, mantle, oil, excavator down)
+                      and the evidence list with the age of every measurement of an issue card
+    inside.py         the page «Изнутри»: nodes, signals with the place where each is seen, failures with sources, depth A/B/C;
+                      writes web/static/inside.json (a test keeps it equal)
+    readiness.py      the nine points of every new trouble; writes web/static/readiness.json and READINESS.md
+    scenarios.py      catalog of scenarios (what should happen, how to check) and the constructor of a trouble; writes web/static/scenarios.json
+    apidoc.py         web/API.md (HTTP API and, per module, inputs, outputs, tests) and web/static/modules.json (live table of «Как проверить»)
   setup/
     things.json       types (library) and things of the site; gen=site things are generated
     gen_site.py       writes the generated things and responsible.person from sim/site_<name>.py
@@ -81,6 +96,19 @@ Rules shared by all modules:
   (marked "truth" in `state.py`) never go to published features.
 - Published values are float or str; "no value" is -1.0.
 
+## Constructor of a trouble (sim/events.py)
+
+A scenario token may carry a start and a magnitude: `kind[:N][@start_min][=magnitude]`, tokens joined by `+`, e.g.
+`crusher:1@90=4.5+dose:2@120=0.3+grid=200`. `@` is model minutes after the start of the scenario (08:00), up to 20:00;
+`=` replaces the default size of the trouble by the value of the table `events.MAGNITUDE` (kind -> slot, parameter row):
+hours of the event or median repair time after arrival (`crusher`, `trip`, `conveyor`, `mantle`, `reline`, `pitstop`,
+`icy`, `fatigue`, `dust`, `road`, `hpgr_fire`), MW (`grid`), A*b (`hard`), share (`water`, `leak`, `dose`, `liner`,
+`energy`, `reagent`, `balls`), pp (`oxide`, `conc`), pH (`phdrift`), severity (`roping`), clogged cyclones (`cyclone`).
+The value is kept inside `min..max` of its row; a kind without a magnitude (`hpgr`, `startup`, `sample`, `oil`,
+`winter`) rejects `=`. The label of the run (`site.scenario`) keeps the bare kinds; the whole token stays in
+`control.scenario.id`. `POST /api/scenario {id, seed}` writes it into `control` (seed -> `control.scenario.seed`).
+`modules/scenarios.py` lists the nodes and ranges for the page «Сценарии» and a test compares them with the table.
+
 ## Run (from the folder that contains `aktogay/`)
 
 ```
@@ -92,6 +120,10 @@ python -I aktogay/run.py calib --quick         # fast calibration table + calib.
 python -I aktogay/run.py calib --out calib.json   # full: step 10 min, about 4 min
 python -I aktogay/run.py service --dry-run --duration 30 --speed 1200   # service without MQTT
 python -I aktogay/run.py trial --n 100 --no-twin --jobs 5 --out trial.json   # about 3 min
+python -I aktogay/run.py replay --write aktogay/web/static/replay.json        # replay of the trial shifts (no new trial)
+python -I aktogay/run.py paramstat --write aktogay/web/static/params_summary.json   # labels of the parameter tables
+python -I aktogay/modules/scenarios.py --write-json aktogay/web/static/scenarios.json
+python -I aktogay/modules/apidoc.py --write-md aktogay/web/API.md --write-json aktogay/web/static/modules.json
 python -I aktogay/setup/gen_site.py            # generated things of the site into setup/things.json
 python -I aktogay/setup/gen_tm.py              # then the Thing Models
 ```
@@ -124,6 +156,21 @@ A call of an issue thing (`journal.last.issue = "issue-7"`, `auto_call`)
 becomes a call at its node through `mod-priority.issue_map`; the plant finds
 the issue there and books the crew (people twins follow the crew).
 
+Tier S of 23.10.2026 (scenario tokens, all with a card of readiness in `modules/readiness.py`): `icy` (ice and snowstorm on
+the haul roads for `scen_icy_h`: visibility, friction index, haul speed in `pit.*`; the season alone changes the road state but
+not the throughput; the decision `Plant.call("pit")` restricts the traffic and closes the S0 trouble), `fatigue` (alert of a tired
+driver of HT141, assumption), `oil` (hydraulic oil contamination of EX01, `exc-1.oil_pct` rising over `pit_oil_rise_h`; the pump
+fails `pit_oil_fail_h` after the alert unless the shift mechanic is called, then the excavator is DOWN `pit_oil_repair_h`),
+`roping:N` (cause kind `roping`: cyclone P80, pressure and circulating load up, ball mill draw above rating, after
+`cyc_rope_escalate_h` the flotation loses `cyc_rope_flot_pp` for `cyc_rope_flot_h`; ended by a decision of the grinding operator),
+`phdrift:N` (cause kind `phdrift`: the pH reading stays on the setpoint, the real pH is higher by `hc_ph_drift`, the grab sample
+`ph-N.lab_ph` shows it; the I&C crew cleans the electrode), `hpgr:2` (uneven feed of the line 2 HPGR: skew and drive power difference
+grow over `peb_hpgr_ramp_min`, the pebble circuit limit falls; after `peb_hpgr_tramp_after_h` without a repair the metal detector
+trips and the HPGR stands `peb_hpgr_stop_h`), `mantle:N` (planned mantle change of crusher N, `crusher.service` = 1, about
+`crush_mantle_h`). `roping` and `phdrift` are cause kinds set only by a scenario (never drawn in free run). The trial takes the
+money kinds of the tier through `trial --library tier_s` (roping, phdrift, hpgr, mantle); the default library, and so the N = 100
+summary, is unchanged.
+
 Commands come as Ditto twin events on MQTT (`opentwins/twin/events/kz.aktogay/<thing>`):
 `control.scenario {seq, id, preset, kip, auto, safety, speed}`, `control.speed
 {seq, value}` (0 = pause, heartbeat every 2 s), `control.reset {seq, seed}`
@@ -134,7 +181,7 @@ copy. A seq seen before is ignored. Scenario ids besides `crusher:N`, `grid`,
 (return-water pipeline leak: fresh water at its cap, ore cut, crew-water —
 the tailings and water team led by person-water — repairs), `hpgr_fire` (fire at the HPGR of concentrator 1 as on 09.08.2026:
 S0, pebble circuit of line 1 down, mill mechanic evacuated, line 2 runs on)
-and `road:N` (ramp of line N closed, trucks on a detour). Silent causes `energy:N` (SAG kWh/t +10 %), `reagent:N` (collector +40 % while the
+and `road:N` (ramp of line N closed, trucks on a detour), `conveyor:N` (the main belt of line N trips: `conveyor.fault` = 1, the crusher stands with an empty belt, crew-cpd repairs it in `conv_repair_h`; the stockpile carries the SAG) and `pitstop` (every ore excavator is DOWN for `scen_pitstop_h`: the chain pit -> haul -> crusher -> belt -> stockpile -> SAG shows when each line starves; the module raises `pit_stop`, called person: the mine dispatcher). Silent causes `energy:N` (SAG kWh/t +10 %), `reagent:N` (collector +40 % while the
 flowmeter reads the setpoint) and `leak` (3 % of the pond return, no meter): also drawn in free run from their
 own stream (`hc_silent_per_shift`); found only by the module balances. Scenario tokens of 23.10.2026: `winter` (return water 3 % lower, label in the header, `water.winter`; the season of a
 run follows the host date unless `AKT_SEASON=winter|summer`), `dust` (windy dry beach for `scen_dust_h`), `startup:N` (planned
@@ -168,7 +215,9 @@ SAG of the shed line gets the headroom (and the plant latches it,
 decisions (it overstated the gain). Result of 22.10.2026 (N 100, seeds
 1001-1100, `sim/data/trial_n100.json`): twin in all +1.26 t Cu per shift
 [95 % BCa +1.06; +1.52], 93 % of shifts better, none worse; order alone
-+0.08 [+0.05; +0.23] [model estimate]. `--set`, `--hidden-mult`, `--mag` are
++0.08 [+0.05; +0.23] [model estimate; historical, library without tier S]. Current main result (experiment of
+24.10.2026, full library, `sim/data/experiment_23.json`, VALIDATION.md 8.8): twin minus expert +1.07 t Cu per shift
+[+0.89; +1.31]; the pages read it from `web/static/exp23.json` (`run.py exp23 --write`). `--set`, `--hidden-mult`, `--mag` are
 the sensitivity options.
 
 ## Library vs site passport
@@ -233,6 +282,86 @@ Slow tests (full calibration, 7 model days) run only with `AKT_SLOW=1`
 Tests of not yet implemented functions are skipped, not failed (decorator
 `needs_impl`); they become active as soon as the stub is replaced.
 
+## Long run: what keeps the Ditto cluster up (23.10)
+
+Incident of 23.10 (times UTC). Evidence, from `docker logs` and the Windows System log:
+
+- 16:49:59 on: every JVM (policies, things-search, connectivity, gateway, things) logs "Scheduled sending of
+  heartbeat was delayed", 2 s at first, then 15 s, 100 s (gateway), 570 s (things-search); the things service
+  writes 27 000 log lines a minute until 16:49 and about 10 a minute after; gateway "Ask timed out after 30000 ms";
+  16:53:21 "Marking node as UNREACHABLE" for four members. The stand had been using 2.0 of the 4 vCPU of the
+  Docker VM (things 110 %, gateway 36 %, connectivity 20 %, search 15 %, mongodb 7 %) with nothing but its own
+  reading; a headless Chrome with software WebGL ran on the same host, and the host was on battery.
+- 17:03:27 the host went to sleep (Kernel-Power 42, "Critical Battery Trigger Met" 17:02:53), system time jumped
+  from 17:03:52 to 17:15:35. Logs of gateway, things-search, connectivity, mongodb and nginx are empty from 17:03:44
+  to 17:15:51: the whole VM stood still for 12 minutes.
+- 17:16:22 on wake: "heartbeat interval is growing too large ... 47387 millis", every member UNREACHABLE, the split
+  brain resolver waits its 8 s, downs the minority, the JVMs exit with code 0 (`akka.coordinated-shutdown.exit-jvm=on`),
+  Docker restarts them (17:16:32 mongodb, 17:16:41 things, 17:16:51 connectivity, 17:17:26 gateway), healthy again
+  within 2 minutes. This is the recovery the template describes in its own compose comments; no OOM, no crash.
+  A host that sleeps cannot be helped by any failure detector setting short of 12 minutes, and a pause that long
+  would blind the cluster to a real failure, so the template's Akka settings stay as they are.
+
+So the restarts had a host cause (sleep) behind a stack with no CPU margin. What our services did to the margin,
+and what changed:
+
+| where | before | now |
+|---|---|---|
+| `modules/main.py` | whole twin (150 things, 0.4-0.5 MB) read every poll, a read took 1-3 s, back to back: 110 % of a core in things, 36 % in gateway | the 62 bulk things nobody reads (37 trucks, dozers, drills, faces, ramps, road, validation-*, baseline) are left out of the filter (`SEARCH_SKIP`, `search_filter`); a cheap read of the site clock (run, sim_time) each `POLL_S`, the twin is read when the clock moved and settled (`AKT_SETTLE_S` 2 s after the first change; a point is published over about 3 s), again after `AKT_RETRY_S` while a point is incomplete, at least every `AKT_MAX_AGE_S`; a read never takes more than `AKT_DUTY` of the wall time (`PollGate`) |
+| `web/server.py` | each tab polled `/api/state` every 2 s, each answer waited for its own whole read under a lock (1 s cache): with a page open 30 whole reads a minute on top of the modules | one thread reads the twin while somebody asks and all tabs get the last read as ready bytes: the 88 live things every `AKT_STATE_REFRESH_S` (3 s), the 62 things published in rotation (trucks, faces, ramps, drills, dozers, dump road, validation-calib) every `AKT_STATE_SLOW_S` (10 s); older than `AKT_STATE_STALE_S` (30 s) the tab is told "no link"; journal and history answers from InfluxDB are cached `AKT_INFLUX_CACHE_S` (5 s) |
+| `web/static/diorama/core.js`, `site3d.js` | the 3D diorama on software WebGL (a browser without a graphics card; headless Chrome with `--disable-gpu`) took 4.1 cores at 30 frames a second; the scheme pages and the text pages take 0.1-0.2 | the diorama starts in its light mode when WebGL is software (8 frames a second, lower resolution: 0.9 cores), the button gives the full look back, a choice made by hand is remembered; the satellite 3D view (3.2 cores) draws 8 frames a second on software WebGL |
+| `sim/service.py` | a batch delete went out 4 times; the 3 after the one that worked each failed in Ditto with ThingNotAccessible, a WARN with a stack and dead letters (the "batch-0021 could not be found" lines) | `BATCH_DELETE_REPEATS = 1` |
+
+Batches. `batch-00NN` are made and deleted by akt-sim alone (`modify /` with policyId when the plant makes one,
+again at the next 2 checkpoints and once per model hour; `delete /` when the plant drops it); akt-setup must not create
+them (numbers restart at 0001 in every process; the first point of a process deletes 0001..0099). Merges to a batch
+that Ditto does not have appear only after a Ditto restart (the cold cluster cannot load the thing for a minute,
+17:17:52-17:18:01 in the incident) and stop by themselves at the next hourly re-create; the sim never writes to a
+batch after it deleted it (`tests/test_load.py`).
+
+Overlay `compose.yml` (the template files are untouched), each line with its reason:
+
+- `logging: json-file, max-size 20m, max-file 3` on every long-running service: the things log was 10 GB after a
+  day (it is not rotated by default); with rotation a day costs at most 60 MB per service.
+- `LOG_LEVEL_APPLICATION: WARN` on policies, things, things-search, connectivity, gateway: INFO of `org.eclipse.ditto`
+  wrote three lines per retrieved thing and two per command (260 lines/s, 220 MB/h in things alone); akka and
+  cluster messages (Unreachable, SBR, shutdown) use other loggers and stay.
+- `cpu_shares: 4096` on the five Ditto services, mongodb and mosquitto: when something else on the machine wants
+  the CPU (a browser rendering WebGL in software on the same VM, the case on a contest VM), these get four times
+  the weight of an ordinary process, so the cluster heartbeat is not starved first.
+- `akt-modules` environment: the four poll knobs above, set to their defaults so they are visible.
+
+Not changed, deliberately: Akka failure detector, SBR, heaps and memory limits of the template (see its comments).
+
+Measured on the 4 vCPU / 5.9 GiB Docker VM, free run x60, AC power (CPU of the containers, mean over 45 s, no browser):
+before things 110 %, gateway 36 %, connectivity 20 %, things-search 15 %, mongodb 7 % (sum 200 % of 400 %);
+after things 43 %, gateway 11 %, connectivity 20 %, things-search 15 %, mongodb 6-15 % (sum 116 %). The twin is read
+about 1 500 times a minute by the modules (90 things, once per published point) instead of about 1 800 plus 4 500
+for an open page, and the 62 rotation things cost the most per read. 10-minute smoke with a GPU-less headless Chrome
+(`--disable-gpu`) cycling plan, diorama, satellite 3D and line pages, re-loaded every 2 minutes: no restart, Ditto GET of
+a thing p95 177 ms (max 264 ms), `/api/state` at most 28 ms, InfluxDB query at most 298 ms, the interface never showed
+"нет связи с двойником". Peaks seen: things 139 % of a core (560 of 768 MiB), connectivity 640 of 896 MiB, gateway 517
+of 768 MiB. The contest VM (8 vCPU, 16 GiB) has twice the CPU and more than twice the memory of this one. The first
+3 minutes after a cold start of the Ditto services are heavier (JIT, caches; the ramp of the publisher): on the first
+deploy of 23.10 a page opened at that moment waited 15 s once; a page opened after those minutes did not.
+
+Operational requirements (for the README): the machine must not sleep or hibernate while the stand runs (a stopped
+clock is seen by Akka as 12 minutes without heartbeats); at least 4 vCPU and 6 GiB for Docker (measured peak below),
+the template's contest VM has 8 vCPU and 16 GiB; a browser on the same machine takes CPU from the stand.
+
+## What-if levers and equipment troubles (24.10.2026)
+
+Levers (`?view=levers`, «Пульт модели» → «Рычаги модели»): SAG feed per line 80-120 % of the line rate, grind P80 target 160-200 um,
+collector dose 15-40 g/t. They steer the model, not the plant: off by default (a neutral value is not stored, the model stays
+byte-identical), clamped to the `lev_*` rows, reset with a scenario cancel. `POST /api/lever {feed_1, feed_2, p80_um, dose_gt, reset}`
+writes `control.lever` into Ditto, `akt-sim` applies it to the fact copy only; the first lever of a free run starts the base copy of
+the same minute without levers, so «база / с рычагами / разница» is the usual copy difference. The advice button
+(`modules/lever_advice.py`, `web/static/lever.js`) only posts the same call; the modules never write levers.
+P80 slope: lab 1.2 pp per 10 um (Bozshakol composite), plant regression 1.95 pp (both shown); reagent price is an assumption
+(`lev_reagent_usd_t`); the Volza / ITB / ScienceDirect pages did not open.
+Troubles of tier T are scenario tokens (never drawn in free run, so the N = 100 summary is unchanged): signal ramps from normal to
+alert, the consequence follows unless the called role fixes it; thresholds are examples or assumptions as labelled in the cards.
+
 ## Parallel work
 
 Each component owns its files; nobody edits another component's file. Shared
@@ -270,11 +399,18 @@ Calibration choices (design section 4, revised):
 
 ## Known gaps (TODO)
 
+- Tier S (23.10.2026): the thresholds of the new troubles (visibility 150 m, friction 0.40, circulating load 320 %, skew 6 %, pH gap
+  0.3, oil failure 8 h after the alert) and the size of their effects are assumptions of the stand (64 of the 78 new parameter rows);
+  the sources name the risks, not the numbers. The trial library has the money kinds of the tier as an opt-in (`--library tier_s`),
+  the N = 100 summary in `sim/data/trial_n100.json` was not recomputed for them. A blocked analyser sample line (`sample:N`) is a
+  deviation without a price; the tired driver (`fatigue`) is a scenario, its sensor is not confirmed by any source.
 - 2023 ore is not in the sources: the 2023 check derives it from the 2023
   electricity; add the KAZ FY2023 figure to make the 2023 water check independent.
 - Feed-end changes at intermediate relines only restart the wear counter;
   their downtime sits inside the fitted availability.
-- Quarter grades other than Q3 2025 are not in the sources yet.
+- Quarter grades, ore and recovery of 2018-2025 are in `sim/data/kaz_quarterly.csv` (32 reports, URL and page per row);
+  the back-test of the 28 quarters outside the 2025 fit is `sim/backtest.py` (`run.py backtest`, result
+  `sim/data/backtest_q.json`, VALIDATION.md 6.1). The SAG stop calendar still holds 2024-2025 only.
 - Stop days within the month are assumptions; the reports name one SAG
   reline (line 2, August 2025) and one planned SAG maintenance (line 2,
   October 2024); the other calendar stops are planned maintenance whose kind

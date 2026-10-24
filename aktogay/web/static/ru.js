@@ -59,11 +59,23 @@
     eta: 'ждём к (время модели)', escalation: 'не прибыл', chain: 'цепочка ответственности', chain_text: 'кто занят и кого звать вместо',
     choice_text: 'цена выбора бригады', permit_text: 'наряд-допуск', permit: 'наряд-допуск (узел)', start_cmd: 'команда на пуск',
     balls_gt: 'расход шаров, г/т', deviations: 'отклонения', deviations_text: 'отклонения (хроника)', decisions: 'вызовы смены против порядка модели',
-    review_text: 'А если бы позвали иначе?', tariff: 'тариф по часам', tariff_text: 'тариф сейчас', season_text: 'зима',
+    review_text: 'А если бы позвали иначе?', liner_ground_t: 'наработка футеровки с перефутеровки, т', checklist: 'что делать', closure: 'как закроется', hpgr_tph: 'ВВД: номинал, т/ч', hpgr_load_pct: 'ВВД: загрузка, %', hpgr_kw: 'ВВД: мощность, кВт', forecast: 'прогнозы: склад, футеровка, медь', forecast_text: 'прогнозы словами', tariff: 'тариф', tariff_text: 'тариф сейчас', season_text: 'зима',
     air_temp_c: 'температура воздуха, °C', wind_ms: 'ветер, м/с', beach_dry_pct: 'сухой пляж, %', winter: 'зима (1 — включена)', handover: 'лист сдачи смены', handover_text: 'сдача смены',
     handover_draft_text: 'что передать сейчас', escalations: 'журнал «не прибыл»', silent_text: 'тихие перерасходы',
     water_leak_m3h: 'утечка по балансу воды (≈)', water_leak_usd_h: 'утечка, $/ч (≈)',
     leak_m3h: 'утечка (счётчика нет)', short_m3h: 'нехватка воды', cut_tph: 'снижение питания из-за воды', intake_cap_m3h: 'предел забора', reline_until_min: 'перефутеровка до',
+    /* tier S (23.10.2026): winter road, excavator oil, tired driver, mantle change, roping, HPGR, pH meter, evidence */
+    visibility_m: 'видимость на откатке, м', road_grip: 'сцепление дорог (индекс 0…1)', haul_speed_pct: 'скорость откатки к сухой дороге, %',
+    road_restrict: 'ограничение движения введено (1 — да)', oil_pct: 'загрязнение масла, % от уровня тревоги',
+    gmd_gap_mm: 'воздушный зазор привода, мм', idler_temp_c: 'температура подшипника ролика, °C', level_swing_pct: 'размах уровня ячеек, %',
+    rake_torque_pct: 'момент граблин, % расчётного', cycle_pct: 'цикл фильтрации, % новой ткани', pump_head_pct: 'напор насоса питания циклонов, % нормы',
+    brake_oil_c: 'температура масла тормозов, °C', brake_truck: 'самосвал с горячими тормозами', track_press_pct: 'натяжение гусениц, % уровня автостопа',
+    oil_alert: 'тревога датчика масла (1 — да)', fatigue: 'оповещение об усталости водителя (1 — да)', fatigue_truck: 'машина в оповещении',
+    service: 'плановая замена брони (1 — идёт)', service_left_h: 'до конца замены брони, ч', circ_load_pct: 'циркулирующая нагрузка, %',
+    power_pct: 'нагрузка привода, % номинала', hpgr_skew_pct: 'ВВД: перекос валков, %', hpgr_kw_diff_pct: 'ВВД: разница мощности приводов, %',
+    metal_alarm: 'металлодетектор сработал (1 — да)', ph: 'pH онлайн', sp_ph: 'pH, уставка', lab_ph: 'pH, ручная проба',
+    evidence: 'измерения и возраст данных', evidence_text: 'измерения словами', notify_text: 'также сообщить',
+    suspect_sensors: 'приборы под подозрением', suspect_text: 'приборы под подозрением (словами)',
   };
   const NODE = { 'sag-1': 'SAG-1', 'sag-2': 'SAG-2', 'cyclones-1': 'циклоны 1', 'cyclones-2': 'циклоны 2', 'flot-1': 'флотация 1', 'flot-2': 'флотация 2' };
   const LOSS_PART = { gap_cu_tph: 'разрыв, т Cu/ч', gap_usd_h: 'разрыв, $/ч', sigma: 'σ, т Cu/ч', status: 'вывод', roles: 'кого звать' };
@@ -147,12 +159,12 @@
     conveyor: 'конвейер', stockpile: 'склад руды', line: 'линия фабрики', sag: 'мельница SAG', ball: 'шаровая мельница',
     cyclones: 'гидроциклоны', flot: 'флотация', rougher: 'основная и контрольная флотация', cleaner: 'перечистка',
     water: 'хвосты и вода', power: 'энергоснабжение', crew: 'бригада', fleet: 'парк карьера', pebble: 'дробление гали',
-    thick: 'сгуститель', filter: 'фильтр', 'conc-stock': 'склад концентрата', 'mod-losses': 'модуль «Где теряется медь»',
+    thick: 'сгуститель', filter: 'фильтр', 'conc-stock': 'склад концентрата', leach: 'куча выщелачивания', sxew: 'SX-EW, катод', 'mod-losses': 'модуль «Где теряется медь»',
     'mod-ore': 'модуль «Какая руда идёт»', 'mod-priority': 'модуль «Очередь бед»', issue: 'беда', control: 'пульт модели',
     journal: 'журнал смены', 'validation-setup': 'проверка установки', 'validation-sim': 'журнал правды симулятора',
     'validation-calib': 'калибровка и проверка', baseline: 'копии модели', person: 'человек', worker: 'работник',
     sensor: 'датчик', piezometer: 'пьезометр', piezo: 'пьезометр', truck: 'самосвал', excavator: 'экскаватор', face: 'забой',
-    road: 'дорога', hpgr: 'пресс дробления гали (HPGR)', analyzer: 'анализатор', weigher: 'конвейерные весы', flowmeter: 'расходомер', dozer: 'бульдозер', drill: 'буровой станок', piezometer: 'пьезометр', 'water-trouble': 'беда с водой', pipe: 'водовод', well: 'скважина', pump: 'насос' };
+    road: 'дорога', hpgr: 'пресс дробления гали (HPGR)', phmeter: 'pH-метр флотации', analyzer: 'анализатор', weigher: 'конвейерные весы', flowmeter: 'расходомер', dozer: 'бульдозер', drill: 'буровой станок', piezometer: 'пьезометр', 'water-trouble': 'беда с водой', pipe: 'водовод', well: 'скважина', pump: 'насос' };
   AKT.typeRu = t => TYPE[t] || (t ? tokensRu(String(t).replace(/-/g, '_')) : t);
   /* states that read differently by type (the shared table is in app.js) */
   const ST_TYPE = {
@@ -165,8 +177,12 @@
     issue: { OPEN: 'не позвали', CALLED: 'позвали', IN_WORK: 'чинят', SNOOZED: 'отложено', RESOLVED: 'устранено' },
     road: { OPEN: 'открыта', CLOSED: 'закрыта' }, face: { ACTIVE: 'в работе', FLOODED: 'подтоплен' },
     drill: { DRILLING: 'бурит', MOVING: 'переезд', IDLE: 'ждёт', DOWN: 'в ремонте' }, dozer: { WORK: 'работает', IDLE: 'ждёт', DOWN: 'в ремонте' },
+    phmeter: { OK: 'исправен', DRIFT: 'дрейф подтверждён', SUSPECT: 'под подозрением' },
+    exc: { DIG: 'копает', MOVE: 'переезд', IDLE: 'простой', DOWN: 'отказ, ремонт' },
   };
-  AKT.stRuType = (s, name) => { const t = ST_TYPE[AKT.type(name)] || (AKT.cat ? ST_TYPE[AKT.cat(name)] : null); return t && t[s] ? t[s] : null; };
+  AKT.stRuType = (s, name) => {
+    /* a belt that stands only because no ore comes (no trip signal) is waiting, not broken */
+    if (s === 'STOP' && AKT.type(name) === 'conveyor' && AKT.raw(name, 'fault') === 0) return 'ждёт руду'; const t = ST_TYPE[AKT.type(name)] || (AKT.cat ? ST_TYPE[AKT.cat(name)] : null); return t && t[s] ? t[s] : null; };
   AKT.batchStRu = s => s ? (ST_TYPE.batch[s] || AKT.stRu(s)) : '—';
   const KIND = { crusher_stop: 'дробилка стоит', lube_trip: 'защита по маслу', conveyor_stop: 'конвейер стоит',
     reline: 'перефутеровка', sag_stop: 'мельница стоит', pebble_stop: 'дробление гали стоит', ball_stop: 'шаровая стоит',
@@ -174,12 +190,17 @@
     loss_sag: 'перерасход энергии SAG', loss_cyclones: 'потери в циклонах', loss_flot: 'потери во флотации',
     reagent_over: 'перерасход собирателя', water_leak: 'утечка воды по балансу', startup_zone: 'пуск при людях в мельнице',
     tailings_dust: 'пыление пляжа хвостохранилища', grind_coarse: 'помол крупнее нормы', conc_low: 'Cu в концентрате ниже нормы',
-    cstock_high: 'склад концентрата почти полон', cstock_full: 'склад концентрата полон', fleet_short: 'нехватка самосвалов',
+    loss_flot_oxide: 'окисленная руда', cstock_high: 'склад концентрата почти полон', cstock_full: 'склад концентрата полон', fleet_short: 'нехватка самосвалов', pit_stop: 'карьер не подаёт руду',
     grid_limited: 'сеть урезала мощность', dam_alarm: 'пьезометр дамбы', hard_ore: 'твёрдая руда',
     water: 'беда с водой', water_short: 'не хватает воды', water_trouble: 'беда с водой', pipe_leak: 'порыв водовода',
     intake_low: 'мало свежей воды', pond_low: 'пруд мелеет', pond_high: 'пруд переполняется', piezo_alarm: 'пьезометр дамбы',
     hpgr_fire: 'пожар на прессе дробления гали', fire: 'пожар', hpgr_stop: 'пресс дробления гали стоит', truck_down: 'самосвал сломан',
-    exc_down: 'экскаватор сломан', face_flooded: 'забой подтоплен', road_closed: 'дорога закрыта', person_injured: 'травма' };
+    leach_cold: 'холодное выщелачивание', exc_down: 'отказ экскаватора', face_flooded: 'забой подтоплен', road_closed: 'дорога закрыта', person_injured: 'травма',
+    road_winter: 'зимняя дорога', driver_fatigue: 'усталость водителя', roping: 'канатирование', sensor_ph: 'pH-метр под подозрением',
+    hpgr_uneven: 'неравномерное питание ВВД', crusher_mantle: 'замена брони', oil_contam: 'загрязнение масла',
+    gmd_gap: 'воздушный зазор привода SAG', idler_hot: 'перегрев ролика конвейера', froth_swing: 'колебания уровня флотации',
+    rake_torque: 'момент граблин сгустителя', cloth_blind: 'ткань фильтра слепнет', pump_cavit: 'кавитация насоса циклонов',
+    brake_hot: 'перегрев тормозов самосвала', track_tension: 'натяжение гусениц экскаватора' };
   /* the title of an issue card: what is wrong, in plain words */
   const KIND_TITLE = { loss_sag: '{n}: тихий перерасход энергии', reagent_over: '{n}: перерасход собирателя',
     startup_zone: '{n}: пуск при людях внутри', tailings_dust: 'Пыление пляжа хвостохранилища', grind_coarse: '{n}: помол крупнее нормы',
@@ -187,12 +208,16 @@
     water_leak: 'Утечка воды: видна только по балансу', loss_flot: '{n} теряет медь в хвостах', loss_cyclones: '{n}: крупный помол уходит на флотацию',
     crusher_stop: '{n} стоит', lube_trip: '{n}: сработала защита по маслу', conveyor_stop: '{n} стоит', sag_stop: '{n} стоит', pebble_stop: '{n} стоит',
     ball_stop: '{n} стоит', filter_one: '{n}: работает один пресс из двух', filter_stop: '{n} стоит', thick_high: '{n} заполнен на 80 %', thick_full: '{n} полон',
-    cstock_high: 'Склад концентрата почти полон', cstock_full: 'Склад концентрата полон', fleet_short: 'Не хватает самосвалов',
+    cstock_high: 'Склад концентрата почти полон', cstock_full: 'Склад концентрата полон', fleet_short: 'Не хватает самосвалов', pit_stop: 'Карьер не подаёт руду',
     grid_limited: 'Сеть урезала мощность', dam_alarm: 'Дамба хвостохранилища: давление воды выше нормы', piezo_alarm: 'Дамба хвостохранилища: давление воды выше нормы',
     hard_ore: 'Идёт твёрдая руда', water: 'Беда с водой', water_short: 'Не хватает воды', water_trouble: 'Беда с водой', pipe_leak: 'Порыв водовода',
     intake_low: 'Мало свежей воды', pond_low: 'Пруд хвостохранилища мелеет', pond_high: 'Пруд хвостохранилища переполняется',
     hpgr_fire: 'Пожар на прессе дробления гали', fire: 'Пожар', hpgr_stop: 'Пресс дробления гали стоит', truck_down: 'Самосвал сломан',
-    exc_down: '{n} сломан', face_flooded: '{n} подтоплен', road_closed: '{n} закрыта', person_injured: 'Травма человека', reline: '{n}: перефутеровка' };
+    leach_cold: 'Куча выщелачивания: катод ниже нормы', exc_down: '{n}: отказ', face_flooded: '{n} подтоплен', road_closed: '{n} закрыта', person_injured: 'Травма человека', reline: '{n}: перефутеровка',
+    road_winter: 'Зимняя дорога: ограничить движение', driver_fatigue: 'Усталость водителя (допущение)', roping: '{n}: канатирование',
+    sensor_ph: '{n} под подозрением', hpgr_uneven: '{n}: перекос ВВД', crusher_mantle: '{n}: замена брони', oil_contam: '{n}: загрязнение масла',
+    gmd_gap: '{n}: зазор привода', idler_hot: '{n}: перегрев ролика', froth_swing: '{n}: колебания уровня', rake_torque: '{n}: момент граблин',
+    cloth_blind: '{n}: ткань слепнет', pump_cavit: '{n}: кавитация насоса', brake_hot: 'Перегрев тормозов самосвала', track_tension: '{n}: натяжение гусениц' };
   AKT.kindTitle = (k, nodeName) => {
     const t = KIND_TITLE[k];
     if (t) return t.replace('{n}', nodeName || 'Узел');

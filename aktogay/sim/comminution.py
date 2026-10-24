@@ -300,13 +300,14 @@ def _running(balls: list[BallState]) -> int:
     return sum(1 for b in balls if b.state == BALL_RUN)
 
 
-def line_feed_cap_tph(balls: list[BallState], bwi: float, prm: ParamSet) -> float:
+def line_feed_cap_tph(balls: list[BallState], bwi: float, prm: ParamSet, p80_um: float = 0.0) -> float:
     """Line control rule: fresh-feed cap so running ball mills hold ball_p80_target_um, t/h.
 
     All ball_per_line mills running -> float("inf"); none running -> 0.
     Otherwise ball_q_for_p80(sum of running mill power, bwi, ball_p80_target_um),
     mill power = ball_power_mw (load-driven, not the last published value).
     C2: one mill, BWi 19.4 -> 1937 t/h.
+    p80_um > 0 (lever "grind target") replaces ball_p80_target_um.
     """
     n_run = _running(balls)
     if n_run >= int(round(prm["ball_per_line"])):
@@ -314,7 +315,17 @@ def line_feed_cap_tph(balls: list[BallState], bwi: float, prm: ParamSet) -> floa
     if n_run == 0:
         return 0.0
     power_kw = n_run * prm["ball_power_mw"] * KW_PER_MW
-    return ball_q_for_p80(power_kw, bwi, prm["ball_p80_target_um"], prm)
+    return ball_q_for_p80(power_kw, bwi, p80_um if p80_um > 0.0 else prm["ball_p80_target_um"], prm)
+
+
+def line_grind_rate_tph(balls: list[BallState], bwi: float, p80_um: float, prm: ParamSet) -> float:
+    """Fresh feed at which the running ball mills (all of them) grind to p80_um, t/h (lever "grind target");
+    0 when none runs; finite (a P80 at or above the mill feed F80 gives no limit: nominal line rate)."""
+    n_run = _running(balls)
+    if n_run == 0:
+        return 0.0
+    q = ball_q_for_p80(n_run * prm["ball_power_mw"] * KW_PER_MW, bwi, p80_um, prm)
+    return q if q < INF else prm["cal_line_tph"]
 
 
 # ---------------------------------------------------------------------------
@@ -352,13 +363,17 @@ def _pebble_update(peb: PebbleState, feed_tph: float, limit_tph: float, prm: Par
     peb.feed_tph = feed_tph
     peb.limit_tph = limit_tph
     peb.load_pct = PCT * feed_tph / limit_tph if limit_tph > 0.0 else 0.0
+    if peb.hpgr_tph > 0.0:      # line 2: the HPGR rides on the same pebble flow; stands when the circuit stands
+        run = peb.state != PEB_STOP
+        peb.hpgr_load_pct = PCT * feed_tph / peb.hpgr_tph if run else 0.0
+        peb.hpgr_kw = prm["peb_hpgr_l2_kw"] * min(1.0, feed_tph / peb.hpgr_tph) if run else 0.0
     if peb.state != PEB_STOP:
         peb.state = PEB_LIMIT if peb.load_pct >= PCT * prm["peb_warn_frac"] else PEB_RUN
 
 
 def sag_step(sag: SagState, peb: PebbleState, feed_avail_tph: float, ore: OreProps,
              power_cap_kw: float, fx: CauseEffects, dt_min: float, prm: ParamSet,
-             z_power: float) -> float:
+             z_power: float, feed_sp_tph: float = 0.0) -> float:
     """Advance the SAG mill and pebble loop one step; returns fresh feed drawn, t/h.
 
     feed_avail_tph: what the stockpile can deliver this step, t/h;
@@ -432,6 +447,12 @@ def sag_step(sag: SagState, peb: PebbleState, feed_avail_tph: float, ore: OrePro
     e = sag_specific_energy(feed, prm, peb_on) * fx.sag_e_mult      # silent cause "energy": more kWh/t
     eta = sag.eta
     cap = sag_capacity_tph(p_sp, e, eta)
+    if feed_sp_tph > 0.0:
+        if feed_sp_tph > cap:
+            p_hi = max(p_sp, min(rated_kw, power_cap_kw))
+            cap = min(feed_sp_tph, sag_capacity_tph(p_hi, e, eta))
+        else:
+            cap = feed_sp_tph
     frac = pebble_fraction(feed.axb, prm)
     if peb_on and frac * cap > limit_tph:
         cap = limit_tph / frac
@@ -464,6 +485,7 @@ def sag_step(sag: SagState, peb: PebbleState, feed_avail_tph: float, ore: OrePro
     ground_mt = q * dt / MIN_PER_H / T_PER_MT
     sag.liner_wear_mm = feed_end_wear_mm(sag.liner_wear_mm + prm["liner_wear_mm_mt"] * ground_mt, prm)
     sag.liner_x += fx.liner_wear_mult * ground_mt / prm["liner_life_mt"]
+    sag.liner_ground_t += ground_mt * T_PER_MT
     sag.feed_ore = feed.copy()
     sag.state = state
 
@@ -501,7 +523,7 @@ def cyclone_open_for(q_tph: float, prm: ParamSet) -> int:
     return min(max(n, 1), int(round(prm["cyc_total"])))
 
 
-def cyclone_step(cy: CycloneState, q_tph: float, p80_grind_um: float, prm: ParamSet) -> float:
+def cyclone_step(cy: CycloneState, q_tph: float, p80_grind_um: float, prm: ParamSet, rope: float = 0.0) -> float:
     """Cyclone cluster; returns flotation feed P80, um.
 
     open_count = cyclone_open_for(Q) (cluster control; clogging does not change it);
@@ -511,18 +533,24 @@ def cyclone_step(cy: CycloneState, q_tph: float, p80_grind_um: float, prm: Param
     UPSET when Q > 0 and |pressure / cyc_pressure_kpa - 1| > cyc_upset_frac.
     Q = 0: pressure 0, p80 and open_count keep their last values, NORMAL.
     p80_grind_um <= 0 (no grind result): p80 keeps its last value.
+    rope (0..1, scenario roping:N): the underflow turns into a rope, the overflow gets coarse: p80 + cyc_rope_p80_um x rope,
+    pressure x (1 + cyc_rope_dp_frac x rope), circulating load x (1 + cyc_rope_circ_frac x rope).
     """
     p0 = prm["cyc_pressure_kpa"]
     if q_tph <= 0.0:
         cy.pressure_kpa = 0.0
         cy.state = CY_NORMAL
+        cy.rope = 0.0
+        cy.circ_load_pct = prm["cyc_circ_base_pct"]
         return cy.p80_um
     clogged = max(cy.clogged, 0)
     cy.open_count = cyclone_open_for(q_tph, prm)
     if p80_grind_um > 0.0:
         cy.p80_grind_um = p80_grind_um
-        cy.p80_um = p80_grind_um + prm["cyc_clog_p80_um"] * clogged
+        cy.p80_um = p80_grind_um + prm["cyc_clog_p80_um"] * clogged + prm["cyc_rope_p80_um"] * rope
     rel = q_tph / prm["cal_line_tph"] * prm["cyc_open"] / cy.open_count
-    cy.pressure_kpa = p0 * rel * rel * (1.0 + prm["cyc_clog_dp_frac"] * clogged)
+    cy.pressure_kpa = p0 * rel * rel * (1.0 + prm["cyc_clog_dp_frac"] * clogged) * (1.0 + prm["cyc_rope_dp_frac"] * rope)
+    cy.rope = rope
+    cy.circ_load_pct = prm["cyc_circ_base_pct"] * (1.0 + prm["cyc_rope_circ_frac"] * rope)
     cy.state = CY_UPSET if abs(cy.pressure_kpa / p0 - 1.0) > prm["cyc_upset_frac"] else CY_NORMAL
     return cy.p80_um

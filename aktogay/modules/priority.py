@@ -25,14 +25,22 @@ issue once).
 from __future__ import annotations
 
 import logging
+import math
 from dataclasses import dataclass, field
 
 from . import dispatch as dp
 from . import expect as ex
-from .params import Prm
+from . import flood
+from . import oxide
+from . import forecast as fc
+from . import lever_advice
+from . import readiness as rd
+from . import tiers
+from . import tiers_t
+from .params import ROW, Prm
 from .policy import Plan, Ranked, Trouble, first_choice_losses, rank
 from .store import NO_VALUE, Store
-from .text import ASSUME, EST, LIT, batch_ru, cu_tph, dur, hhmm, hhmm_day, num, signed, usd, usd_h
+from .text import ANALOG, ASSUME, EST, LIT, batch_ru, cu_tph, dur, hhmm, hhmm_day, num, signed, usd, usd_h
 
 log = logging.getLogger("priority")
 
@@ -42,7 +50,7 @@ READS = ("site", "pit", "exc-1", "exc-2", "exc-3", "fleet", "crusher-1", "crushe
          "stockpile-1", "stockpile-2", "line-1", "line-2", "sag-1", "sag-2", "pebble-1", "pebble-2",
          "ball-1a", "ball-1b", "ball-2a", "ball-2b", "cyclones-1", "cyclones-2", "flot-1", "flot-2",
          "rougher-1", "rougher-2", "cleaner-1", "cleaner-2", "thick-1", "thick-2", "filter-1", "filter-2",
-         "conc-stock", "water", "power", "crew-kip", "crew-cpd", "crew-mill", "crew-water")
+         "conc-stock", "water", "power", "crew-kip", "crew-cpd", "crew-mill", "crew-water", "ph-1", "ph-2")
 READS_TYPES = ("batch",)
 # Read as well, written by other services: the two modules (waited for through processed_sim_time)
 # and the interface things (journal decisions, control flags).
@@ -62,6 +70,7 @@ CREW_LEAD = {"crew-kip": "kip", "crew-cpd": "crusher_mech", "crew-mill": "plant_
 WHO: dict[str, tuple[str, tuple[str, ...]]] = {
     "crusher_stop": ("crew-cpd", ("crusher_mech",)),
     "conveyor_stop": ("crew-cpd", ("crusher_mech",)),
+    "pit_stop": ("", ("mine_dispatcher", "shift_geologist")),              # no ore from the pit: the stockpile carries the plant
     "lube_trip": ("crew-kip", ("kip",)),                                   # protection sensor and its circuit
     "reline": ("", ("mine_dispatcher", "plant_shift_manager")),            # ore to the line; access to the SAG
     "sag_stop": ("crew-mill", ("plant_mech",)),
@@ -79,23 +88,34 @@ WHO: dict[str, tuple[str, tuple[str, ...]]] = {
     "grid_limited": ("", ("power_engineer",)),
     "dam_alarm": ("", ("tailings_engineer",)),                             # dam piezometer
     "water_short": ("crew-water", ("tailings_engineer",)),                 # return-water pipeline
-    "hard_ore": ("", ("shift_geologist", "mine_dispatcher")),              # blend: faces and trucks
+    # blend: faces and trucks; a new face changes the ore, the metallurgist is told and changes the regime (T5)
+    "hard_ore": ("", ("shift_geologist", "mine_dispatcher", "shift_metallurgist")),
     # SAG kWh/t above the ore (overload, coarse feed, liner, harder ore): the metallurgist decides first; the
     # simulator sends the mill mechanics itself when it is the liner (sim/site_*.DECISION_PERSON "liner")
     "loss_sag": ("", ("shift_metallurgist", "plant_mech")),
     "reagent_over": ("crew-kip", ("kip", "shift_metallurgist")),          # collector overdose: flowmeter, pump
     "loss_cyclones": ("crew-mill", ("plant_mech", "shift_metallurgist")),  # clogged cyclone or grind
     "loss_flot": ("crew-kip", ("kip", "shift_metallurgist")),              # collector flowmeter, dose
-    "loss_flot_oxide": ("", ("shift_geologist",)),                         # oxidised ore: blend
+    "loss_flot_oxide": ("", ("shift_geologist", "shift_metallurgist")),    # oxidised ore: blend; the regime is the metallurgist's
     # people in a ball mill under a work permit and a start command is on (S0): the shift head cancels the start
     "startup_zone": ("", ("plant_shift_manager", "plant_mech")),
     "tailings_dust": ("", ("tailings_engineer",)),                         # dusting beach (ecology S1)
     "grind_coarse": ("", ("shift_metallurgist", "plant_mech")),            # P80 above the norm: feed rate, mill power
     "conc_low": ("", ("shift_metallurgist", "kip")),                       # concentrate Cu below the buyer's norm
+    # tier S of 23.10.2026
+    "road_winter": ("", ("mine_dispatcher", "mine_shift_head", "road_service")),   # restrict the traffic (S0)
+    "driver_fatigue": ("", ("mine_dispatcher", "mine_shift_head")),                # scenario, assumption (S0)
+    "roping": ("", ("grinding_operator", "shift_metallurgist")),                   # cyclone roping, ball mill overload
+    "sensor_ph": ("crew-kip", ("kip", "shift_metallurgist")),                      # pH electrode: clean, calibrate, check
+    "hpgr_uneven": ("crew-mill", ("plant_mech", "grinding_operator")),             # HPGR feed chute, cheek plates, metal
+    "crusher_mantle": ("crew-cpd", ("crusher_mech", "plant_shift_manager")),       # planned mantle change
+    "oil_contam": ("", ("shift_mechanic", "mine_dispatcher")),                     # hydraulic oil of an excavator
+    "exc_down": ("", ("shift_mechanic", "mine_dispatcher")),                       # excavator failed, ore from the others
+    "leach_cold": ("", ("shift_metallurgist", "plant_shift_manager")),             # oxide line: cold leaching, cathode below the quarter level
 }
 # Short name of a trouble kind: tells two issues of one node apart in the order lines
 # ("Дробление гали 1 (пожар) → Дробление гали 1 (останов)").
-SHORT_RU = {"crusher_stop": "останов", "lube_trip": "защита по маслу", "conveyor_stop": "останов",
+SHORT_RU = {"crusher_stop": "останов", "lube_trip": "защита по маслу", "conveyor_stop": "останов", "pit_stop": "останов",
             "reline": "перефутеровка", "sag_stop": "останов", "hpgr_fire": "пожар", "pebble_stop": "останов",
             "ball_stop": "останов", "filter_one": "один пресс", "filter_stop": "останов",
             "thick_high": "заполняется", "thick_full": "полон", "cstock_high": "заполняется", "cstock_full": "полон",
@@ -103,7 +123,22 @@ SHORT_RU = {"crusher_stop": "останов", "lube_trip": "защита по м
             "water_short": "нехватка воды", "hard_ore": "твёрдая руда", "loss_sag": "перерасход энергии",
             "reagent_over": "перерасход реагента", "startup_zone": "пуск при людях",
             "tailings_dust": "пыление пляжа", "grind_coarse": "крупный помол", "conc_low": "Cu в концентрате ниже нормы",
-            "loss_cyclones": "скрытые потери", "loss_flot": "скрытые потери"}
+            "loss_cyclones": "скрытые потери", "loss_flot": "скрытые потери",
+            "road_winter": "зимняя дорога", "driver_fatigue": "усталость водителя", "roping": "канатирование",
+            "sensor_ph": "pH-метр под подозрением", "hpgr_uneven": "неравномерное питание ВВД",
+            "crusher_mantle": "замена брони", "oil_contam": "загрязнение масла", "exc_down": "отказ",
+            "leach_cold": "холодное выщелачивание"}
+# trouble kind -> card of readiness (checklist and closure shown on the issue card, FEATURES_22 «ОПРЕДЕЛЕНИЕ ГОТОВНОСТИ»)
+KIND_READY = {"pit_stop": "pit_stop", "conveyor_stop": "conveyor_stop", "reline": "fc_liner",
+              "road_winter": "winter_road", "driver_fatigue": "driver_fatigue", "roping": "cyclone_roping",
+              "sensor_ph": "sensor_suspect", "hpgr_uneven": "hpgr_uneven", "crusher_mantle": "crusher_mantle",
+              "oil_contam": "oil_contam", "exc_down": "exc_down", "leach_cold": "leach_cold", "hard_ore": "ore_regime",
+              "loss_flot_oxide": "ore_regime"}
+# tier T of 24.10.2026 (modules/tiers_t.py): eight slow equipment troubles
+WHO.update(tiers_t.WHO)
+SHORT_RU.update(tiers_t.SHORT_RU)
+KIND_READY.update(tiers_t.KIND_READY)
+tiers.EVIDENCE.update(tiers_t.EVIDENCE)
 STATUS_RU = {"OPEN": "открыта", "CALLED": "позвали", "IN_WORK": "в работе", "RESOLVED": "устранена",
              "SNOOZED": "отложена"}
 T_CONSEQ_MAX_H = 48.0     # beyond: "not within the horizon" (a stock that is not falling gives no time)
@@ -129,6 +164,9 @@ class Issue:
     eta: float = NO_VALUE          # expected arrival, model min (called_at + travel; after a busy crew frees)
     late_since: float = NO_VALUE   # model min when "not arrived by ETA + esc_after_min" was first seen
     escalation: str = ""           # text of the escalation (empty when none)
+    enroute_at: float = NO_VALUE   # model min when the crew was first seen on its way
+    onsite_at: float = NO_VALUE    # model min when the crew was first seen at work
+    mech: dict = field(default_factory=dict)   # entry of this issue in journal.mech: status told by the called person
     trouble: Trouble | None = None
     ranked: Ranked | None = None
 
@@ -162,6 +200,7 @@ class PriorityModule:
         self.decisions: list[dict] = []        # calls of the run against the model's order (shift review)
         self._prev: list[Trouble] = []         # troubles waiting for a call at the previous tact
         self.deviations: list[dict] = []       # deviations (chronicle for the shift report), not queue issues
+        self.flood = flood.FloodCounter()      # alarm-like events of the shift against the issues of the queue (feature alarm_flood)
 
     def reset(self) -> None:
         names = [i.name for i in self.issues.values()]
@@ -234,7 +273,17 @@ class PriorityModule:
         return Trouble(id=key, node=node, kind=kind, safety=safety, rate_cu_tph=rate,
                        rate_usd_h=ex.usd_h(rate, prm), t_conseq_h=t_h,
                        repair_h=prm[rep_key] * repair_mult if rep_key else 0.0, crew=crew, role=role, detected_at=det,
-                       loud=loud, text=text, person=person, hold=hold)
+                       loud=loud, text=text, person=person, hold=hold, usd_extra_h=max(0.0, usd_extra_h), rep_key=rep_key)
+
+    def _settling(self, key: str, t: float) -> bool:
+        """The trouble is closing now or was closed settle_min minutes ago or less: the lagging detectors are catching up
+        (the issue is still listed as open in the tact its signal returned: it is closed after the troubles are collected)."""
+        iss = self.issues.get(key)
+        if iss is None:
+            return False
+        if iss.status != "RESOLVED":
+            return True
+        return iss.gone_since != NO_VALUE and t - iss.gone_since < self.prm["settle_min"]
 
     def _running(self) -> dict[int, bool]:
         """Lines whose SAG turns: a line in RELINE or STOP loses its copper once, as the SAG's issue."""
@@ -288,14 +337,20 @@ class PriorityModule:
             stock_h = self._stock_hours(n, inflow_stops=feed_stops) if running[n] else T_CONSEQ_MAX_H
             # crusher and conveyor: the stockpile buys time
             cs = st.s(f"crusher-{n}", "state")
-            if cs == "STOP":
+            mantle = tiers.crusher_mantle(self, n, stock_h, t) if cs == "STOP" else None
+            if mantle is not None:
+                out.append(mantle)                         # planned mantle change (C11), not a fault
+            elif cs == "STOP":
                 lube = st.f(f"crusher-{n}", "lube_kpa")
                 trip = lube != NO_VALUE and lube < 0.8 * 250.0
                 out.append(self._tr(f"crusher-{n}:stop", f"crusher-{n}", "lube_trip" if trip else "crusher_stop",
                                     cu, stock_h, "rep_lube_trip_h" if trip else "rep_crusher_h", t,
                                     text=("сработала защита по давлению масла: проверить датчик и цепь защиты" if trip
                                           else "дробилка стоит")))
-            if st.s(f"conveyor-{n}", "state") == "STOP" and cs != "STOP":
+            # a belt that stands because no ore comes (pit stop, full stockpile) is not a belt trouble: when the
+            # belt publishes its trip signal (fault) the trouble needs it; older data without it keep the old rule
+            belt_fault = st.f(f"conveyor-{n}", "fault")
+            if st.s(f"conveyor-{n}", "state") == "STOP" and cs != "STOP" and (belt_fault == NO_VALUE or belt_fault == 1.0):
                 out.append(self._tr(f"conveyor-{n}:stop", f"conveyor-{n}", "conveyor_stop", cu, stock_h,
                                     "rep_conveyor_h", t, text="конвейер стоит"))
             # SAG
@@ -308,6 +363,10 @@ class PriorityModule:
             elif ss == "STOP":
                 out.append(self._tr(f"sag-{n}:stop", f"sag-{n}", "sag_stop", cu, 0.0, "rep_sag_h", t,
                                     text="мельница стоит"))
+            # tier S: cyclone roping, pH sensor, uneven HPGR feed; they own the losses their cause explains
+            tier = tiers.line_troubles(self, n, running[n], sag_down, t) + tiers_t.line_troubles(self, n, running[n], sag_down, t)
+            tier_ids = {x.id for x in tier}
+            out.extend(tier)
             # fire at the HPGR of the pebble circuit (event of 09.08.2026 at concentrator 1): S0 first
             fire = st.f(f"pebble-{n}", "fire") == 1.0
             if fire:
@@ -318,7 +377,7 @@ class PriorityModule:
                                           + other)))
             # pebble crusher and ball mills stand because the SAG above them stands: the line loss is
             # already the SAG's issue, so they are not counted again (nothing to repair there)
-            if st.s(f"pebble-{n}", "state") == "STOP" and not sag_down:
+            if st.s(f"pebble-{n}", "state") == "STOP" and not sag_down and f"pebble-{n}:uneven" not in tier_ids:
                 # while the fire is not out nobody repairs the circuit: no crew to call yet
                 out.append(self._tr(f"pebble-{n}:stop", f"pebble-{n}", "pebble_stop",
                                     cu * prm["pebble_stop_loss_frac"], 0.0, "rep_pebble_h", t,
@@ -360,6 +419,11 @@ class PriorityModule:
                 r = self.losses.results.get(node) if self.losses is not None else None
                 if r is None or r.status != "loss" or r.gap_cu_tph <= 0.0 or sag_down:
                     continue
+                if kind in ("cyclones", "flot") and (f"cyclones-{n}:rope" in tier_ids
+                                                      or self._settling(f"cyclones-{n}:rope", t)):
+                    continue                      # roping explains the coarse overflow and the flotation loss behind it
+                if kind == "flot" and (f"ph-{n}:suspect" in tier_ids or self._settling(f"ph-{n}:suspect", t)):
+                    continue                      # the pH sensor explains the flotation loss (and its lag after the fix)
                 rep = {"sag": "rep_decision_h", "cyclones": "rep_cyclone_h", "flot": "rep_dose_h"}[kind]
                 who = ""
                 if kind == "flot" and "shift_geologist" in r.role_keys:
@@ -376,7 +440,8 @@ class PriorityModule:
                         # the price of the overspend follows the hour (feature 6): night cheaper, evening peak dearer
                         tf = dp.tariff_info(t, prm)
                         extra *= tf["mult"]
-                        r_text = r.cause + (f"; цена по тарифу часа: {tf['band_ru']} ×{num(tf['mult'], 2)} {ASSUME}")
+                        r_text = r.cause + (f"; цена по тарифу часа (сценарий «что если»): {tf['band_ru']} "
+                                            f"×{num(tf['mult'], 2)} {ASSUME}" if dp.zones_on(prm) else "")
                     else:
                         r_text = r.cause
                 else:
@@ -454,6 +519,10 @@ class PriorityModule:
             out.append(self._tr("water:short", "water", "water_short", cu, 0.0, "rep_water_h", t, text=text,
                                 usd_extra_h=water_usd,
                                 repair_mult=prm["winter_repair_mult"] if winter else 1.0))
+        out.extend(self._pit_stop_troubles(t, running))
+        out.extend(tiers.pit_troubles(self, t, running))
+        out.extend(tiers_t.site_troubles(self, t, running))
+        out.extend(oxide.troubles(self, t))
         out.extend(self._safety_troubles(t))
         # hard ore forecast (12 h ahead): a decision of the shift geologist, blend before it reaches the SAG
         if self.ore is not None:
@@ -487,6 +556,29 @@ class PriorityModule:
         # plant stays under) is not an issue: a $0 line would only push real ones down the queue
         return [tr for tr in out if tr.safety or tr.rate_cu_tph > 0.0]
 
+    # ------------------------------------------------------------------ pit stop (chain pit -> stockpile -> SAG)
+    def _pit_stop_troubles(self, t: float, running: dict[int, bool]) -> list[Trouble]:
+        """Every ore excavator stands: the plant lives on the stockpile (feature 11). One trouble per line whose SAG
+        turns; the loss of the line starts when its stock (and the ore still on the way) is gone."""
+        st = self.store
+        f = fc.stock(st, self.prm, t)
+        if not f["pit_stopped"]:
+            return []
+        out: list[Trouble] = []
+        for n in LINES:
+            r = f["lines"].get(str(n))
+            if r is None or not running[n] or r["hours"] == NO_VALUE:
+                continue
+            at = hhmm_day(r["run_out_at"], t)
+            text = (f"карьер не подаёт руду: все экскаваторы руды стоят; склад линии {n} ({num(r['level_t'], 0)} т) и руда "
+                    f"на пути хватят ≈ на {dur(r['hours'])} — SAG-{n} встанет к {at} {EST}. Откатка и лента ещё довезут "
+                    f"≈ {num(r['transit_t'], 0)} т. Решение горного диспетчера: срок возобновления выемки, забой на "
+                    f"другой экскаватор. По ПЭК рабочий объём склада 163 кт — 2 суток [проект], в модели живая часть "
+                    f"{num(self.prm['stock_live_t'] / 1000, 0)} кт {ASSUME}")
+            out.append(self._tr(f"pit:stop:{n}", "pit", "pit_stop", self._line_cu(n), r["hours"], "rep_pit_h", t,
+                                text=text))
+        return out
+
     # ------------------------------------------------------------------ features 7, 8, 14, 15
     def _grind_conc_troubles(self, n: int, running: bool, sag_down: bool, t: float, so_far: list[Trouble]) -> list[Trouble]:
         """Coarse grind (feature 7) and concentrate Cu below the buyer's norm (feature 8) of line n."""
@@ -500,15 +592,20 @@ class PriorityModule:
         p80 = st.mean(f"cyclones-{n}", "p80_um", t, prm["window_min"])
         one_mill = st.s(f"ball-{n}a", "state") != "RUN" or st.s(f"ball-{n}b", "state") != "RUN"
         if (p80 != NO_VALUE and q > 0.0 and grade > 0.0 and f"cyclones-{n}:loss" not in have and not one_mill
+                and f"cyclones-{n}:rope" not in have and not self._settling(f"cyclones-{n}:rope", t)
                 and st.s("power", "state") != "LIMITED"):
             excess = p80 - prm["p80_ref_um"]
             if excess > prm["p80_alarm_um"]:
-                pp = prm["flot_p80_pp_10um"] * excess / 10.0
+                pp = prm["grind_pp_10um"] * excess / 10.0
+                pp_lo, pp_hi = prm["grind_pp_10um_lo"] * excess / 10.0, prm["grind_pp_10um_hi"] * excess / 10.0
                 rate = ex.cu_tph(q, grade, pp)
                 out.append(self._tr(
                     f"cyclones-{n}:p80", f"cyclones-{n}", "grind_coarse", rate, 0.0, "rep_decision_h", t, loud=False,
                     text=(f"помол крупнее нормы: P80 {num(p80, 0)} мкм при {num(prm['p80_ref_um'], 0)} (вендор); "
-                          f"извлечение ниже на ≈ {num(pp, 1)} п.п. ({cu_tph(-rate)}) {EST}; что делать: снизить подачу "
+                          f"извлечение ниже на ≈ {num(pp, 1)} п.п. ({cu_tph(-rate)}) {EST}, по наклону {ANALOG} Бозшаколь "
+                          f"(тот же оператор): диапазон {num(pp_lo, 1)}–{num(pp_hi, 1)} п.п. на {num(excess, 0)} мкм "
+                          f"(лаборатория 0,8–1,2 п.п. на 10 мкм, суточные данные фабрики 1,95); в модели стенда наклон "
+                          f"{num(prm['flot_p80_pp_10um'], 1)} п.п. на 10 мкм {ASSUME}; что делать: снизить подачу "
                           f"SAG или поднять мощность шаровых, проверить пески циклонов — решает металлург")))
         c = st.mean(f"flot-{n}", "conc_cu", t, prm["conc_window_min"])
         tph = st.f(f"flot-{n}", "conc_tph")
@@ -564,6 +661,18 @@ class PriorityModule:
                             "text": (f"Шары, линия {n}: {num(g, 0)} г/т при норме {num(norm, 0)} {ASSUME}; перерасход "
                                      f"≈ {num(kg_h, 0)} кг/ч ≈ {usd_h(-cost)} {EST} — отклонение: в очередь не попадает, "
                                      f"идёт в отчёт смены; проверить загрузку шаров и износ футеровки")})
+        # on-stream analyser with old data (T-T6): a blocked sample line; no price of its own, the losses it hides are
+        # found by the other nodes and the balances; the age is shown in every card that uses its readings
+        for n in LINES:
+            a = f"analyzer-{n}"
+            age = st.f(a, "age_min")
+            if (st.s(a, "state") == "SUSPECT" and age != NO_VALUE and st.s(f"flot-{n}", "state") != "STOP"
+                    and age > prm["age_stale_an_cycles"] * prm["an_cycle_min"]):
+                out.append({"kind": "analyzer_stale", "node": a, "age_min": age, "usd_h": 0.0,
+                            "text": (f"Анализатор {n}: данные старше {num(age, 0)} мин при цикле {num(prm['an_cycle_min'], 0)} мин — "
+                                     f"засорение пробоотборной линии? (Metso Metrics: типичная проблема, частот нет {ANALOG}); "
+                                     f"хвосты и питание на экране устарели, тревоги АСУ по хвостам слепы — отклонение: в очередь не "
+                                     f"попадает, идёт в лист сдачи; позвать дежурного КИПиА: прочистить линию")})
         return out
 
     # ------------------------------------------------------------------ journal and issues
@@ -606,6 +715,179 @@ class PriorityModule:
             iss.status = "RESOLVED"
             iss.decision = f"устранено в {hhmm(t)}"
 
+    # ------------------------------------------------------------------ status of the called person (screen ?view=mech)
+    MECH_RU = {"accepted": "принял", "enroute": "в пути", "onsite": "на месте", "help": "нужна помощь", "done": "готово"}
+
+    def _apply_mech(self) -> None:
+        """journal.mech.items[issue-N] = {status, person, run, t, log: [{s, t}]}: what the called person pressed on
+        the screen of the mechanic. Only entries of the current run count (issue names restart with a run)."""
+        j = self.store.get("journal")
+        items = (j.o("mech").get("items") if j is not None else None) or {}
+        run = self.store.run_id
+        for iss in self.issues.values():
+            e = items.get(iss.name) if isinstance(items, dict) else None
+            ok = isinstance(e, dict) and (not run or e.get("run") == run)
+            iss.mech = e if ok else {}
+
+    def _mech_time(self, iss: Issue, status: str) -> float:
+        for rec in iss.mech.get("log") or []:
+            if isinstance(rec, dict) and rec.get("s") == status and isinstance(rec.get("t"), (int, float)):
+                return float(rec["t"])
+        return NO_VALUE
+
+    def _lifecycle(self, iss: Issue) -> dict:
+        """Life cycle of the issue (UI rules, item 4): new -> called -> accepted -> on the way -> on site -> resolved.
+        «принял / в пути / на месте» come from the called person's screen; where the person pressed nothing, the
+        twin's own estimate (the crew seen on its way or at work) stands, marked as such. Fixed shape."""
+        steps = []
+
+        def add(key: str, ru: str, t: float, src: str) -> None:
+            steps.append({"key": key, "ru": ru, "t": t, "src": src})
+
+        add("new", "новая", iss.created_at, "модель")
+        if iss.called_at != NO_VALUE:
+            add("called", "позвали", iss.called_at, "журнал")
+        t_acc = self._mech_time(iss, "accepted")
+        if t_acc != NO_VALUE:
+            add("accepted", "принял", t_acc, "механик")
+        # the model's own estimate of «в пути» / «на месте» stands only where the person told nothing and it does not
+        # precede what the person has already told (the person's word is the record of the human stages)
+        told = [float(r["t"]) for r in (iss.mech.get("log") or []) if isinstance(r, dict) and isinstance(r.get("t"), (int, float))]
+        last_told = max(told) if told else NO_VALUE
+        t_way = self._mech_time(iss, "enroute")
+        if t_way != NO_VALUE:
+            add("enroute", "в пути", t_way, "механик")
+        elif iss.enroute_at != NO_VALUE and (last_told == NO_VALUE or iss.enroute_at >= last_told):
+            add("enroute", "в пути", iss.enroute_at, "модель")
+        t_site = self._mech_time(iss, "onsite")
+        if t_site != NO_VALUE:
+            add("onsite", "на месте", t_site, "механик")
+        elif iss.onsite_at != NO_VALUE and (last_told == NO_VALUE or iss.onsite_at >= last_told):
+            add("onsite", "на месте", iss.onsite_at, "модель")
+        t_done = self._mech_time(iss, "done")
+        if t_done != NO_VALUE:
+            add("done", "готово (по словам)", t_done, "механик")
+        if iss.status == "RESOLVED":
+            add("resolved", "решена", iss.gone_since, "модель")
+        help_on = str(iss.mech.get("status", "")) == "help"
+        help_t = float(iss.mech["t"]) if help_on and isinstance(iss.mech.get("t"), (int, float)) else NO_VALUE
+        who = iss.trouble.role.split(" и ")[0] if iss.trouble is not None and iss.trouble.role else "вызванный"
+        stage = steps[-1]
+        parts = [f"{s['ru']}" + (f" {hhmm(s['t'])}" if s["t"] != NO_VALUE else "") + (" (механик)" if s["src"] == "механик" else "")
+                 for s in steps[1:]]
+        return {"stage": stage["key"], "stage_ru": stage["ru"], "steps": steps,
+                "help": 1.0 if help_on else 0.0,
+                "help_text": (f"{who} просит помощь (в {hhmm(help_t)}): позвать следующего по цепочке или начальника смены"
+                              if help_on else ""),
+                "text": " → ".join(parts), "snoozed": 1.0 if iss.status == "SNOOZED" else 0.0}
+
+    # ------------------------------------------------------------------ what the price stands on (card, second level)
+    LABEL_RU = {"fact": "факт", "vendor": "вендор", "project": "проект", "analog": "аналог", "assumption": "допущение",
+                "calc": "расчёт"}
+    WEAKEST = ("assumption", "analog", "project", "vendor", "calc", "fact")     # from the least to the most solid
+
+    def _support(self, what: str, key: str = "", label: str = "") -> dict:
+        lab = label or (ROW[key].label if key in ROW else "assumption")
+        return {"what": what, "label": self.LABEL_RU[lab], "key": lab}
+
+    def _weakest(self, sup: list[dict]) -> str:
+        keys = [s["key"] for s in sup]
+        for k in self.WEAKEST:
+            if k in keys:
+                return k
+        return "calc"
+
+    def _cost(self, tr: Trouble, r: Ranked) -> dict:
+        """Breakdown of the price of a trouble into copper, energy, reagents and the buyer's penalty (+ water), USD/h,
+        and for each part what it stands on (fact / calculation / assumption: the label of every parameter row
+        it multiplies). Fixed shape; the parts add up to loss_usd_h."""
+        prm = self.prm
+        empty = {"usd_h": NO_VALUE, "items": [], "horizon": {"usd": NO_VALUE, "hours": self.plan.horizon_h, "label": "",
+                                                              "supports": []}, "weakest": "", "text": ""}
+        if tr.safety:
+            empty["text"] = "класс безопасности: в деньгах не считается (правило очереди)"
+            return empty
+        price = prm["cu_price_usd_t"] * prm["payable_frac"]
+        extra = tr.usd_extra_h
+        cu_usd = max(0.0, tr.rate_usd_h - extra)
+        cu_rate = max(0.0, tr.rate_cu_tph - extra / max(1e-9, price))
+        kind_extra = {"loss_sag": "energy", "reagent_over": "reagent", "conc_low": "penalty", "water_short": "water"}.get(tr.kind, "")
+        sup = {
+            "cu": [self._support(f"цена меди LME {num(prm['cu_price_usd_t'], 0)} $/т на 15.10.2026", "cu_price_usd_t"),
+                   self._support(f"доля оплаты {num(100 * prm['payable_frac'], 1)} % (по отчётам KAZ Minerals)", "payable_frac"),
+                   self._support(f"потеря меди {num(cu_rate, 2)} т/ч по измерениям узла и балансам", label="calc")],
+            "energy": [self._support(f"тариф {num(prm['power_usd_mwh'], 0)} $/МВт·ч (16 тг/кВт·ч)", "power_usd_mwh"),
+                       self._support("перерасход энергии на тонну по балансу SAG", label="calc"),
+                       self._support(f"КПД привода {num(prm['motor_eff'], 2)}", "motor_eff")],
+            "reagent": [self._support(f"цена собирателя {num(prm['reagent_usd_kg'], 1)} $/кг", "reagent_usd_kg"),
+                        self._support("перерасход по балансу бака реагента", label="calc")],
+            "penalty": [self._support(f"норма покупателя {num(prm['conc_norm_pct'], 1)} % Cu", "conc_norm_pct"),
+                        self._support(f"штраф {num(prm['conc_penalty_usd_dmt_pp'], 0)} $/т сухого за п.п.", "conc_penalty_usd_dmt_pp"),
+                        self._support("Cu в концентрате по анализатору линии", label="calc")],
+            "water": [self._support(f"цена свежей воды {num(prm['water_usd_m3'], 2)} $/м³", "water_usd_m3"),
+                      self._support("лишний забор по водному балансу за 2 ч", label="calc")],
+        }
+        title = {"cu": "Медь", "energy": "Энергия", "reagent": "Реагенты", "penalty": "Штраф покупателя", "water": "Вода"}
+        usd = {"cu": cu_usd, "energy": 0.0, "reagent": 0.0, "penalty": 0.0, "water": 0.0}
+        if kind_extra:
+            usd[kind_extra] = extra
+        order = ["cu", "energy", "reagent", "penalty"] + (["water"] if usd["water"] > 0.0 else [])
+        items = []
+        for k in order:
+            on = usd[k] >= 0.5                  # below half a dollar an hour a part is not in the price
+            s = sup[k] if on else []
+            weak = self._weakest(s) if on else ""
+            items.append({"key": k, "title": title[k], "usd_h": usd[k], "label": self.LABEL_RU[weak] if weak else "",
+                          "weak": weak, "supports": s})
+        timing = [self._support(f"ремонт: медиана {num(tr.repair_h, 1)} ч", tr.rep_key) if tr.rep_key
+                  else self._support("решение роли, без ремонта", label="assumption"),
+                  self._support(f"приезд {num(prm['q_arrive_lo_min'], 0)}–{num(prm['q_arrive_hi_min'], 0)} мин", "q_arrive_hi_min"),
+                  self._support(f"цена меди в коридоре LME {num(prm['cu_price_lo_usd_t'] / 1e3, 0)}–{num(prm['cu_price_hi_usd_t'] / 1e3, 0)} тыс. $/т",
+                                "cu_price_lo_usd_t")]
+        if tr.t_conseq_h > 0.0:
+            timing.insert(0, self._support(f"потери начнутся через {dur(tr.t_conseq_h)} (запас склада)", label="calc"))
+        weak_all = self._weakest([s for it in items if it["usd_h"] > 0.0 for s in it["supports"]]) if tr.rate_usd_h > 0 else ""
+        text = ("цена в час держится на " + ("допущениях" if weak_all == "assumption" else "расчёте" if weak_all in ("calc", "fact")
+                else "аналогах и допущениях")) if weak_all else ""
+        return {"usd_h": tr.rate_usd_h, "items": items,
+                "horizon": {"usd": r.exp_loss_usd, "hours": self.plan.horizon_h, "label": "допущение", "supports": timing},
+                "weakest": weak_all, "text": text}
+
+    # ------------------------------------------------------------------ the button «Сдать смену»
+    def _alarm_flood(self, t: float) -> dict:
+        """Entries of nodes into abnormal states in this shift (flood.ABNORMAL) against the issues the queue made of them."""
+        st = self.store
+        items = []
+        for name, snap in st.things.items():
+            if snap.type in flood.ABNORMAL and not st.is_orphan(snap):
+                items.append((name, snap.type, snap.s("state"), snap.f("alarm") if snap.type == "piezometer" else None))
+        self.flood.observe(t, self._shift_index(t), items)
+        return self.flood.summary(t, self._shift_issue_count(t))
+
+    def _shift_issue_count(self, t: float) -> int:
+        """Issues the queue made in the shift of t (open and closed)."""
+        s0 = self.prm["shift_start_h"] * 60.0 + self._shift_index(t) * self.prm["shift_h"] * 60.0
+        return sum(1 for i in self.issues.values() if i.trouble is not None and i.created_at >= s0 - 1e-6)
+
+    @staticmethod
+    def flood_text(f: dict) -> str:
+        """One line for the shift report and the handover sheet: events -> issues -> one on the main screen."""
+        if not f or f.get("events", -1) < 0 or f.get("elapsed_min", -1) < 0:
+            return ""
+        per = f.get("per_10min", -1)
+        return (f"Тревоги за смену: {num(f['events'], 0)} событий-тревог по {num(f['nodes'], 0)} узлам (узел ушёл в ненорму) → "
+                f"{num(f['issues'], 0)} бед в очереди → 1 на главном экране"
+                + (f"; {num(per, 1)} за 10 мин против ≈ {num(f['isa_per_10min'], 0)} за 10 мин на оператора по ANSI/ISA-18.2 (ориентир {ANALOG})"
+                   if per != NO_VALUE else "") + f" {EST}, нижняя граница: числовые пороги не считаны")
+
+    def _handover_btn(self, t: float) -> dict:
+        """The button is shown handover_btn_lead_min before the end of the shift (08:00 and 20:00), and only then."""
+        prm = self.prm
+        s0, sh = prm["shift_start_h"] * 60.0, prm["shift_h"] * 60.0
+        end = s0 + (math.floor((t - s0) / sh) + 1) * sh
+        lead = prm["handover_btn_lead_min"]
+        return {"show": 1.0 if end - t <= lead else 0.0, "from": end - lead, "end": end, "lead_min": lead}
+
     def _sync_issues(self, troubles: list[Trouble], t: float) -> None:
         active = {tr.id: tr for tr in troubles}
         self.new_issues = []
@@ -621,6 +903,10 @@ class PriorityModule:
             if iss.status == "SNOOZED" and iss.snoozed_until != NO_VALUE and t >= iss.snoozed_until:
                 iss.status = "OPEN"
             on, _free = self._crew_on(tr)
+            if on == "TRAVEL" and iss.enroute_at == NO_VALUE:
+                iss.enroute_at = t
+            if on == "WORK" and iss.onsite_at == NO_VALUE:
+                iss.onsite_at = t
             if on:
                 iss.crew_seen = True
                 if iss.status in ("OPEN", "SNOOZED"):
@@ -641,11 +927,25 @@ class PriorityModule:
             if key not in active and iss.status != "RESOLVED":
                 iss.status = "RESOLVED"
                 iss.gone_since = t
+                if iss.trouble is not None:
+                    # closure (point 7 of the readiness card): the signal is back to normal -> a line in the journal
+                    self.esc_log.append({"t": t, "issue": iss.name, "action": "resolved",
+                                         "text": f"{self._closed_name(iss)}: устранена в {hhmm(t)} (сигнал вернулся в норму)"})
             elif key not in active and iss.gone_since != NO_VALUE and \
                     t - iss.gone_since >= self.prm["q_issue_keep_h"] * 60.0:
                 self.pruned.append(iss.name)          # the thing is deleted; its history stays in InfluxDB
                 del self.issues[key]
                 self.first_seen.pop(key, None)
+
+    def _closed_name(self, iss: Issue) -> str:
+        """Name of a closed trouble for the journal and the sheet: the node and, where two troubles share a node,
+        the kind ("Карьер (останов на линию 1)")."""
+        tr = iss.trouble
+        name = self._node_ru(tr.node)
+        short = SHORT_RU.get(tr.kind, "")
+        if tr.kind == "pit_stop":
+            short += " на линию " + iss.key.rpartition(":")[2]
+        return f"{name} ({short})" if short else name
 
     def _crews(self, t: float) -> dict[str, list[float]]:
         out = {}
@@ -761,7 +1061,7 @@ class PriorityModule:
     def _chain(self, iss: Issue, t: float) -> dict:
         tr = iss.trouble
         started = iss.status in ("CALLED", "IN_WORK") and self._arrived_or_on(tr)
-        c = dp.build_chain(self.store, tr.person, tr.node, t, self._node_ru, job_started=started)
+        c = dp.build_chain(self.store, tr.person, tr.node, t, self._node_ru, job_started=started, kind=tr.kind)
         if iss.escalation and c["items"]:
             # not arrived: the next link of the chain, not just 'the next person of the trade'
             idx = next((i for i, it in enumerate(c["items"]) if it["person"] == tr.person), 0)
@@ -833,6 +1133,12 @@ class PriorityModule:
                       and tr.t_conseq_h < T_CONSEQ_MAX_H and r.level not in ("now", "S0", "S1") else "")
                 line = f"{name}: не вызвана — {tr.role}{by}" + money
             (snoozed if iss.status == "SNOOZED" else open_).append(line)
+        # closed during this shift (the last 12 h): the sheet says what is done, not only what is open
+        shift_min = self.prm["shift_h"] * 60.0
+        done = [f"{self._closed_name(i)}: устранена в {hhmm(i.gone_since)}"
+                for i in sorted(self.issues.values(), key=lambda i: i.seq)
+                if i.trouble is not None and i.status == "RESOLVED" and i.gone_since != NO_VALUE
+                and t - i.gone_since <= shift_min]
         sensors = list(getattr(self.losses, "suspect", {}).values()) if self.losses is not None else []
         ore = str(st.s("mod-ore", "fc_text") or "")
         crews = []
@@ -859,12 +1165,28 @@ class PriorityModule:
                 "Бригады: " + ("; ".join(crews) if crews else "нет данных")]
         devs = [d["text"] for d in self.deviations]
         body.append("Отклонения: " + ("; ".join(devs) if devs else "нет"))
+        fl_text = self.flood_text(self.flood.summary(t, self._shift_issue_count(t)))
+        if fl_text:
+            body.append(fl_text)
+        if done:
+            body.append("Устранено за смену: " + "; ".join(done))
         review = self.review_text(self._shift_index(mark if mark is not None else t))
         body.append(review)
         if st.f("water", "winter") == 1.0:
             body.append("Зима: возврат воды снижен, беды с водой дороже и срочнее")
         return {"at": t, "title": head, "text": "\n".join(body), "issues": open_, "snoozed": snoozed,
-                "sensors": sensors, "ore": ore, "crews": crews, "deviations": devs, "review": review}
+                "sensors": sensors, "ore": ore, "crews": crews, "deviations": devs, "review": review, "done": done}
+
+    NOTIFY = {"hard_ore": "новый забой с твёрдой рудой: металлург смены узнаёт заранее и меняет режим помола и подачи "
+                          "(Бозшаколь: извлечение 78,5 → 73,8 % при сложной минералогии, KAZ Minerals, H1 2025 — пример влияния "
+                          "минералогии, не потеря от задержки)",
+              "loss_flot_oxide": "новый забой с окисленной рудой: металлург смены узнаёт заранее и меняет реагентный режим "
+                                 "(Бозшаколь: извлечение 78,5 → 73,8 % при сложной минералогии, KAZ Minerals, H1 2025 — пример "
+                                 "влияния минералогии, не потеря от задержки)"}
+
+    def _notify_text(self, tr: Trouble) -> str:
+        """Roles told besides the one called: ore changed, the regime must change (T5)."""
+        return self.NOTIFY.get(tr.kind, "")
 
     # ------------------------------------------------------------------ texts
     def _crew_ru(self, crew: str) -> str:
@@ -978,7 +1300,7 @@ class PriorityModule:
         names = {"sag": "Мельница SAG-{n}", "cyclones": "Гидроциклоны {n}", "flot": "Флотация {n}",
                  "crusher": "Дробилка {n}", "conveyor": "Конвейер {n}", "pebble": "Дробление гали {n}",
                  "ball": "Шаровая {n}", "filter": "Фильтр {n}", "thick": "Сгуститель {n}",
-                 "rougher": "Реагенты флотации {n}"}
+                 "rougher": "Реагенты флотации {n}", "exc": "Экскаватор EX0{n}", "ph": "pH-метр {n}"}
         if node in ("pit", "fleet", "water", "power", "conc-stock"):
             return {"pit": "Карьер", "fleet": "Парк карьера", "water": "Хвосты и вода", "power": "Энергоснабжение",
                     "conc-stock": "Склад концентрата"}[node]
@@ -990,6 +1312,7 @@ class PriorityModule:
         """One tact; returns (mod-priority features, {issue name: features})."""
         prm = self.prm
         self._apply_journal(t)
+        self._apply_mech()
         self.deviations = self._deviations(t)
         troubles = self.troubles(t)
         self._sync_issues(troubles, t)
@@ -1027,6 +1350,7 @@ class PriorityModule:
                 iss.decision = f"автовызов (auto=1) в {hhmm(t)}, позвали: {tr.role}"
                 self.auto_call_value = {"seq": self.call_seq, "issue": iss.name, "role": tr.role, "sim_time": t,
                                         "node": tr.node}
+            evi = tiers.evidence(self, tr, t, getattr(self.losses, "suspect", {}) if self.losses is not None else {})                 if iss.status != "RESOLVED" else {"items": [], "n_suspect": 0, "text": ""}
             money = tr.safety != "S0"           # S0 is never counted in money (policy rule 1)
             loss_from = NO_VALUE
             if money and tr.rate_usd_h > 0.0 and tr.t_conseq_h < T_CONSEQ_MAX_H:
@@ -1044,7 +1368,15 @@ class PriorityModule:
                 "chain": {"items": chain["items"], "pick": chain["pick"], "via": chain["via"],
                           "line": chain.get("line", "")},
                 "chain_text": chain["text"], "choice_text": choice.get(iss.key, ""),
-                "permit_text": chain["text"] if chain["items"] and chain["items"][0].get("permit") else ""}
+                "permit_text": chain["text"] if chain["items"] and chain["items"][0].get("permit") else "",
+                "checklist": ("Что делать: " + rd.by_id(KIND_READY[tr.kind])["checklist"]) if tr.kind in KIND_READY else "",
+                "closure": ("Закроется: " + rd.by_id(KIND_READY[tr.kind])["closure"]) if tr.kind in KIND_READY else "",
+                # measurements behind the trouble with the age of each (T3) and the roles told besides the one called (T5)
+                "evidence": evi, "evidence_text": evi["text"], "notify_text": self._notify_text(tr),
+                "lifecycle": self._lifecycle(iss), "cost": self._cost(tr, r),
+                "lever": lever_advice.suggest(tr, prm) if iss.status != "RESOLVED" else dict(lever_advice.EMPTY)}
+            if not issue_feats[iss.name]["escalation"] and issue_feats[iss.name]["lifecycle"]["help"]:
+                issue_feats[iss.name]["escalation"] = issue_feats[iss.name]["lifecycle"]["help_text"]
         n_active = len(active)
         st_winter = self.store.f("water", "winter") == 1.0
         if n_active == 0:
@@ -1083,6 +1415,8 @@ class PriorityModule:
                 short = SHORT_RU.get(tr.kind, tr.kind)
                 if tr.kind == "hard_ore":
                     short += " на линию " + key.split(":", 1)[0].rpartition("-")[2]
+                elif tr.kind == "pit_stop":
+                    short += " на линию " + key.rpartition(":")[2]
                 name += f" ({short})"
             return name
 
@@ -1121,6 +1455,12 @@ class PriorityModule:
             "season_text": ("Зима: возврат воды с хвостохранилища снижен, беды с водой дороже и срочнее"
                             if st_winter else ""),
         }
+        # forecasts (features 10, 11, 13): ore on the stockpile if the pit stops, SAG liners, copper to the shift end
+        # only what is lost now: a trouble whose loss starts later (the stock still holds) is not in the corridor yet
+        loss_open = sum(a.rate_cu_tph for a in active if not a.safety and a.t_conseq_h <= 0.0)
+        forecast = fc.build(self.store, prm, t, loss_open)
+        feats["forecast"] = forecast
+        feats["forecast_text"] = " ".join(x for x in forecast["texts"].values() if x)
         draft = self.handover_sheet(t)
         if self._handover_due(t):
             am, pm = self.prm["handover_am_h"] * 60.0, self.prm["handover_pm_h"] * 60.0
@@ -1129,7 +1469,11 @@ class PriorityModule:
             self.handover = self.handover_sheet(t, mark)
         # fixed forms (lists are replaced whole by a merge): nothing of an earlier run survives in Ditto
         feats["handover"] = self.handover or {"at": NO_VALUE, "title": "", "text": "", "issues": [], "snoozed": [],
-                                              "sensors": [], "ore": "", "crews": [], "deviations": [], "review": ""}
+                                              "sensors": [], "ore": "", "crews": [], "deviations": [], "review": "",
+                                              "done": []}
+        feats["handover_btn"] = self._handover_btn(t)
+        feats["alarm_flood"] = self._alarm_flood(t)
+        feats["alarm_flood_text"] = self.flood_text(feats["alarm_flood"])
         feats["handover_text"] = self.handover.get("text", "")
         feats["handover_draft_text"] = draft["text"]
         feats["escalations"] = {"log": self.esc_log[-20:]}

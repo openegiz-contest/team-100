@@ -120,7 +120,7 @@ class SimSideTest(unittest.TestCase):
         """The new causes are never drawn in free run: the silent kinds stay the three of before."""
         from sim import events as ev
         self.assertEqual(ev.SILENT, ("energy", "reagent", "leak"))
-        self.assertEqual(ev.EXTRA, ("balls", "conc"))
+        self.assertEqual(ev.EXTRA, ("balls", "conc", "roping", "phdrift"))
 
     def test_call_via_deputy_forms_one_more_team(self):
         cs = CopySet(None, 42, "crusher:1")
@@ -146,8 +146,18 @@ class SimSideTest(unittest.TestCase):
 
 
 class TariffTest(unittest.TestCase):
-    def test_daily_mean_is_one_and_bands_order(self):
+    def test_flat_by_default_zones_only_as_what_if(self):
         prm = ms.default()
+        self.assertEqual(prm["tariff_zones_on"], 0.0)
+        for h in (3.0, 12.0, 19.0):
+            self.assertEqual(dispatch.tariff_mult(h, prm), 1.0)
+        info = dispatch.tariff_info(19.0 * 60, prm)
+        self.assertEqual((info["band"], info["mult"], info["kzt_kwh"]), ("flat", 1.0, 16.0))
+        self.assertIn("приказ № 445", info["text"])
+        self.assertIn("«что если»", info["text"])
+
+    def test_daily_mean_is_one_and_bands_order(self):
+        prm = ms.default().copy(tariff_zones_on=1)
         mean = sum(dispatch.tariff_mult(h + 0.5, prm) for h in range(24)) / 24.0
         self.assertAlmostEqual(mean, 1.0, places=6)
         self.assertEqual(dispatch.tariff_band(3.0, prm), "night")
@@ -159,6 +169,7 @@ class TariffTest(unittest.TestCase):
         self.assertEqual(info["band_ru"], "пик")
         self.assertIn("допущение", info["text"])
         self.assertIn("16 тг/кВт·ч — факт", info["text"])
+        self.assertIn("что если", info["text"])
 
     def test_energy_overspend_price_follows_the_hour(self):
         from modules.losses import NodeResult
@@ -166,6 +177,7 @@ class TariffTest(unittest.TestCase):
         for hour in (3, 19):
             t = hour * 60.0
             st, prm = real_store(t)
+            prm = prm.copy(tariff_zones_on=1)
             lm, om, pm = modules(st, prm)
             lm.compute(t)
             r = lm.eval_sag(t, 1, 35.0, 0.41, 87.0)
@@ -246,14 +258,14 @@ class ModulesTest(unittest.TestCase):
         self.assertNotIn("conc_low", {x["kind"] for x in issues.values()})
 
     def test_balls_overuse_is_a_deviation_not_an_issue(self):
-        pm, f, issues = self.issues_of({"line-1": {"balls_gt": 760.0}})
+        pm, f, issues = self.issues_of({"line-1": {"balls_gt": 1010.0}})
         self.assertEqual(issues, {})
         self.assertEqual(len(f["deviations"]["items"]), 1)
         self.assertIn("Шары, линия 1", f["deviations_text"])
         self.assertIn("в очередь не попадает", f["deviations_text"])
         self.assertIn("Отклонения: Шары, линия 1", f["handover_draft_text"])
         self.assertGreater(f["deviations"]["items"][0]["usd_h"], 0.0)
-        _pm, f2, _i = self.issues_of({"line-1": {"balls_gt": 610.0}})
+        _pm, f2, _i = self.issues_of({"line-1": {"balls_gt": 810.0}})
         self.assertEqual(f2["deviations_text"], "")
 
     def test_winter_makes_water_troubles_dearer_and_urgent(self):

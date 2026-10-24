@@ -9,7 +9,8 @@ parameter table; the texts are Russian and every number is a model estimate or c
   another place until the work ends. The simulator publishes it as person.permit = the node of the work.
 - Chain: the main person of the issue (WHO table), his deputy (responsible.deputy of the person thing, a stand
   assumption) and the shift head (the person with the role plant_shift_manager).
-- Tariff: the daily mean is the model's 16 KZT/kWh (fact); the night / day / peak structure is an assumption.
+- Tariff: flat 16 KZT/kWh (fact; zonal tariffs of final consumers were abolished in 2018); the night / day / peak
+  structure is a what-if scenario (tariff_zones_on = 1), project / assumption.
 """
 from __future__ import annotations
 
@@ -37,8 +38,16 @@ def tariff_band(hour: float, prm) -> str:
     return "day"
 
 
+def zones_on(prm) -> bool:
+    """Peak / night structure is a what-if scenario (tariff_zones_on = 1): zonal tariffs of final consumers were
+    abolished (order no. 445 of 29.12.2017), so by default the price is flat 16 KZT/kWh all day."""
+    return bool(prm["tariff_zones_on"])
+
+
 def tariff_mult(hour: float, prm) -> float:
-    """Price at this hour against the daily mean (the mean over 24 h is exactly 1)."""
+    """Price at this hour against the daily mean (the mean over 24 h is exactly 1); 1 all day while zones are off."""
+    if not zones_on(prm):
+        return 1.0
     raw = {"night": prm["tariff_night_mult"], "day": prm["tariff_day_mult"], "peak": prm["tariff_peak_mult"]}
     mean = sum(raw[tariff_band(h + 0.5, prm)] for h in range(24)) / 24.0
     return raw[tariff_band(hour, prm)] / mean
@@ -46,11 +55,16 @@ def tariff_mult(hour: float, prm) -> float:
 
 def tariff_info(t_min: float, prm) -> dict:
     hour = (t_min % 1440.0) / 60.0
+    if not zones_on(prm):
+        kzt = prm["tariff_kzt_kwh_mean"]
+        return {"band": "flat", "band_ru": "плоский", "mult": 1.0, "kzt_kwh": kzt,
+                "text": (f"Тариф: плоский {num(kzt, 0)} тг/кВт·ч весь день (факт: зонные тарифы для потребителей "
+                         f"отменены с 2018 г., приказ № 445; «пик и ночь» — только сценарий «что если», проект/допущение)")}
     band = tariff_band(hour, prm)
     mult = tariff_mult(hour, prm)
     kzt = prm["tariff_kzt_kwh_mean"] * mult
     return {"band": band, "band_ru": BAND_RU[band], "mult": mult, "kzt_kwh": kzt,
-            "text": (f"Тариф сейчас: {BAND_RU[band]} ×{num(mult, 2)} ≈ {num(kzt, 1)} тг/кВт·ч "
+            "text": (f"Сценарий «что если»: тариф сейчас {BAND_RU[band]} ×{num(mult, 2)} ≈ {num(kzt, 1)} тг/кВт·ч "
                      f"(среднесуточный 16 тг/кВт·ч — факт; деление на пик и ночь — {ASSUME})")}
 
 
@@ -86,6 +100,8 @@ DEPUTY_DEFAULT = {
     "person-kip": "person-power", "person-power": "person-kip",
     "person-metallurgist": "person-geologist", "person-geologist": "person-metallurgist",
     "person-water": "person-metallurgist", "person-dispatcher": "person-geologist",
+    "person-mine-head": "person-dispatcher", "person-road": "person-mine-head",
+    "person-pit-mech": "person-crusher-mech", "person-grind-op": "person-metallurgist",
 }
 
 
@@ -96,8 +112,19 @@ def _deputy(store: Store, person: str) -> str:
     return d or DEPUTY_DEFAULT.get(person, "")
 
 
+# Chain of a trouble kind when it is not main -> deputy -> shift head of the plant (the pit has its own head of shift and a
+# road service). The same table as sim/site_aktogay.CHAIN_BY_KIND, a test keeps them equal (T-K4: the risk is named by KAZ
+# Minerals, the roster is a stand assumption).
+CHAIN_BY_KIND = {
+    "road_winter": ("person-dispatcher", "person-mine-head", "person-road"),
+    "driver_fatigue": ("person-dispatcher", "person-mine-head"),
+    "oil_contam": ("person-pit-mech", "person-dispatcher", "person-mine-head"),
+    "exc_down": ("person-pit-mech", "person-dispatcher", "person-mine-head"),
+}
+
+
 def build_chain(store: Store, main: str, node: str, t: float, node_ru: Callable[[str], str],
-                job_started: bool = False) -> dict:
+                job_started: bool = False, kind: str = "") -> dict:
     """Chain main -> deputy -> shift head for an issue at `node`.
 
     available: the person is free. A person already working at this very node counts as present (the job is his).
@@ -106,7 +133,8 @@ def build_chain(store: Store, main: str, node: str, t: float, node_ru: Callable[
     text: empty when the main person is free and nothing needs saying; otherwise names who is busy (and why) and
     whom to call."""
     names: list[str] = []
-    for n in (main, _deputy(store, main), _head(store)):
+    custom = [n for n in CHAIN_BY_KIND.get(kind, ()) if store.get(n) is not None]
+    for n in (custom if custom else (main, _deputy(store, main), _head(store))):
         if n and n not in names:
             names.append(n)
     items = [person_info(store, n, t, node_ru) for n in names]
@@ -118,7 +146,7 @@ def build_chain(store: Store, main: str, node: str, t: float, node_ru: Callable[
     pick = next((it for it in items if it["available"]), None)
     if pick is None:
         pick = min(items, key=lambda it: it["busy_until"] if it["busy_until"] != NO_VALUE else 1e12)
-    via = "" if pick is items[0] else ("head" if pick["person"] == _head(store) else "deputy")
+    via = "" if pick is items[0] else ("head" if pick["person"] in (_head(store), "person-mine-head") else "deputy")
     first = items[0]
     text = ""
     if not first["available"] and not job_started:

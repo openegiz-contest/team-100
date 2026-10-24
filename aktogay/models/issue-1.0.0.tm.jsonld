@@ -6,7 +6,7 @@
     "en": "Issue",
     "ru": "Беда"
   },
-  "description": "Created by akt-priority as issue-<n>; safety_class S0, S1 or empty. loss_usd_h is the rate once losses run, loss_from the model minute they start (-1: none expected, or a safety issue that is not counted in money). status_ru: the status in Russian words; person: the person twin to call. eta: expected arrival of the called person or crew; escalation: 'not arrived by ETA + 15 min' text (empty when none). States: OPEN, CALLED, IN_WORK, RESOLVED, SNOOZED.",
+  "description": "Created by akt-priority as issue-<n>; safety_class S0, S1 or empty. loss_usd_h is the rate once losses run, loss_from the model minute they start (-1: none expected, or a safety issue that is not counted in money). status_ru: the status in Russian words; person: the person twin to call. eta: expected arrival of the called person or crew; escalation: 'not arrived by ETA + 15 min' text (empty when none). evidence = measurements behind the issue {items: [{label, thing, feature, text, unit, where, age_pub_min, age_meas_min, suspect, old}]}: age_pub_min is the age of the data on the screen, age_meas_min the age of the sample itself (analyser, grab sample); notify_text: roles told besides the one called (new face, regime to change). lifecycle = {stage, stage_ru, steps: [{key, ru, t, src}], help, help_text, text}: new, called, accepted, on the way, on site, resolved; accepted / on the way / on site come from the called person (journal.mech), else from the model, marked in src. lever = {name, line, value, unit, reason, label} (only for advice that changes the regime: the interface offers one click that sets this what-if lever in the model; empty otherwise). cost = {usd_h, items: [{key, title, usd_h, label, supports: [{what, label}]}], horizon, weakest, text}: the price split into copper, energy, reagents and penalty, and what each part stands on (fact, calculation, assumption). States: OPEN, CALLED, IN_WORK, RESOLVED, SNOOZED.",
   "version": {
     "model": "1.0.0"
   },
@@ -130,6 +130,54 @@
       "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "permit_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "checklist"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "closure"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "evidence"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "evidence_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "notify_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lifecycle"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "cost"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lever"
     },
     {
       "rel": "tm:submodel",

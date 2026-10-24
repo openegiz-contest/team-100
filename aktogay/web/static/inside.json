@@ -1,0 +1,2077 @@
+{
+ "groups": [
+  {
+   "id": "ore",
+   "title": "Руда",
+   "live": "faces",
+   "depth": "B",
+   "intro": "Из какого забоя идёт руда, сколько в ней меди, насколько она твёрдая и окисленная, и что из этого уже на фабрике. Содержание в сульфидной руде Актогая падает: 0,50 % в 2023, 0,43 % в 2024, 0,41 % в IV кв. 2025 (KAZ Minerals) [факт].",
+   "note": "Содержание и твёрдость блока — оценка блочной модели с ошибкой (по аналогу 9–18 % по блоку, Silva и Boisvert 2014); твёрдость руды Актогая в открытых данных не опубликована — диапазон A×b взят у Touro и Josemaria [аналог].",
+   "nodes": [
+    {
+     "id": "ore-faces",
+     "title": "Забои руды (1–3): что копаем",
+     "thing": [
+      "face-1",
+      "face-2",
+      "face-3"
+     ],
+     "depth": "B",
+     "depth_note": "Cu и A×b — оценка блочной модели; твёрдость и доля окисленной — аналог и допущение",
+     "what": "Три забоя руды работают на две линии: экскаватор копает блок, у блока есть оценка меди, твёрдости (A×b) и окисленной доли (ASCu).",
+     "signals": [
+      {
+       "name": "Cu блока по блочной модели",
+       "thing": "face-{n}",
+       "feature": "est_cu",
+       "unit": "% Cu",
+       "digits": 2,
+       "where": "model",
+       "source": "блочная модель двойника; средний ряд 0,50 → 0,43 → 0,41 % — KAZ Minerals, отчёты 2024 и IV кв. 2025",
+       "label": "расчёт",
+       "url": "https://www.kazminerals.com/app/uploads/2026/02/Q4-2025-Production-report_FINAL_ENG.pdf"
+      },
+      {
+       "name": "Твёрдость блока A×b",
+       "thing": "face-{n}",
+       "feature": "est_axb",
+       "unit": "",
+       "digits": 1,
+       "where": "model",
+       "source": "Touro NI 43-101, табл. 13.11 (A×b 31–55); Josemaria FS 2020 (23–96): для Актогая не опубликовано",
+       "label": "аналог"
+      },
+      {
+       "name": "Класс твёрдости (твёрдая / средняя / мягче базовой)",
+       "thing": "face-{n}",
+       "feature": "hardness",
+       "unit": "",
+       "digits": null,
+       "where": "model",
+       "source": "пороги цветовых классов стенда",
+       "label": "допущение"
+      },
+      {
+       "name": "Доля окисленной меди ASCu партии",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "lab",
+       "source": "лаборатория Met-LAB есть в проекте (ПЭК, с. 12–13); значения партий — на странице «Руда»",
+       "label": "проект",
+       "url": "https://ecoportal.kz/Public/PubHearings/LoadFile/111450"
+      },
+      {
+       "name": "Взорванный запас забоя",
+       "thing": "face-{n}",
+       "feature": "blasted_t",
+       "unit": "т",
+       "digits": 0,
+       "where": "assumption",
+       "source": "график бурения и взрывов не опубликован; уступ 10 м, станки D55 и D65 — ПЭК, с. 40",
+       "label": "допущение",
+       "url": "https://ecoportal.kz/Public/PubHearings/LoadFile/111450"
+      },
+      {
+       "name": "Сколько копает экскаватор забоя",
+       "thing": "face-{n}",
+       "feature": "tph",
+       "unit": "т/ч",
+       "digits": 0,
+       "where": "dcs",
+       "source": "диспетчерская система Hexagon (Вести Семей, 06.06.2024); экскаваторы 2 700–3 700 т/ч",
+       "label": "факт",
+       "url": "https://vestisemey.kz/15404/kaz-minerals-aktogay-tsifrovye-i-innovatsionnye-vozmozhnosti-industrialnogo-proizvodstva.html"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "hard_ore",
+      "loss_flot_oxide"
+     ],
+     "limits": "двойник видит оценку блока, а не истинную руду; ошибка блочной модели — главная неопределённость цены руды"
+    },
+    {
+     "id": "ore-plant",
+     "title": "Что идёт на фабрику сейчас",
+     "thing": [
+      "sag-1",
+      "sag-2"
+     ],
+     "depth": "B",
+     "depth_note": "A×b по SAG — расчёт по кВт·ч/т; Cu питания — поточный анализатор (вендор)",
+     "what": "Руда из забоев проходит дробилку и склад, дальше её свойства видны по энергии SAG и по анализатору питания флотации.",
+     "signals": [
+      {
+       "name": "A×b по расчёту из кВт·ч/т SAG (soft-sensor)",
+       "thing": "sag-{n}",
+       "feature": "axb_soft",
+       "unit": "",
+       "digits": 1,
+       "where": "model",
+       "source": "Моррелл: E = K F80^a DWi^b; расчёт по мощности и питанию",
+       "label": "расчёт"
+      },
+      {
+       "name": "Cu в питании флотации",
+       "thing": "flot-{n}",
+       "feature": "feed_cu",
+       "unit": "% Cu",
+       "digits": 3,
+       "where": "dcs",
+       "source": "поточный анализатор Metso Courier: цикл 12–16 мин, на рынке 1–6 %",
+       "label": "вендор",
+       "url": "https://www.metso.com/globalassets/portfolio/brochure-courier-5x-6x-sl-online-analyzers-4924-11-23-en-mng.pdf"
+      },
+      {
+       "name": "Энергия SAG на тонну",
+       "thing": "sag-{n}",
+       "feature": "e_kwh_t",
+       "unit": "кВт·ч/т",
+       "digits": 2,
+       "where": "dcs",
+       "source": "мощность привода и конвейерные весы питания",
+       "label": "допущение"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "hard_ore",
+      "loss_flot_oxide",
+      "loss_sag"
+     ],
+     "limits": "смену руды видно с задержкой склада (часы) и анализатора (до 15 мин); поэтому металлург получает предупреждение заранее"
+    },
+    {
+     "id": "ore-boz",
+     "title": "Смена руды и режим: пример Бозшаколь",
+     "thing": null,
+     "depth": "B",
+     "depth_note": "один пример влияния минералогии; не оценка потери от задержки",
+     "what": "Бозшаколь: извлечение меди 78,5 % (H1 2024) → 73,8 % (H1 2025) из-за сложной минералогии руды. Это пример того, что руда другого состава требует другого режима; он НЕ говорит, сколько теряется за час задержки.",
+     "signals": [
+      {
+       "name": "Извлечение меди, Бозшаколь",
+       "thing": null,
+       "feature": null,
+       "unit": "%",
+       "digits": null,
+       "where": "model",
+       "source": "KAZ Minerals, отчёт H1 2025, с. 5: 78,5 % → 73,8 %",
+       "label": "факт",
+       "url": "https://www.kazminerals.com/app/uploads/2025/12/q2-2025-production-report_final.pdf"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "hard_ore",
+      "loss_flot_oxide"
+     ],
+     "limits": "Актогай: извлечение сульфидов 87,7 % (2023), 87,9 % (2024), 87,2 % (IV кв. 2025) — KAZ Minerals; уставки режима на площадке в открытых данных нет"
+    }
+   ]
+  },
+  {
+   "id": "dam",
+   "title": "Дамба",
+   "live": "dam",
+   "depth": "B",
+   "intro": "Хвостохранилище Актогая в работе с 2017 г.: наращивание вниз по течению (downstream), максимальная высота 23 м, объём 65 млн м³ (2020) с планом 243 млн м³, класс последствий «Low» по ANCOLD, независимая экспертиза в июле 2019, с 2022 г. — центральная сгущённая укладка (CTD) [факт: отчёт KAZ Minerals, июль 2020, с. 2–3].",
+   "note": "Число и места пьезометров, уставка тревоги и оборотная вода в открытых данных не опубликованы — в двойнике это допущения.",
+   "nodes": [
+    {
+     "id": "dam-body",
+     "title": "Дамба и пруд",
+     "thing": [
+      "water"
+     ],
+     "depth": "B",
+     "depth_note": "паспорт дамбы — факт; пруд, баланс и уставки — допущения двойника",
+     "what": "Дамба хвостохранилища и пруд оборотной воды: давление в теле дамбы (пьезометры), объём пруда, невязка водного баланса.",
+     "signals": [
+      {
+       "name": "Показание дамбы (пьезометр, модель)",
+       "thing": "water",
+       "feature": "piezo_kpa",
+       "unit": "кПа",
+       "digits": 0,
+       "where": "model",
+       "source": "модель пруда; пьезометры П-1…П-3 ниже",
+       "label": "допущение"
+      },
+      {
+       "name": "Объём пруда",
+       "thing": "water",
+       "feature": "pond_m3",
+       "unit": "м³",
+       "digits": 0,
+       "where": "model",
+       "source": "объём держится регулятором, начальный — допущение",
+       "label": "допущение"
+      },
+      {
+       "name": "Невязка водного баланса",
+       "thing": "water",
+       "feature": "residual_pct",
+       "unit": "%",
+       "digits": 1,
+       "where": "model",
+       "source": "забор − потери с хвостами, кеком и испарением − изменение пруда; забор группы 0,60 м³/т (KAZ Minerals, 2024)",
+       "label": "расчёт"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "dam_alarm",
+      "water_short"
+     ],
+     "limits": "состояние тела дамбы между пьезометрами, трещины и фильтрация не видны ни одному датчику двойника"
+    },
+    {
+     "id": "dam-piezo",
+     "title": "Пьезометры дамбы (П-1…П-3)",
+     "thing": [
+      "piezo-1",
+      "piezo-2",
+      "piezo-3"
+     ],
+     "depth": "B",
+     "depth_note": "число и места пьезометров на Актогае не опубликованы",
+     "what": "Три пьезометра в теле дамбы (допущение по числу): давление поровой воды, уровень, уставка безопасности. Тревога — класс S0.",
+     "signals": [
+      {
+       "name": "Давление поровой воды",
+       "thing": "piezo-{n}",
+       "feature": "kpa",
+       "unit": "кПа",
+       "digits": 0,
+       "where": "dcs",
+       "source": "пьезометры дамбы; число — допущение",
+       "label": "допущение"
+      },
+      {
+       "name": "Уровень воды в теле дамбы",
+       "thing": "piezo-{n}",
+       "feature": "level_m",
+       "unit": "м",
+       "digits": 1,
+       "where": "model",
+       "source": "кПа / 9,81",
+       "label": "расчёт"
+      },
+      {
+       "name": "Уставка тревоги S0",
+       "thing": "piezo-{n}",
+       "feature": "sp_kpa",
+       "unit": "кПа",
+       "digits": 0,
+       "where": "assumption",
+       "source": "уставка безопасности стенда",
+       "label": "допущение"
+      },
+      {
+       "name": "Тревога",
+       "thing": "piezo-{n}",
+       "feature": "alarm",
+       "unit": "",
+       "digits": 0,
+       "where": "dcs",
+       "source": "давление не ниже уставки",
+       "label": "допущение"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "dam_alarm"
+     ],
+     "limits": "застрявший или дрейфующий пьезометр скроет опасность: поэтому пьезометры входят в таблицу приборов с возрастом данных"
+    },
+    {
+     "id": "dam-season",
+     "title": "Сезонные риски хвостов",
+     "thing": [
+      "water"
+     ],
+     "depth": "B",
+     "depth_note": "риски общие для хвостохранилищ KAZ Minerals; Актогай отдельно в источнике не назван",
+     "what": "Дождь, таяние снега, лёд, насосы и контроль фильтрации — сезонные эффекты, которые нужно держать в голове эксплуатации хвостов KAZ Minerals (доклад технического директора, AMM Astana 2023, слайд 11) [факт]. На Бозшаколе зимой возврат осветлённой воды затруднён: ниже −10 °C более трёх месяцев в году (ATC Williams) [аналог].",
+     "signals": [
+      {
+       "name": "Температура воздуха",
+       "thing": "water",
+       "feature": "air_temp_c",
+       "unit": "°C",
+       "digits": 0,
+       "where": "assumption",
+       "source": "нормы 1991–2020, ст. Актогай: окно 15.11–15.03 в среднем −9,05 °C; метеопост площадки не назван",
+       "label": "аналог",
+       "url": "https://en.wikipedia.org/wiki/Aktogay,_East_Kazakhstan_Region"
+      },
+      {
+       "name": "Пляж сух (пыление)",
+       "thing": "water",
+       "feature": "beach_dry_pct",
+       "unit": "%",
+       "digits": 0,
+       "where": "assumption",
+       "source": "пороги ветра и сухости не найдены",
+       "label": "допущение"
+      },
+      {
+       "name": "Зима: возврат воды снижен",
+       "thing": "water",
+       "feature": "winter",
+       "unit": "",
+       "digits": 0,
+       "where": "assumption",
+       "source": "доля потери возврата 3 % — допущение; лёд в прудах — качественный аналог",
+       "label": "допущение",
+       "url": "https://atcwilliams.com/projects/bozshakol-tsf-kazakhstan/"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Лёд в пруду, замерзание труб",
+       "stat": "качественно, процент не найден",
+       "source": "Caijiaying, Mount Wright, Бозшаколь (ATC Williams)",
+       "label": "аналог",
+       "trouble": "water_short",
+       "url": "https://atcwilliams.com/projects/bozshakol-tsf-kazakhstan/"
+      },
+      {
+       "name": "Пыление сухого пляжа",
+       "stat": "порог ветра — допущение",
+       "source": "приказ МЗ РК № ДСМ-70 (текст не проверен)",
+       "label": "допущение",
+       "trouble": "tailings_dust"
+      }
+     ],
+     "troubles": [
+      "tailings_dust",
+      "water_short"
+     ],
+     "limits": "зима в модели меняет водный баланс, а не переработку (в Q1 2019 сульфидные фабрики работали на проектной переработке)"
+    }
+   ]
+  },
+  {
+   "id": "people",
+   "title": "Люди",
+   "live": "people",
+   "depth": "B",
+   "intro": "Где люди, в каком статусе, по какому наряду-допуску работают и кто вместо. На предприятии около 3 500 работников; в карьере за смену больше 500 человек и больше 100 единиц техники (Вести Семей, 06.06.2024) [факт].",
+   "note": "Роли и состав смены стенда — допущение: штатное расписание не опубликовано; названия ролей общие для рудников.",
+   "nodes": [
+    {
+     "id": "people-shift",
+     "title": "Люди смены",
+     "thing": [
+      "person-crusher-mech",
+      "person-mill-mech",
+      "person-metallurgist",
+      "person-power",
+      "person-kip",
+      "person-geologist",
+      "person-water",
+      "person-dispatcher",
+      "person-shift-head",
+      "person-mine-head",
+      "person-road",
+      "person-pit-mech",
+      "person-grind-op"
+     ],
+     "depth": "B",
+     "depth_note": "13 ролей смены — допущение; статус и место двойника — расчёт",
+     "what": "Каждый человек — вещь в двойнике: свободен, в пути, на работе, вне работы (эвакуирован); где он, и когда освободится.",
+     "signals": [
+      {
+       "name": "Статус",
+       "thing": [
+        "person-crusher-mech",
+        "person-mill-mech",
+        "person-metallurgist",
+        "person-power",
+        "person-kip",
+        "person-geologist",
+        "person-water",
+        "person-dispatcher",
+        "person-shift-head",
+        "person-mine-head",
+        "person-road",
+        "person-pit-mech",
+        "person-grind-op"
+       ],
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "model",
+       "source": "двойник человека по вызовам; не слежение за людьми",
+       "label": "допущение"
+      },
+      {
+       "name": "Где находится",
+       "thing": [
+        "person-crusher-mech",
+        "person-mill-mech",
+        "person-metallurgist",
+        "person-power",
+        "person-kip",
+        "person-geologist",
+        "person-water",
+        "person-dispatcher",
+        "person-shift-head",
+        "person-mine-head",
+        "person-road",
+        "person-pit-mech",
+        "person-grind-op"
+       ],
+       "feature": "location",
+       "unit": "",
+       "digits": null,
+       "where": "model",
+       "source": "узел вызова или дежурное место",
+       "label": "допущение"
+      },
+      {
+       "name": "Наряд-допуск: узел работы",
+       "thing": [
+        "person-crusher-mech",
+        "person-mill-mech",
+        "person-metallurgist",
+        "person-power",
+        "person-kip",
+        "person-geologist",
+        "person-water",
+        "person-dispatcher",
+        "person-shift-head",
+        "person-mine-head",
+        "person-road",
+        "person-pit-mech",
+        "person-grind-op"
+       ],
+       "feature": "permit",
+       "unit": "",
+       "digits": null,
+       "where": "model",
+       "source": "Правила № 348 от 30.12.2014, пп. 12 и 63",
+       "label": "факт"
+      },
+      {
+       "name": "Свободен с",
+       "thing": [
+        "person-crusher-mech",
+        "person-mill-mech",
+        "person-metallurgist",
+        "person-power",
+        "person-kip",
+        "person-geologist",
+        "person-water",
+        "person-dispatcher",
+        "person-shift-head",
+        "person-mine-head",
+        "person-road",
+        "person-pit-mech",
+        "person-grind-op"
+       ],
+       "feature": "free_at",
+       "unit": "",
+       "digits": null,
+       "where": "model",
+       "source": "конец текущей работы по расчёту двойника",
+       "label": "допущение"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "startup_zone",
+      "hpgr_fire",
+      "road_winter",
+      "driver_fatigue"
+     ],
+     "limits": "двойник не следит за конкретными людьми: это роли смены, нужные для вызова; реальные табельные данные не подключены"
+    },
+    {
+     "id": "people-permit",
+     "title": "Наряд-допуск: кто недоступен",
+     "thing": [
+      "person-mill-mech",
+      "person-crusher-mech"
+     ],
+     "depth": "B",
+     "depth_note": "правило — норма Правил № 348; список людей смены — допущение",
+     "what": "Человек, который работает внутри оборудования по наряду-допуску, недоступен для вызова до конца работ (пп. 12 и 63 Правил № 348). Двойник показывает его в статусе «на работе» с узлом наряда и предлагает следующего по цепочке.",
+     "signals": [
+      {
+       "name": "Узел наряда-допуска",
+       "thing": [
+        "person-mill-mech",
+        "person-crusher-mech"
+       ],
+       "feature": "permit",
+       "unit": "",
+       "digits": null,
+       "where": "model",
+       "source": "Правила № 348, пп. 12, 63, 315, 316",
+       "label": "факт"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "startup_zone"
+     ],
+     "limits": "текст приказа читался по кодам пунктов; конкретная форма наряда на Актогае — регламент площадки"
+    },
+    {
+     "id": "people-chain",
+     "title": "Кто вместо: цепочка вызова",
+     "thing": [
+      "person-dispatcher",
+      "person-mine-head",
+      "person-road"
+     ],
+     "depth": "B",
+     "depth_note": "цепочка карьера — допущение (в источниках только риск, не штатная схема)",
+     "what": "Основной → заместитель → начальник смены. В карьере: горный диспетчер → начальник смены карьера → дорожная служба (зимняя дорога); сменный механик → горный диспетчер → начальник смены карьера (экскаватор).",
+     "signals": [
+      {
+       "name": "Статус звена цепочки",
+       "thing": [
+        "person-dispatcher",
+        "person-mine-head",
+        "person-road",
+        "person-pit-mech"
+       ],
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "model",
+       "source": "двойник человека",
+       "label": "допущение"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "road_winter",
+      "driver_fatigue",
+      "oil_contam"
+     ],
+     "limits": "кто реально следующий, решает смена; двойник предлагает порядок"
+    }
+   ]
+  },
+  {
+   "id": "machines",
+   "title": "Машины",
+   "live": "machines",
+   "depth": "A",
+   "intro": "Экскаваторы, самосвалы, бульдозеры и буровые карьера. У каждой машины своя глубина: A — лист сигналов и отказы с источником (EX3600, EX1200, самосвалы CAT 793), B — типовые отказы класса по аналогу (D10T, D375), C — только общее состояние (буровые).",
+   "note": "Сигнал показан с пометкой, где он виден: на машине (видит водитель или оператор), «передаётся, если подключена опция» или «аналог другой модели». Ни один лист сигналов не переносится на машину другой модели.",
+   "nodes": [
+    {
+     "id": "m-ex3600",
+     "title": "EX01 Hitachi EX3600-6 (экскаватор руды)",
+     "thing": [
+      "exc-1"
+     ],
+     "depth": "A",
+     "depth_note": "лист проспекта EX3600-6; наличие опций на Актогае не подтверждено",
+     "what": "Гидравлический экскаватор EX01 (бортовой номер из перечня техники 29.02.2024). Показания и защиты — по проспекту модели EX3600-6.",
+     "signals": [
+      {
+       "name": "Загрязнение гидромасла (датчик загрязнения)",
+       "thing": "exc-1",
+       "feature": "oil_pct",
+       "unit": "% от уровня тревоги",
+       "digits": 0,
+       "where": "machine",
+       "source": "Hitachi EX3600-6, проспект KS-EN056T, с. 11: «Alerts the operator of excessive contaminants in the oil»",
+       "label": "вендор",
+       "url": "https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf",
+       "note": "в источнике слова hydraulic нет — «масло» вообще; у остальных экскаваторов датчик не подтверждён"
+      },
+      {
+       "name": "Тревога датчика загрязнения",
+       "thing": "exc-1",
+       "feature": "oil_alert",
+       "unit": "",
+       "digits": 0,
+       "where": "sent",
+       "source": "Global e-Service (рабочая информация и положение) требует опцию DTU и контракт; в ряде регионов недоступен (с. 11)",
+       "label": "вендор",
+       "url": "https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf"
+      },
+      {
+       "name": "Натяжение гусениц: азотные аккумуляторы, автостоп хода при превышении давления",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "machine",
+       "source": "проспект EX3600-6, с. 7: «Travel is automatically stopped if accumulator pressure exceeds a preset level»",
+       "label": "вендор",
+       "url": "https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf",
+       "note": "датчик давления в тексте прямо не назван — описана защитная функция"
+      },
+      {
+       "name": "E-P Control: нагрузка двигателя и насосов",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "machine",
+       "source": "проспект, с. 4: «senses load demand and controls engine and pump output»",
+       "label": "вендор",
+       "url": "https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf"
+      },
+      {
+       "name": "Индикаторы кабины: давление и уровень ОЖ, температура топлива, давление масла двигателя, засорение воздушного фильтра, загрязнение насосов",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "machine",
+       "source": "EX3600-6 (diesel), стандартная комплектация, американская редакция, с. 28; список «Standard»",
+       "label": "вендор",
+       "url": "https://doggett.com/images/doggett-hitachi/Brochures/Mining-EX3600-6.pdf",
+       "note": "лампы и зуммеры в кабине (местный контроль), не телеметрия"
+      },
+      {
+       "name": "Температура гидромасла и сигнал перегрева",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "machine",
+       "source": "тот же список: «Hydraulic oil temperature gauge», «Hydraulic oil overheat»",
+       "label": "вендор",
+       "url": "https://doggett.com/images/doggett-hitachi/Brochures/Mining-EX3600-6.pdf"
+      },
+      {
+       "name": "Журнал параметров двигателя и гидравлики (DLU)",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "sent",
+       "source": "DLU непрерывно записывает параметры; выгрузка на ПК; спутниковая передача — опция по лицензии страны",
+       "label": "вендор",
+       "url": "https://doggett.com/images/doggett-hitachi/Brochures/Mining-EX3600-6.pdf"
+      },
+      {
+       "name": "Копает, т/ч",
+       "thing": "exc-1",
+       "feature": "tph",
+       "unit": "т/ч",
+       "digits": 0,
+       "where": "dcs",
+       "source": "диспетчерская система Hexagon (Вести Семей, 06.06.2024)",
+       "label": "факт",
+       "url": "https://vestisemey.kz/15404/kaz-minerals-aktogay-tsifrovye-i-innovatsionnye-vozmozhnosti-industrialnogo-proizvodstva.html"
+      },
+      {
+       "name": "Давление натяжения гусениц, % уровня автостопа",
+       "thing": "exc-1",
+       "feature": "track_press_pct",
+       "unit": "%",
+       "digits": 0,
+       "where": "machine",
+       "source": "проспект EX3600-6, с. 7: ход останавливается автоматически при заданном давлении аккумуляторов",
+       "label": "вендор",
+       "url": "https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf",
+       "note": "уровень не опубликован; в диспетчерскую — при опции Global e-Service"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Загрязнение рабочей жидкости — причина отказов гидросистем",
+       "stat": "≈ 70 % отказов гидросистем",
+       "source": "Abduazizov и др., Mining of Mineral Deposits 20(2), 2026, с. 31 (в источнике — парк другого рудника)",
+       "label": "аналог",
+       "trouble": "oil_contam",
+       "url": "https://pdfs.semanticscholar.org/e654/bd7b9089010efdfa4ebdfd2990cd4ab289c0.pdf"
+      },
+      {
+       "name": "Ремонт после отказа гидросистемы",
+       "stat": "57,45 ч (MTTR электрогидравлики PC3000, не EX3600)",
+       "source": "та же работа, табл. 2, с. 33",
+       "label": "аналог",
+       "trouble": "exc_down",
+       "url": "https://pdfs.semanticscholar.org/e654/bd7b9089010efdfa4ebdfd2990cd4ab289c0.pdf"
+      }
+     ],
+     "troubles": [
+      "oil_contam",
+      "exc_down",
+      "track_tension"
+     ],
+     "limits": "состав EX3600-6 (4 механизма поворота, 8 насосов) не переносится на другие модели Актогая"
+    },
+    {
+     "id": "m-ex1200",
+     "title": "EX53 Hitachi EX1200-6 (экскаватор вскрыши)",
+     "thing": [
+      "exc-5"
+     ],
+     "depth": "A",
+     "depth_note": "лист каталога EX1200-6 (рус., KS-EN112); списки зависят от страны поставки",
+     "what": "Экскаватор EX53 (бортовой номер из перечня техники). Контроль — индикаторы и указатели, а не телеметрия.",
+     "signals": [
+      {
+       "name": "Указатели: температура ОЖ двигателя, уровень топлива",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "machine",
+       "source": "каталог EX1200-6, раздел «Система контроля», с. 16",
+       "label": "вендор",
+       "url": "https://www.mining-portal.ru/uploads/catalog/2fc61b1364eedde3.pdf"
+      },
+      {
+       "name": "Предупреждающие индикаторы: уровень воды в радиаторе, уровень масла и давление масла двигателя, уровень топлива, уровень рабочей жидкости гидросистемы, засорение воздушного фильтра, давление масла в коробке передач насосов",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "machine",
+       "source": "каталог, с. 16; в источнике «в коробке передач насосов», не «привода»",
+       "label": "вендор",
+       "url": "https://www.mining-portal.ru/uploads/catalog/2fc61b1364eedde3.pdf",
+       "note": "индикаторы и лампы, а не показания датчиков"
+      },
+      {
+       "name": "Блок регистрации данных DLU",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "sent",
+       "source": "DLU непрерывно регистрирует параметры двигателя и гидросистемы (с. 16); MIC Mining (с. 13); данные скачиваются на ПК или КПК, спутник — опция",
+       "label": "вендор",
+       "url": "https://www.mining-portal.ru/uploads/catalog/2fc61b1364eedde3.pdf"
+      },
+      {
+       "name": "Состояние и производительность",
+       "thing": "exc-5",
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "dcs",
+       "source": "диспетчерская система Hexagon",
+       "label": "факт",
+       "url": "https://vestisemey.kz/15404/kaz-minerals-aktogay-tsifrovye-i-innovatsionnye-vozmozhnosti-industrialnogo-proizvodstva.html"
+      }
+     ],
+     "failures": [],
+     "troubles": [],
+     "limits": "не переносить на EX3600-6: у EX1200-6 два мотора поворота и три насоса, у EX3600-6 — четыре и восемь; таблица отказов PC3000 к EX1200 не относится"
+    },
+    {
+     "id": "m-ex-other",
+     "title": "EX02, EX03 и EX51: остальные экскаваторы",
+     "thing": [
+      "exc-2",
+      "exc-3",
+      "exc-4"
+     ],
+     "depth": "C",
+     "depth_note": "модель EX02 и EX03 не названа, EX51 — ZX870; листов сигналов в источниках нет",
+     "what": "Пять экскаваторов Hitachi по 2 700–3 700 т/ч (Вести Семей, 06.06.2024); три работают на руде, два на вскрыше (деление — допущение).",
+     "signals": [
+      {
+       "name": "Состояние и производительность",
+       "thing": [
+        "exc-2",
+        "exc-3",
+        "exc-4"
+       ],
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "dcs",
+       "source": "диспетчерская система Hexagon",
+       "label": "факт",
+       "url": "https://vestisemey.kz/15404/kaz-minerals-aktogay-tsifrovye-i-innovatsionnye-vozmozhnosti-industrialnogo-proizvodstva.html"
+      },
+      {
+       "name": "Копает, т/ч",
+       "thing": [
+        "exc-2",
+        "exc-3",
+        "exc-4"
+       ],
+       "feature": "tph",
+       "unit": "т/ч",
+       "digits": 0,
+       "where": "dcs",
+       "source": "Hexagon",
+       "label": "факт",
+       "url": "https://vestisemey.kz/15404/kaz-minerals-aktogay-tsifrovye-i-innovatsionnye-vozmozhnosti-industrialnogo-proizvodstva.html"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "exc_down",
+      "pit_stop"
+     ],
+     "limits": "показывается общее состояние; узлы и отказы этих машин в открытых данных не найдены"
+    },
+    {
+     "id": "m-cat793",
+     "title": "Самосвалы CAT 793 (17 машин, HT141 CAT 793D)",
+     "thing": [
+      "truck-21"
+     ],
+     "depth": "A",
+     "depth_note": "лист 793F Tier 4 — другая модель, чем 793D Актогая; VIMS на Актогае подтверждена",
+     "what": "17 самосвалов CAT 793 грузоподъёмностью более 240 т (Вести Семей, 06.06.2024). На самосвалах Актогая работает VIMS: телеметрия подтверждена данными проекта Immersive Technologies.",
+     "signals": [
+      {
+       "name": "Панель приборов: температура масла трансмиссии, масла тормозов, ОЖ двигателя, масла гидротрансформатора, уровень топлива",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "analog",
+       "source": "CAT 793F Tier 4, стандартная комплектация, «Gauge Panel» (страница дилера Peterson Cat)",
+       "label": "вендор",
+       "url": "https://www.petersoncat.com/products/new/mining-trucks/793f-tier-4",
+       "note": "это 793F, а не 793D; указатели в кабине, не телеметрия"
+      },
+      {
+       "name": "Указатель передачи; VIMS Message Center with Advisor; индикатор уровня DEF",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "analog",
+       "source": "та же страница: отдельные строки стандартной комплектации",
+       "label": "вендор",
+       "url": "https://www.petersoncat.com/products/new/mining-trucks/793f-tier-4"
+      },
+      {
+       "name": "Многоточечный контроль давления масла (Multi-Point Oil Pressure Sensing)",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "analog",
+       "source": "та же страница, раздел Power Train",
+       "label": "вендор",
+       "url": "https://www.petersoncat.com/products/new/mining-trucks/793f-tier-4"
+      },
+      {
+       "name": "VIMS: нарушающие смены, превышение оборотов, ошибки выбора передачи",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "sent",
+       "source": "Immersive Technologies, Актогай: −31 % «abusive shifts», −75,7 % превышений оборотов, −45,4 % ошибок выбора передач (данные VIMS; периоды окт 2021–фев 2022 и окт 2022–фев 2023)",
+       "label": "вендор",
+       "url": "https://www.immersivetechnologies.com/services/ms_pdf/UM1524_KazMinerals.pdf",
+       "note": "VIMS подтверждена; полный перечень каналов Актогая не опубликован"
+      },
+      {
+       "name": "Цикл рейса, мин",
+       "thing": "truck-21",
+       "feature": "cycle_min",
+       "unit": "мин",
+       "digits": 0,
+       "where": "dcs",
+       "source": "диспетчерская система Hexagon",
+       "label": "факт",
+       "url": "https://vestisemey.kz/15404/kaz-minerals-aktogay-tsifrovye-i-innovatsionnye-vozmozhnosti-industrialnogo-proizvodstva.html"
+      },
+      {
+       "name": "Груз на борту, т",
+       "thing": "truck-21",
+       "feature": "load_t",
+       "unit": "т",
+       "digits": 0,
+       "where": "model",
+       "source": "модель рейса двойника",
+       "label": "допущение"
+      },
+      {
+       "name": "Температура масла тормозов самосвала HT141, °C",
+       "thing": "fleet",
+       "feature": "brake_oil_c",
+       "unit": "°C",
+       "digits": 0,
+       "where": "analog",
+       "source": "CAT 793F: указатель температуры масла тормозов и VIMS (аналог); принцип «порог с выдержкой времени»",
+       "label": "вендор",
+       "url": "https://www.petersoncat.com/products/new/mining-trucks/793f-tier-4",
+       "note": "это 793F, а не 793D; числовые пороги не используются"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "fleet_short",
+      "road_winter",
+      "driver_fatigue",
+      "brake_hot"
+     ],
+     "limits": "частоты отказов самосвалов Актогая в открытых данных нет; двойник показывает рейс и готовность, не износ узлов"
+    },
+    {
+     "id": "m-trucks-other",
+     "title": "Самосвалы CAT 785 (18) и CAT 777 (2)",
+     "thing": [
+      "truck-03",
+      "truck-04"
+     ],
+     "depth": "C",
+     "depth_note": "листов сигналов нет; HT121 — 785C, HT136–HT138 — 785D (перечень техники)",
+     "what": "Основная масса парка: 18 CAT 785 и 2 CAT 777 (Вести Семей, 06.06.2024); парк на 2026 г. не подтверждён.",
+     "signals": [
+      {
+       "name": "Состояние и рейс",
+       "thing": [
+        "truck-03",
+        "truck-04"
+       ],
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "dcs",
+       "source": "диспетчерская система Hexagon",
+       "label": "факт",
+       "url": "https://vestisemey.kz/15404/kaz-minerals-aktogay-tsifrovye-i-innovatsionnye-vozmozhnosti-industrialnogo-proizvodstva.html"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "fleet_short"
+     ],
+     "limits": "только общее состояние"
+    },
+    {
+     "id": "m-d10t",
+     "title": "Бульдозеры CAT D10T (DZ21–DZ23): типовые отказы класса",
+     "thing": [
+      "dozer-21",
+      "dozer-22",
+      "dozer-23"
+     ],
+     "depth": "B",
+     "depth_note": "доли остановок — диссертация о парке D10T другой компании (юг Перу)",
+     "what": "Три D10T и один D9R работают на забоях и дорогах. Типовые остановки класса машин — по аналогу; своих данных по Актогаю нет.",
+     "signals": [
+      {
+       "name": "Состояние",
+       "thing": [
+        "dozer-21",
+        "dozer-22",
+        "dozer-23"
+       ],
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "dcs",
+       "source": "Hexagon",
+       "label": "факт",
+       "url": "https://minedocs.com/33/Kaz-Minerals-equipment-2024.pdf"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Двигатель",
+       "stat": "19,2 % остановок · 27,7 % времени",
+       "source": "UCSM Арекипа, Villanueva Villena, табл. 4–5",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://repositorio.ucsm.edu.pe/items/fa58a36b-11d7-4970-99fe-7c4d93cede31"
+      },
+      {
+       "name": "Электрика",
+       "stat": "18,5 % · 20,7 %",
+       "source": "там же",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://repositorio.ucsm.edu.pe/items/fa58a36b-11d7-4970-99fe-7c4d93cede31"
+      },
+      {
+       "name": "Гидравлика",
+       "stat": "18,4 % · 12,0 %",
+       "source": "там же",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://repositorio.ucsm.edu.pe/items/fa58a36b-11d7-4970-99fe-7c4d93cede31"
+      },
+      {
+       "name": "Кабина",
+       "stat": "16,2 % · 11,1 %",
+       "source": "там же",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://repositorio.ucsm.edu.pe/items/fa58a36b-11d7-4970-99fe-7c4d93cede31"
+      },
+      {
+       "name": "GET (режущая кромка и зубья)",
+       "stat": "8,7 % · 8,0 %",
+       "source": "там же",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://repositorio.ucsm.edu.pe/items/fa58a36b-11d7-4970-99fe-7c4d93cede31"
+      },
+      {
+       "name": "Ходовая",
+       "stat": "6,9 % · 6,8 %",
+       "source": "там же",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://repositorio.ucsm.edu.pe/items/fa58a36b-11d7-4970-99fe-7c4d93cede31"
+      },
+      {
+       "name": "Силовая передача",
+       "stat": "4,8 % · 6,7 %",
+       "source": "там же",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://repositorio.ucsm.edu.pe/items/fa58a36b-11d7-4970-99fe-7c4d93cede31"
+      },
+      {
+       "name": "Наработка на отказ парка",
+       "stat": "116,8 ч (2016) → 59,4 ч (2023)",
+       "source": "там же, раздел MTBF",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://repositorio.ucsm.edu.pe/items/fa58a36b-11d7-4970-99fe-7c4d93cede31"
+      }
+     ],
+     "troubles": [],
+     "limits": "проценты — доли числа и времени остановок парка в Перу; на Актогае не измерены"
+    },
+    {
+     "id": "m-d375",
+     "title": "Бульдозеры Komatsu D375 (DZ41–DZ43): типовые отказы",
+     "thing": [
+      "dozer-41",
+      "dozer-42",
+      "dozer-43"
+     ],
+     "depth": "B",
+     "depth_note": "северный климат (Якутия) — аналог по условиям",
+     "what": "Три Komatsu D375 на вскрыше и отвале. Данных по Актогаю нет.",
+     "signals": [
+      {
+       "name": "Состояние",
+       "thing": [
+        "dozer-41",
+        "dozer-42",
+        "dozer-43"
+       ],
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "dcs",
+       "source": "Hexagon",
+       "label": "факт",
+       "url": "https://minedocs.com/33/Kaz-Minerals-equipment-2024.pdf"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Отказы за период наблюдения (сравнение двух моделей)",
+       "stat": "301 отказ у D-375A против 172 у D-375A5",
+       "source": "Ishkov, Zedgenizov, AIME 2017, табл. I (Якутия)",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://www.atlantis-press.com/article/25885175.pdf"
+      }
+     ],
+     "troubles": [],
+     "limits": "число отказов за период разных моделей, а не интенсивность; страницы 264–265 из первоначальной выписки не проверены"
+    },
+    {
+     "id": "m-drills",
+     "title": "Буровые станки (6): D55, D65, Pit Viper 231",
+     "thing": [
+      "drill-01",
+      "drill-02",
+      "drill-03",
+      "drill-04",
+      "drill-12",
+      "drill-31"
+     ],
+     "depth": "C",
+     "depth_note": "модели — перечень техники; листа сигналов ровно этих станков нет",
+     "what": "Sandvik D55 (DR01–DR04), Epiroc D65 (DR12), Pit Viper 231 (DR31). Показано только общее состояние.",
+     "signals": [
+      {
+       "name": "Состояние и забой",
+       "thing": [
+        "drill-01",
+        "drill-02",
+        "drill-03",
+        "drill-04",
+        "drill-12",
+        "drill-31"
+       ],
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "dcs",
+       "source": "перечень техники ТОО «КАЗ Минералз Актогай», 29.02.2024 (список не исчерпывающий)",
+       "label": "факт",
+       "url": "https://minedocs.com/33/Kaz-Minerals-equipment-2024.pdf"
+      },
+      {
+       "name": "Глубина и скорость проходки, обороты и давление (момент), подача и удержание, давление воздуха, уровень воды, инклинометры",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "analog",
+       "source": "Epiroc DM75, брошюра, пакет RCS Lite/Basic, с. 6 (зеркало epiroc.com); это серия DM, не Pit Viper 231",
+       "label": "вендор",
+       "url": "https://www.epiroc.com/content/dam/epiroc/rotary-blasthole-drill-rigs/brochures/DM75%20Brochure%20ENG%20A4.pdf",
+       "note": "экран станка (RCS 5); передача данных — пакеты Connected и NAV"
+      }
+     ],
+     "failures": [],
+     "troubles": [],
+     "limits": "для PV-231 лист сигналов не открылся; для D55 тоже: отказы буровых в двойнике не моделируются"
+    }
+   ]
+  },
+  {
+   "id": "plant",
+   "title": "Фабрика",
+   "live": "plant",
+   "depth": "A",
+   "intro": "Аппараты двух линий: дробилка, конвейер, склад, ВВД, SAG, шаровые, циклоны, насосы, флотация, сгуститель, фильтр. Узлы и режимы — из проекта и вендоров; отказы — по аналогу, если для Актогая данных нет.",
+   "note": "Мощность фабрик по руде: ОФ-1 30,0 и ОФ-2 27,5 Мт/год (ПЭК, с. 8 и 15) [проект]; режим работы фабрик в ПЭК не указан.",
+   "nodes": [
+    {
+     "id": "p-crusher",
+     "title": "Первичная дробилка ЦПД (1, 2)",
+     "thing": [
+      "crusher-1",
+      "crusher-2"
+     ],
+     "depth": "A",
+     "depth_note": "замена мантии — кейс Metso; давление масла и защита — допущение",
+     "what": "Гирационная дробилка у карьера (линия 2 — 63 × 89 дюймов, ОВОС): руда идёт на конвейер и склад.",
+     "signals": [
+      {
+       "name": "Производительность",
+       "thing": "crusher-{n}",
+       "feature": "tph",
+       "unit": "т/ч",
+       "digits": 0,
+       "where": "dcs",
+       "source": "конвейерные весы; проект 4 386–5 044 т/ч (ОВОС)",
+       "label": "проект"
+      },
+      {
+       "name": "Давление масла (защита)",
+       "thing": "crusher-{n}",
+       "feature": "lube_kpa",
+       "unit": "кПа",
+       "digits": 0,
+       "where": "dcs",
+       "source": "датчик и цепь защиты; уставка 150 кПа",
+       "label": "допущение"
+      },
+      {
+       "name": "Плановое обслуживание: замена брони",
+       "thing": "crusher-{n}",
+       "feature": "service",
+       "unit": "",
+       "digits": 0,
+       "where": "dcs",
+       "source": "план работ ЦПД",
+       "label": "допущение"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Замена мантии: остановка и недодробленная руда",
+       "stat": "≈ 60 ч · 75–100 тыс. т руды не раздроблено",
+       "source": "Metso, кейс La Caridad, 10.03.2023 (другой рудник, меньшая дробилка)",
+       "label": "вендор",
+       "trouble": "crusher_mantle",
+       "url": "https://www.metso.com/insights/case-studies/mining-and-metals/la-caridad-mine-increases-availability-of-primary-crushers/"
+      },
+      {
+       "name": "Останов по давлению масла",
+       "stat": "частота не найдена",
+       "source": "паспорт дробилки; уставка — допущение",
+       "label": "допущение",
+       "trouble": "lube_trip"
+      }
+     ],
+     "troubles": [
+      "crusher_stop",
+      "lube_trip",
+      "crusher_mantle"
+     ],
+     "limits": "время замены на Актогае не опубликовано; 60 ч — аналог"
+    },
+    {
+     "id": "p-conveyor",
+     "title": "Главный конвейер (1, 2) и весы",
+     "thing": [
+      "conveyor-1",
+      "conveyor-2",
+      "weigher-1",
+      "weigher-2"
+     ],
+     "depth": "B",
+     "depth_note": "длина ленты ОФ-2 2 504 м — ПЭК; отказы — аналог угольных шахт",
+     "what": "Наземный магистральный конвейер до склада; на конвейере автоматические весы (ПЭК, с. 10 и 18).",
+     "signals": [
+      {
+       "name": "Производительность по весам",
+       "thing": "conveyor-{n}",
+       "feature": "tph",
+       "unit": "т/ч",
+       "digits": 0,
+       "where": "dcs",
+       "source": "автоматические весы на ленте (ПЭК, с. 10)",
+       "label": "проект",
+       "url": "https://ecoportal.kz/Public/PubHearings/LoadFile/111450"
+      },
+      {
+       "name": "Сигнал защиты (отключение ленты)",
+       "thing": "conveyor-{n}",
+       "feature": "fault",
+       "unit": "",
+       "digits": 0,
+       "where": "dcs",
+       "source": "защита привода в АСУ ТП",
+       "label": "допущение"
+      },
+      {
+       "name": "Температура подшипника ролика, °C",
+       "thing": "conveyor-{n}",
+       "feature": "idler_temp_c",
+       "unit": "°C",
+       "digits": 0,
+       "where": "dcs",
+       "source": "тепловизор или датчики на ленте; порог — допущение",
+       "label": "допущение",
+       "url": "https://www.miningscience.pwr.edu.pl/pdf-59825-3376?filename=3376.pdf"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Входная (коническая) ступень редуктора привода — более половины проблем приводов",
+       "stat": ">50 % проблем приводов (подземные угольные шахты)",
+       "source": "Zimroz, Król, 2009, с. 261: относится к входной ступени редуктора, не ко всем зубчатым колёсам",
+       "label": "аналог",
+       "trouble": "conveyor_stop",
+       "url": "https://www.miningscience.pwr.edu.pl/pdf-59825-3376?filename=3376.pdf"
+      },
+      {
+       "name": "Перегрев подшипника ролика: риск возгорания ленты",
+       "stat": "3 % в год — гарантийное допущение изготовителя роликов",
+       "source": "PPI, CRP 047-01, с. 1; Zimroz, Król 2009",
+       "label": "допущение",
+       "trouble": "idler_hot",
+       "url": "https://www.ppi-global.com/userdocs/literature/ppi/documents/crp_047-01_bearingterms.pdf"
+      }
+     ],
+     "troubles": [
+      "conveyor_stop",
+      "idler_hot"
+     ],
+     "limits": "статус «подтверждено частично»: цитата другого типа привода и другой отрасли"
+    },
+    {
+     "id": "p-hpgr",
+     "title": "ВВД (пресс валкового измельчения) линии 2",
+     "thing": [
+      "pebble-2"
+     ],
+     "depth": "A",
+     "depth_note": "POLYCOM 1 061 т/ч, 2 × 1 750 кВт — вендор; ВВД линии 1 в модели нет (рейтинг не опубликован)",
+     "what": "На линии 2 стоит ВВД thyssenkrupp POLYCOM 1 061 т/ч, 2 × 1 750 кВт (International Mining, 25.02.2021) [вендор]. 09.08.2026 пожар на участке ВВД фабрики № 1 во время ППР: 20 человек эвакуированы [факт].",
+     "signals": [
+      {
+       "name": "Мощность двух приводов",
+       "thing": "pebble-2",
+       "feature": "hpgr_kw",
+       "unit": "кВт",
+       "digits": 0,
+       "where": "dcs",
+       "source": "токи и мощность приводов",
+       "label": "вендор",
+       "url": "https://im-mining.com/2021/02/25/kaz-minerals-aktogay-expansion-track-first-production-second-concentrator-set-late-2021/"
+      },
+      {
+       "name": "Перекос зазора валков",
+       "thing": "pebble-2",
+       "feature": "hpgr_skew_pct",
+       "unit": "%",
+       "digits": 1,
+       "where": "dcs",
+       "source": "датчики положения валков [допущение: состав приборов]",
+       "label": "допущение"
+      },
+      {
+       "name": "Разница мощности приводов",
+       "thing": "pebble-2",
+       "feature": "hpgr_kw_diff_pct",
+       "unit": "%",
+       "digits": 1,
+       "where": "dcs",
+       "source": "токи двух приводов",
+       "label": "допущение"
+      },
+      {
+       "name": "Металлодетектор перед ВВД",
+       "thing": "pebble-2",
+       "feature": "metal_alarm",
+       "unit": "",
+       "digits": 0,
+       "where": "dcs",
+       "source": "Metso (2022): металл пресс по давлению не «чувствует», нужен металлодетектор",
+       "label": "аналог",
+       "url": "https://metso.com/insights/blog/mining-and-metals/why-skewing-is-not-beneficial-for-your-hpgr"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Неравномерное питание: сегрегация по крупности даёт перекос",
+       "stat": "качественно",
+       "source": "Metso, блог, 31.01.2022 (прочитан через WebFetch, не сверен с HTML); другой изготовитель",
+       "label": "аналог",
+       "trouble": "hpgr_uneven",
+       "url": "https://metso.com/insights/blog/mining-and-metals/why-skewing-is-not-beneficial-for-your-hpgr"
+      },
+      {
+       "name": "Ресурс бандажей валков",
+       "stat": "12 000 ч — проектная оценка, не измерение",
+       "source": "Rule, Minnaar, Sauermann, JSAIMM 2009, с. 27 (платина)",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://scielo.org.za/pdf/jsaimm/v109n1/04.pdf"
+      },
+      {
+       "name": "Пожар на участке ВВД фабрики № 1",
+       "stat": "09.08.2026 ≈ 12:00, 20 эвакуированы",
+       "source": "Курсив, 09.08.2026",
+       "label": "факт",
+       "trouble": "hpgr_fire",
+       "url": "https://kz.kursiv.media/2026-08-09/svvo-20-chelovek-evakuirovali-iz-za-chp-na-obogatitelnoi-fabrike-kaz-minerals/"
+      }
+     ],
+     "troubles": [
+      "hpgr_uneven",
+      "hpgr_fire",
+      "pebble_stop"
+     ],
+     "limits": "доля потери при перекосе и срок до металла в валках — допущения двойника"
+    },
+    {
+     "id": "p-sag",
+     "title": "Мельница SAG и безредукторный привод (1, 2)",
+     "thing": [
+      "sag-1",
+      "sag-2"
+     ],
+     "depth": "A",
+     "depth_note": "SAG 28 МВт и безредукторные приводы — вендор; удалённая диагностика ГМД — платформа ABB",
+     "what": "SAG 28 МВт, две шаровые по 22 МВт на линию (mining-technology, 2018) [вендор]. Перефутеровка SAG на Актогае: IV кв. 2023 на обеих сульфидных линиях (перенесена из III кв.) [факт].",
+     "signals": [
+      {
+       "name": "Мощность привода",
+       "thing": "sag-{n}",
+       "feature": "power_kw",
+       "unit": "кВт",
+       "digits": 0,
+       "where": "dcs",
+       "source": "АСУ ТП, привод 28 МВт",
+       "label": "вендор"
+      },
+      {
+       "name": "Питание SAG",
+       "thing": "sag-{n}",
+       "feature": "feed_tph",
+       "unit": "т/ч",
+       "digits": 0,
+       "where": "dcs",
+       "source": "конвейерные весы питания мельницы",
+       "label": "допущение"
+      },
+      {
+       "name": "Тоннаж с последней перефутеровки",
+       "thing": "sag-{n}",
+       "feature": "liner_ground_t",
+       "unit": "т",
+       "digits": 0,
+       "where": "dcs",
+       "source": "счётчик по весам; износ 20,41 мм/Мт — Bradken",
+       "label": "вендор"
+      },
+      {
+       "name": "ГМД: воздушный зазор, эксцентриситет, деформация статора, движение полюсов, температуры обмоток и охлаждения",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "sent",
+       "source": "ABB, удалённая диагностика безредукторных приводов, PDF с. 16–18",
+       "label": "вендор",
+       "url": "https://library.e.abb.com/public/3b41eb5173848571c125793d00572de5/REMOTE%20DIAGNOSTIC%20SERVICES%20FOR%20GEARLESS%20MILL%20DRIVES.pdf",
+       "note": "платформа ABB; что услуга подключена на Актогае, не подтверждено"
+      },
+      {
+       "name": "Воздушный зазор ГМД, мм",
+       "thing": "sag-{n}",
+       "feature": "gmd_gap_mm",
+       "unit": "мм",
+       "digits": 1,
+       "where": "dcs",
+       "source": "ABB: нижний предел зазора «could be defined» (пример 12,5 мм), тренды с alarm и trip limits",
+       "label": "вендор",
+       "url": "https://library.e.abb.com/public/3b41eb5173848571c125793d00572de5/REMOTE%20DIAGNOSTIC%20SERVICES%20FOR%20GEARLESS%20MILL%20DRIVES.pdf",
+       "note": "12,5 мм — пример из текста, не уставка; на Актогае подключение услуги не подтверждено"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Плановая перефутеровка и потеря переработки",
+       "stat": "IV кв. 2023: Sulphide 1 −5 % (7 001 против 7 394 кт)",
+       "source": "KAZ Minerals, отчёт IV кв. 2023, с. 2–3",
+       "label": "факт",
+       "trouble": "reline",
+       "url": "https://www.kazminerals.com/media/23062/q4-2023-production-report-final.pdf"
+      },
+      {
+       "name": "Сужение воздушного зазора: защита отключает привод",
+       "stat": "пример предела 12,5 мм; частота не найдена",
+       "source": "ABB, удалённая диагностика ГМД, с. 18",
+       "label": "вендор",
+       "trouble": "gmd_gap",
+       "url": "https://library.e.abb.com/public/3b41eb5173848571c125793d00572de5/REMOTE%20DIAGNOSTIC%20SERVICES%20FOR%20GEARLESS%20MILL%20DRIVES.pdf"
+      }
+     ],
+     "troubles": [
+      "reline",
+      "sag_stop",
+      "loss_sag",
+      "gmd_gap"
+     ],
+     "limits": "скрытый ускоренный износ и толщина футеровки двойником не видны"
+    },
+    {
+     "id": "p-grind",
+     "title": "Шаровые мельницы и гидроциклоны (1, 2)",
+     "thing": [
+      "ball-1a",
+      "ball-1b",
+      "ball-2a",
+      "ball-2b",
+      "cyclones-1",
+      "cyclones-2"
+     ],
+     "depth": "A",
+     "depth_note": "канатирование — вендор и Kennecott/Centinela; пороги — допущение",
+     "what": "Две шаровые мельницы на линию в замкнутом цикле с гидроциклонами. Канатирование циклонов и перегрузка шаровой — известный режим (Kennecott); тяжёлое канатирование остановило нитку рафинёрной флотации на ≈ 6 ч (Centinela).",
+     "signals": [
+      {
+       "name": "Нагрузка шаровой, % от номинала",
+       "thing": "ball-{n}a",
+       "feature": "power_pct",
+       "unit": "%",
+       "digits": 0,
+       "where": "dcs",
+       "source": "АСУ ТП; перегрузка — выше номинала",
+       "label": "допущение"
+      },
+      {
+       "name": "Циркулирующая нагрузка",
+       "thing": "cyclones-{n}",
+       "feature": "circ_load_pct",
+       "unit": "%",
+       "digits": 0,
+       "where": "dcs",
+       "source": "расчёт по расходам и плотности",
+       "label": "допущение"
+      },
+      {
+       "name": "Давление питания циклонов",
+       "thing": "cyclones-{n}",
+       "feature": "pressure_kpa",
+       "unit": "кПа",
+       "digits": 0,
+       "where": "dcs",
+       "source": "АСУ ТП",
+       "label": "допущение"
+      },
+      {
+       "name": "P80 перелива",
+       "thing": "cyclones-{n}",
+       "feature": "p80_um",
+       "unit": "мкм",
+       "digits": 0,
+       "where": "dcs",
+       "source": "анализатор крупности; CiDRA PST: обновление раз в 4 с против 3–9 мин у обычных систем и «обычно 2 ч с задержкой 12–24 ч» у лаборатории",
+       "label": "вендор",
+       "url": "https://cidra.com/wp-content/uploads/2024/02/BI0622.pdf"
+      },
+      {
+       "name": "Напор насоса питания циклонов, % нормы",
+       "thing": "cyclones-{n}",
+       "feature": "pump_head_pct",
+       "unit": "%",
+       "digits": 0,
+       "where": "dcs",
+       "source": "давление нагнетания насоса; зоны ISO 10816 для пульповых насосов не применяются",
+       "label": "допущение",
+       "url": "https://www.global.weir/globalassets/resources/product-pdfs/warman/warman-ah-pumps-brochure.pdf"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Канатирование, перегрузка шаровой",
+       "stat": "управление помолом предотвращает (Kennecott)",
+       "source": "CiDRA, Comminution 2014, с. 12",
+       "label": "вендор",
+       "trouble": "roping",
+       "url": "https://cidra.com/wp-content/uploads/2024/02/BI0614.pdf"
+      },
+      {
+       "name": "Тяжёлое канатирование: нитка рафинёрной флотации",
+       "stat": "≈ 6 ч остановки (Centinela, май 2014)",
+       "source": "CiDRA, с. 3",
+       "label": "вендор",
+       "trouble": "roping",
+       "url": "https://cidra.com/wp-content/uploads/2024/02/BI0566.pdf"
+      },
+      {
+       "name": "Кавитация и износ колеса пульпового насоса",
+       "stat": "ресурс колеса 1 300 → 2 000 ч и 4 200 → 7 800 ч (случаи Weir)",
+       "source": "Weir, Warman AH, с. 7; Technical Bulletin 36, с. 3",
+       "label": "вендор",
+       "trouble": "pump_cavit",
+       "url": "https://www.global.weir/globalassets/resources/product-pdfs/warman/warman-ah-pumps-brochure.pdf"
+      }
+     ],
+     "troubles": [
+      "roping",
+      "grind_coarse",
+      "ball_stop",
+      "loss_cyclones",
+      "pump_cavit"
+     ],
+     "limits": "лаборатория с задержкой 12–24 ч скрывает потери; потеря после канатирования у Актогая не измерена"
+    },
+    {
+     "id": "p-pumps",
+     "title": "Насосы пульпы и оборотной воды",
+     "thing": null,
+     "depth": "B",
+     "depth_note": "отдельных вещей в двойнике нет; отказы — вендорные кейсы",
+     "what": "Питающий насос гидроциклонов и насосы оборотной воды. В двойнике они входят в состояние линии и водяной баланс.",
+     "signals": [
+      {
+       "name": "Подшипники, сальник, кавитация, КПД, ресурс износа насоса",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "sent",
+       "source": "Weir Synertrex / NEXT Insight для насосов Warman: «when installed»",
+       "label": "вендор",
+       "url": "https://www.global.weir/newsroom/global-news/the-importance-of-maintaining-your-slurry-pump/",
+       "note": "платформа; что она стоит на насосах Актогая, не подтверждено"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Преждевременный отказ питающего насоса гидроциклонов",
+       "stat": "1 600–1 800 ч наработки",
+       "source": "KSB, кейс BHP Olympic Dam (тип насоса не указан)",
+       "label": "вендор",
+       "trouble": "",
+       "url": "https://www.ksb.com/en-us/solutions/mining/hard-rock-mining"
+      }
+     ],
+     "troubles": [
+      "water_short"
+     ],
+     "limits": "только общее состояние через линию и воду"
+    },
+    {
+     "id": "p-flot",
+     "title": "Флотация, pH и реагенты (1, 2)",
+     "thing": [
+      "flot-1",
+      "flot-2",
+      "ph-1",
+      "ph-2"
+     ],
+     "depth": "B",
+     "depth_note": "отказы датчиков — требования вендора; Wemco линии 2 — вендор",
+     "what": "Основная и перечистная флотация; pH держится известью, собиратель дозируется расходомером.",
+     "signals": [
+      {
+       "name": "Извлечение",
+       "thing": "flot-{n}",
+       "feature": "recovery",
+       "unit": "%",
+       "digits": 1,
+       "where": "dcs",
+       "source": "двухпродуктовая формула по анализатору",
+       "label": "расчёт"
+      },
+      {
+       "name": "pH онлайн",
+       "thing": "ph-{n}",
+       "feature": "ph",
+       "unit": "pH",
+       "digits": 2,
+       "where": "dcs",
+       "source": "онлайн-электрод; регулятор извести держит его на уставке",
+       "label": "допущение"
+      },
+      {
+       "name": "pH ручной пробой",
+       "thing": "ph-{n}",
+       "feature": "lab_ph",
+       "unit": "pH",
+       "digits": 2,
+       "where": "lab",
+       "source": "переносной pH-метр; периодичность — допущение",
+       "label": "допущение"
+      },
+      {
+       "name": "Уровень ячеек: байпас Multi-Sense (автономный контур комплекта FLS), камера пены Smart Vision",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "sent",
+       "source": "FLS: datasheet Flotation Bypass System (2023) и страница Smart Vision",
+       "label": "вендор",
+       "url": "https://prod.flsmidth.com/globalassets/frontify/2024/9/fls_flotationbypass_datasheet_en.pdf",
+       "note": "платформа/опция; что она стоит на Актогае, не подтверждено; ведомость WEMCO 300 м³ не открылась"
+      },
+      {
+       "name": "Размах уровня ячеек, %",
+       "thing": "flot-{n}",
+       "feature": "level_swing_pct",
+       "unit": "%",
+       "digits": 1,
+       "where": "dcs",
+       "source": "уровнемеры ячеек в АСУ ТП; размах считается по тренду",
+       "label": "допущение",
+       "url": "https://www.andritz.com/resource/blob/14766/39b32881f5cf79564ab492e33b47d549/aa-automation-mpc-sag-mills-flotation-circuits-data.pdf"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Электрод pH: абразив пульпы и накипь от извести",
+       "stat": "частоты не публикуются",
+       "source": "ABB, с. 3 (требование вендора к датчику TB556)",
+       "label": "вендор",
+       "trouble": "sensor_ph",
+       "url": "https://library.e.abb.com/public/ce5cb93e495f4eafb1b60f98308a7203/AD_ANAINST_001-EN%20Rev%20A.pdf"
+      },
+      {
+       "name": "Колебания уровня ячеек до 2 ч при ПИД-регулировании",
+       "stat": "до 2 ч",
+       "source": "ANDRITZ, Forbes и Gough, MPC, с. 10",
+       "label": "вендор",
+       "trouble": "",
+       "url": "https://www.andritz.com/resource/blob/14766/39b32881f5cf79564ab492e33b47d549/aa-automation-mpc-sag-mills-flotation-circuits-data.pdf"
+      }
+     ],
+     "troubles": [
+      "loss_flot",
+      "reagent_over",
+      "sensor_ph",
+      "conc_low",
+      "loss_flot_oxide",
+      "froth_swing"
+     ],
+     "limits": "pH-метр врёт молча: онлайн-значение держится на уставке, обнаруживает только контрольная проба"
+    },
+    {
+     "id": "p-thick",
+     "title": "Сгуститель концентрата (1, 2)",
+     "thing": [
+      "thick-1",
+      "thick-2"
+     ],
+     "depth": "B",
+     "depth_note": "апгрейд привода — кейс FLS другой фабрики; повреждение граблин — вторичная публикация",
+     "what": "Сгуститель принимает концентрат перечистки и питает фильтр; при полном сгустителе линия держит только то, что берёт фильтр.",
+     "signals": [
+      {
+       "name": "Запас в сгустителе",
+       "thing": "thick-{n}",
+       "feature": "inventory_t",
+       "unit": "т",
+       "digits": 0,
+       "where": "model",
+       "source": "баланс по весам; ёмкость 340 т — допущение",
+       "label": "допущение"
+      },
+      {
+       "name": "Крутящий момент привода граблин",
+       "thing": null,
+       "feature": null,
+       "unit": "",
+       "digits": null,
+       "where": "sent",
+       "source": "FLS: апгрейд привода «increases torque measurement»; предел кейса — момент привода (чужая фабрика)",
+       "label": "вендор",
+       "url": "https://fls.com/en/parts-and-services/upgrades-rebuilds-and-exchange/thickeners-and-clarifiers",
+       "note": "тип прибора и вывод (местный или дистанционный) не указаны"
+      },
+      {
+       "name": "Момент привода граблин, % расчётного",
+       "thing": "thick-{n}",
+       "feature": "rake_torque_pct",
+       "unit": "%",
+       "digits": 0,
+       "where": "dcs",
+       "source": "Outotec: тревога, затем отключение привода по давлению; 40/80 % — пример учебного блога",
+       "label": "вендор",
+       "url": "https://d3pcsg2wjq9izr.cloudfront.net/files/40011/download/332960/low_res_Outotec_thickening_18022011.pdf",
+       "note": "числовых уставок вендор не даёт"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Повреждение граблин сгустителя: фабрика ≈ 60 % производительности на время ремонта",
+       "stat": "≈ 60 %",
+       "source": "BCM NewsWire 17.10.2014, Oyu Tolgoi (вторичная публикация)",
+       "label": "аналог",
+       "trouble": "",
+       "url": "https://www.slideshare.net/slideshow/17102014-newswire-issue-347/58257500"
+      }
+     ],
+     "troubles": [
+      "thick_high",
+      "thick_full",
+      "rake_torque"
+     ],
+     "limits": "подтверждено частично: нет данных о приборах, это KPI апгрейдов"
+    },
+    {
+     "id": "p-filter",
+     "title": "Фильтр-прессы концентрата (1, 2)",
+     "thing": [
+      "filter-1",
+      "filter-2"
+     ],
+     "depth": "B",
+     "depth_note": "кейс Metso по Актогаю — вендор; ресурс полотна — кейс Element",
+     "what": "Два пресса на линию; Metso увеличила площадь плит с 72 до 96 м² за 9 дней, «на 25 % выросло производство концентрата» (Актогай, 09.03.2021) [вендор]; замечание: 72 → 96 м² — это +33 % площади, расхождение страница не объясняет.",
+     "signals": [
+      {
+       "name": "Прессов в работе",
+       "thing": "filter-{n}",
+       "feature": "presses_on",
+       "unit": "",
+       "digits": 0,
+       "where": "dcs",
+       "source": "состояние прессов",
+       "label": "допущение"
+      },
+      {
+       "name": "Кек, т/ч",
+       "thing": "filter-{n}",
+       "feature": "cake_tph",
+       "unit": "т/ч",
+       "digits": 1,
+       "where": "dcs",
+       "source": "весы кека",
+       "label": "допущение"
+      },
+      {
+       "name": "Влажность кека",
+       "thing": "filter-{n}",
+       "feature": "moisture_pct",
+       "unit": "%",
+       "digits": 1,
+       "where": "lab",
+       "source": "ОВОС: влажность 8 %",
+       "label": "проект"
+      },
+      {
+       "name": "Цикл фильтрации, % новой ткани",
+       "thing": "filter-{n}",
+       "feature": "cycle_pct",
+       "unit": "%",
+       "digits": 0,
+       "where": "dcs",
+       "source": "циклы пресса в АСУ ТП; ткань слепнет и ограничивает производительность (Metso)",
+       "label": "вендор",
+       "url": "https://www.metso.com/globalassets/ebook/brochure-larox-pf-services-en-4401.pdf"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Ресурс полотна: пробное полотно выдержало 2 255 циклов, больше OEM",
+       "stat": "2 255 циклов",
+       "source": "Element, кейс VPA 15 (медный концентрат, Центральная Европа)",
+       "label": "вендор",
+       "trouble": "filter_one",
+       "url": "https://elmc.com/our-offering/filtration-spare-and-wear-parts/filter-cloths/"
+      },
+      {
+       "name": "Ткань слепнет; замена «от 30 минут»",
+       "stat": "30 минут — лучший случай",
+       "source": "Metso, Larox PF, с. 4 и 8",
+       "label": "вендор",
+       "trouble": "cloth_blind",
+       "url": "https://www.metso.com/globalassets/ebook/brochure-larox-pf-services-en-4401.pdf"
+      }
+     ],
+     "troubles": [
+      "filter_one",
+      "filter_stop",
+      "cloth_blind"
+     ],
+     "limits": "смена полотна двойником моделируется окнами; фактический ресурс на Актогае не публикуется"
+    },
+    {
+     "id": "p-analyzers",
+     "title": "Анализаторы и лаборатория (1, 2)",
+     "thing": [
+      "analyzer-1",
+      "analyzer-2"
+     ],
+     "depth": "B",
+     "depth_note": "цикл анализатора — вендор Metso; лаборатория Met-LAB — проект",
+     "what": "Поточный анализатор: питание, хвосты, концентрат. Цикл 12 мин на 12 проб, 16 мин на 18 потоков (Metso Courier 5X/6X). Лабораторный ситовой анализ: «обычно 2 ч с задержкой 12–24 ч» (CiDRA); Met-LAB есть в проекте (ПЭК, с. 12–13).",
+     "signals": [
+      {
+       "name": "Cu в питании, хвостах и концентрате",
+       "thing": "analyzer-{n}",
+       "feature": "feed_cu",
+       "unit": "% Cu",
+       "digits": 3,
+       "where": "dcs",
+       "source": "Metso Courier, цикл 12–16 мин",
+       "label": "вендор",
+       "url": "https://www.metso.com/globalassets/portfolio/brochure-courier-5x-6x-sl-online-analyzers-4924-11-23-en-mng.pdf"
+      },
+      {
+       "name": "Возраст последнего цикла анализатора",
+       "thing": "analyzer-{n}",
+       "feature": "age_min",
+       "unit": "мин",
+       "digits": 0,
+       "where": "dcs",
+       "source": "засорение пробоотборных линий ищут по аналитике (Metso Metrics)",
+       "label": "вендор"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Засорение пробоотборных линий",
+       "stat": "типичная проблема, частот нет",
+       "source": "Metso Metrics, брошюра, с. 8 (маркетинг вендора)",
+       "label": "вендор",
+       "trouble": ""
+      }
+     ],
+     "troubles": [
+      "sensor_ph"
+     ],
+     "limits": "анализатор старше трёх циклов считается устаревшим; метод анализа (XRF) в проверенном тексте не разбирался"
+    }
+   ]
+  },
+  {
+   "id": "env",
+   "title": "Среда и данные",
+   "live": "env",
+   "depth": "B",
+   "intro": "Погода и дороги карьера (температура, ветер, видимость, сцепление) и данные: у каждого измерения — возраст и пометка «под подозрением».",
+   "note": "Нормы — факт-аналог (станция Aqtogay 36619, NOAA 1991–2020); пороги тревоги — допущение площадки.",
+   "nodes": [
+    {
+     "id": "env-weather",
+     "title": "Погода и дороги карьера",
+     "thing": [
+      "pit",
+      "water"
+     ],
+     "depth": "B",
+     "depth_note": "нормы температуры — NOAA; видимость и сцепление — допущение, прямых измерений в источниках нет",
+     "what": "Зимой на откатке риск ДТП растёт: метели и сильный ветер (KAZ Minerals ESG) [факт]. В двойнике зима меняет состояние дороги (сцепление, видимость), а замедление откатки приходит со штормовым окном; переработку фабрики сезон сам по себе не замедляет.",
+     "signals": [
+      {
+       "name": "Температура воздуха",
+       "thing": "water",
+       "feature": "air_temp_c",
+       "unit": "°C",
+       "digits": 0,
+       "where": "assumption",
+       "source": "нормы 1991–2020 (Aqtogay 36619): январь −13,7, июль 24,6 °C",
+       "label": "аналог",
+       "url": "https://en.wikipedia.org/wiki/Aktogay,_East_Kazakhstan_Region"
+      },
+      {
+       "name": "Ветер",
+       "thing": "water",
+       "feature": "wind_ms",
+       "unit": "м/с",
+       "digits": 0,
+       "where": "assumption",
+       "source": "метеопост площадки не назван",
+       "label": "допущение"
+      },
+      {
+       "name": "Видимость на откатке",
+       "thing": "pit",
+       "feature": "visibility_m",
+       "unit": "м",
+       "digits": 0,
+       "where": "assumption",
+       "source": "порог тревоги 150 м — допущение",
+       "label": "допущение",
+       "url": "https://kazminerals.com/esg/enhancing-winter-safety-at-aktogay/"
+      },
+      {
+       "name": "Сцепление (индекс 0…1)",
+       "thing": "pit",
+       "feature": "road_grip",
+       "unit": "",
+       "digits": 2,
+       "where": "assumption",
+       "source": "оценка по циклам самосвалов",
+       "label": "допущение"
+      },
+      {
+       "name": "Скорость откатки к сухой дороге",
+       "thing": "pit",
+       "feature": "haul_speed_pct",
+       "unit": "%",
+       "digits": 0,
+       "where": "dcs",
+       "source": "циклы самосвалов в Hexagon",
+       "label": "допущение"
+      },
+      {
+       "name": "Ограничение движения введено",
+       "thing": "pit",
+       "feature": "road_restrict",
+       "unit": "",
+       "digits": 0,
+       "where": "dcs",
+       "source": "решение горного диспетчера",
+       "label": "допущение"
+      }
+     ],
+     "failures": [
+      {
+       "name": "Рост риска ДТП зимой: метели и сильный ветер",
+       "stat": "качественно, чисел нет",
+       "source": "KAZ Minerals ESG, Enhancing winter safety at Aktogay",
+       "label": "факт",
+       "trouble": "road_winter",
+       "url": "https://kazminerals.com/esg/enhancing-winter-safety-at-aktogay/"
+      }
+     ],
+     "troubles": [
+      "road_winter",
+      "driver_fatigue",
+      "tailings_dust"
+     ],
+     "limits": "сезон по умолчанию не режет переработку (Q1 2019: обе сульфидные фабрики на проектной переработке)"
+    },
+    {
+     "id": "env-data",
+     "title": "Данные: приборы, возраст, подозрения",
+     "thing": [
+      "analyzer-1",
+      "analyzer-2",
+      "weigher-1",
+      "weigher-2",
+      "flowmeter-1",
+      "flowmeter-2",
+      "ph-1",
+      "ph-2",
+      "piezo-1",
+      "piezo-2",
+      "piezo-3"
+     ],
+     "depth": "B",
+     "depth_note": "список приборов — двойник; возраст данных — из Ditto",
+     "what": "У каждого измерения в карточке беды: значение, где оно видно, возраст данных (когда опубликовано и сколько лет замеру) и пометка «под подозрением». Анализатор — цикл 12–16 мин; ручная проба pH — раз в несколько часов; весы — непрерывно.",
+     "signals": [
+      {
+       "name": "Состояние прибора (исправен / дрейф / под подозрением)",
+       "thing": [
+        "analyzer-1",
+        "analyzer-2",
+        "flowmeter-1",
+        "flowmeter-2",
+        "ph-1",
+        "ph-2"
+       ],
+       "feature": "state",
+       "unit": "",
+       "digits": null,
+       "where": "model",
+       "source": "модуль «Где теряется медь» и сам прибор",
+       "label": "расчёт"
+      },
+      {
+       "name": "Возраст замера анализатора",
+       "thing": "analyzer-{n}",
+       "feature": "age_min",
+       "unit": "мин",
+       "digits": 0,
+       "where": "dcs",
+       "source": "минуты с последнего цикла",
+       "label": "вендор",
+       "url": "https://www.metso.com/globalassets/portfolio/brochure-courier-5x-6x-sl-online-analyzers-4924-11-23-en-mng.pdf"
+      },
+      {
+       "name": "Возраст ручной пробы pH",
+       "thing": "ph-{n}",
+       "feature": "age_min",
+       "unit": "мин",
+       "digits": 0,
+       "where": "lab",
+       "source": "минуты с последней пробы",
+       "label": "допущение"
+      }
+     ],
+     "failures": [],
+     "troubles": [
+      "sensor_ph",
+      "loss_flot"
+     ],
+     "limits": "возраст публикации — модельное время с последнего обновления вещи в Ditto; у машин карьера значения обновляются по очереди"
+    }
+   ]
+  }
+ ],
+ "where_ru": {
+  "machine": "на машине (видит водитель / оператор)",
+  "sent": "передаётся, если подключена опция",
+  "analog": "аналог другой модели",
+  "dcs": "в АСУ ТП или диспетчерской системе",
+  "lab": "лаборатория / ручная проба",
+  "model": "расчёт двойника (не измерение)",
+  "assumption": "допущение: источник не подтверждён"
+ },
+ "labels": [
+  "факт",
+  "вендор",
+  "проект",
+  "аналог",
+  "допущение",
+  "расчёт"
+ ],
+ "depth_ru": {
+  "A": "уровень A: узлы, сигналы и отказы с источником",
+  "B": "уровень B: узлы известны, отказы — по аналогу или допущению",
+  "C": "уровень C: только общее состояние"
+ }
+}

@@ -87,7 +87,7 @@ class TestInitialState(unittest.TestCase):
         self.assertAlmostEqual(haul, 8323, delta=1)
         self.assertGreater(haul, 2 * self.p["cal_line_tph"])
         # site passport: people, trucks by model, faces, roads, stripping excavators
-        self.assertEqual(len(self.st.people), 9)
+        self.assertEqual(len(self.st.people), 13)
         self.assertEqual([t.model for t in self.st.trucks].count("CAT 793"), 17)
         self.assertEqual(len(self.st.faces), 5)
         self.assertEqual(len(self.st.roads), 3)
@@ -116,7 +116,7 @@ class TestTopology(unittest.TestCase):
     def test_graph(self):
         t = topology()
         # 41 plant things (4 crews) + 8 people + 2 stripping excavators + 5 faces + 3 roads + 37 trucks + 9 instruments
-        self.assertEqual(len(t), 119)                     # + 6 drill rigs + 7 dozers
+        self.assertEqual(len(t), 127)                     # + 6 drill rigs + 7 dozers + 4 people of the pit and the grinding control room + 2 pH meters + leach pad and SX-EW
         for info in t.values():
             for p in info.parents:
                 self.assertIn(p, t, info.thing_id)

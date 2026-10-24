@@ -10,6 +10,7 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
 from sim import trial  # noqa: E402
+from sim.params import default  # noqa: E402
 from sim.state import NO_VALUE  # noqa: E402
 from tests.support import prm  # noqa: E402
 
@@ -172,6 +173,295 @@ class TestShift(unittest.TestCase):
         text = trial.format_report(doc)
         self.assertIn("Wilcoxon", text)
         self.assertIn("by_value", text)
+
+
+class _FakePlant:
+    """Just enough of a plant for the controller rules that do not step the model."""
+
+    def __init__(self):
+        self.prm = default()
+        self._loud = {}
+
+
+def _controller(mode, **cfg):
+    return trial.Controller(_FakePlant(), [], mode, dict(CFG, **cfg), 1001, None)
+
+
+def _trouble(kind="crusher", start=600.0, hidden=False):
+    return trial.Trouble(kind + ":1", kind, 1, "crusher-1", "crew-cpd", start, hidden,
+                         t_found_min=start + 75.0 if hidden else NO_VALUE)
+
+
+class TestNoviceFromData(unittest.TestCase):
+    """VALIDATION 8.9: the novice is parameterised from the open works (rows nov_* of the table), not by a rule of ours."""
+
+    def test_parameters_have_sources_ranges_and_labels(self):
+        from sim.params import TABLE
+        for key, value, label in (("nov_detect_mult", 1.658, "analog"), ("nov_p_diag", 0.05, "analog"),
+                                  ("nov_p_step", 0.00473, "analog"), ("nov_stress_mult", 2.0, "analog"),
+                                  ("nov_steps", 10, "assumption"), ("nov_detect_sigma_ln", 0.112, "calc")):
+            r = TABLE[key]
+            self.assertAlmostEqual(r.value, value, places=6)
+            self.assertEqual(r.label, label)
+            self.assertLessEqual(r.min, r.value)
+            self.assertGreaterEqual(r.max, r.value)
+            self.assertTrue(r.source.strip())
+        self.assertAlmostEqual(433.982 / 261.798, TABLE["nov_detect_mult"].value, places=3)         # arXiv 2509.06657, p. 29
+        self.assertAlmostEqual(TABLE["nov_p_diag"].min, 0.0089, places=3)                            # Wilson 95 % of 1/20
+        self.assertAlmostEqual(TABLE["nov_p_diag"].max, 0.2361, places=3)
+        self.assertAlmostEqual(14 / 2958, TABLE["nov_p_step"].value, places=5)                       # NRC ML24151A634, table 7
+        self.assertAlmostEqual(3 / 3038, TABLE["nov_p_step"].min, places=5)
+        cv_n, cv_e = 105.556 / 433.982, 56.155 / 261.798
+        self.assertAlmostEqual(math.sqrt(math.log((1 + cv_n ** 2) / (1 + cv_e ** 2))), TABLE["nov_detect_sigma_ln"].value, places=3)
+
+    def test_only_the_people_part_of_the_time_is_scaled(self):
+        k = _controller("novice_det")
+        k.plant.prm = k.plant.prm.copy(nov_detect_sigma_ln=0.0)
+        m = k.plant.prm["nov_detect_mult"]
+        cr = _trouble("crusher", 600.0)                               # alarm notice 5-15 min after the start: all of it is people
+        self.assertAlmostEqual(k.nov_seen_at(cr) - 600.0, m * (k.seen_at(cr) - 600.0))
+        grid = trial.Trouble("grid", "grid", 0, "power", "", 600.0, False)           # 10 min to decide
+        self.assertAlmostEqual(k.nov_seen_at(grid) - 600.0, m * 10.0)
+        hard = trial.Trouble("hard:1", "hard", 1, "pit", "", 600.0, False)           # 2 h of ore on the way is physics, 10 min is people
+        self.assertAlmostEqual(k.nov_seen_at(hard) - 600.0, k.plant.prm["scen_hard_lead_h"] * 60.0 + m * 10.0)
+        rope = trial.Trouble("roping:1", "roping", 1, "cyclones-1", "", 600.0, True)  # 45 min on the screens + 10 min
+        self.assertAlmostEqual(k.nov_seen_at(rope) - 600.0, m * 55.0)
+        dose = _trouble("dose", hidden=True)                          # the laboratory, not the people
+        self.assertEqual(k.human_min(dose), 0.0)
+
+    def test_spread_keeps_the_mean_and_is_common_to_the_copies(self):
+        k = _controller("novice_det")
+        cr = _trouble("crusher", 600.0)
+        xs = []
+        for seed in range(1001, 1401):
+            k.seed = seed
+            xs.append((k.nov_seen_at(cr) - 600.0) / (k.seen_at(cr) - 600.0))
+        self.assertAlmostEqual(sum(xs) / len(xs), k.plant.prm["nov_detect_mult"], delta=0.03)       # mean preserved
+        self.assertGreater(max(xs) - min(xs), 0.5)                                                  # a real spread
+        k2 = _controller("novice_r")
+        k2.seed = k.seed
+        self.assertEqual(k.nov_seen_at(cr), k2.nov_seen_at(cr))
+
+    def test_slips_follow_the_rows_and_stress_doubles_them(self):
+        k = _controller("novice_err")
+        p = k.plant.prm
+        tr = _trouble("crusher", 600.0)
+        n_dx = n_step = 0
+        n = 4000
+        for seed in range(1, n + 1):
+            k.seed = seed
+            lost = k.nov_slip_min(tr, 700.0, True)                    # nothing else is open: no stress
+            self.assertTrue(lost == 0.0 or 20.0 <= lost <= 80.0, lost)
+            n_dx += u01_below(seed, "nov-dx:" + tr.issue, p["nov_p_diag"])
+            n_step += u01_below(seed, "nov-st:" + tr.issue, 1 - (1 - p["nov_p_step"]) ** p["nov_steps"])
+        self.assertAlmostEqual(n_dx / n, 0.05, delta=0.012)
+        self.assertAlmostEqual(n_step / n, 1 - (1 - 0.00473) ** 10, delta=0.01)                     # 4.6 % of the calls
+        other = _trouble("grid", 650.0)
+        other.issue = "grid"
+        k.troubles = [tr, other]
+        lost_stress = sum(1 for seed in range(1, n + 1) if (setattr(k, "seed", seed) or k.nov_slip_min(tr, 700.0, True)) > 0.0)
+        k.troubles = [tr]
+        lost_calm = sum(1 for seed in range(1, n + 1) if (setattr(k, "seed", seed) or k.nov_slip_min(tr, 700.0, True)) > 0.0)
+        self.assertGreater(lost_stress, 1.6 * lost_calm)                                            # two open troubles: x2 on both
+        self.assertEqual(_controller("novice_twin").nov_slip_min(tr, 700.0, False) >= 0.0, True)
+
+    def test_twin_with_a_novice_has_no_diagnosis_slip(self):
+        k = _controller("novice_twin")
+        tr = _trouble("crusher", 600.0)
+        for seed in range(1, 600):
+            k.seed = seed
+            k._nov_ready.clear()
+            k.troubles = [tr]
+            k._prepare_novice_twin(700.0)
+            ready = k._nov_ready[tr.issue]
+            self.assertTrue(abs(ready - (600.0 + trial.EPS)) < 1e-9 or 620.0 - 1e-6 < ready < 640.0 + 1e-6, ready)   # a step slip only: +20..40 min
+        # the same draw as in the novice: a step skipped is skipped on any path
+        a, b = _controller("novice_r"), _controller("novice_twin")
+        for seed in range(1, 300):
+            a.seed = b.seed = seed
+            self.assertEqual(a.nov_slip_min(tr, 700.0, False), b.nov_slip_min(tr, 700.0, False))
+
+    def test_hidden_losses_stay_with_the_laboratory(self):
+        k = trial.Controller(_FakePlant(), [_trouble("dose", 600.0, hidden=True)], "novice_r", dict(CFG), 1001, None)
+        booked = []
+        k._book = lambda tr, t: booked.append(tr.issue)
+        k.tact(1400.0)
+        self.assertEqual(booked, [])
+
+    def test_a_shift_with_the_new_copies_keeps_the_expert_and_the_twin_unchanged(self):
+        base = dict(CFG, library="tier_s")
+        seed = 1004                                                    # hard ore and a protection trip
+        a = trial.run_shift((seed, dict(base, copies=["base", "by_value", "no_twin", "novice"])))       # the same 1-minute cycle as with the new copies
+        b = trial.run_shift((seed, dict(base, copies=["base", "by_value", "no_twin", "nov_det", "nov_err", "nov_r", "nov_twin"])))
+        for name in ("base", "no_twin", "by_value"):
+            self.assertEqual(a["cu_t_2000"][name], b["cu_t_2000"][name], name)
+        self.assertLessEqual(b["cu_t_2000"]["nov_r"], b["cu_t_2000"]["no_twin"] + 1e-6)           # slower to see: not better
+        self.assertLessEqual(b["cu_t_2000"]["nov_det"], b["cu_t_2000"]["no_twin"] + 1e-6)
+        self.assertEqual(b["cu_t_2000"]["nov_err"], b["cu_t_2000"]["no_twin"])                    # no slip on this seed: the same as the expert
+        self.assertGreater(b["cu_t_2000"]["nov_twin"], b["cu_t_2000"]["nov_r"])
+        call = {n: b["bookings"][n]["trip:2"]["t_call_min"] for n in ("no_twin", "nov_r", "nov_twin")}
+        self.assertGreater(call["nov_r"], call["no_twin"])                                         # the novice calls later than the expert
+        self.assertLess(call["nov_twin"], call["no_twin"])                                         # the twin calls earlier than both
+
+
+def u01_below(seed, key, p):
+    from sim.state import u01
+    return 1 if u01(seed, 0, key) < p else 0
+
+
+class TestAlarmFloodInTrial(unittest.TestCase):
+    def test_counting_does_not_change_the_shift(self):
+        cfg = dict(CFG, library="tier_s", copies=["no_twin", "by_value"])
+        a = trial.run_shift((1001, cfg))
+        b = trial.run_shift((1001, dict(cfg, alarms=["no_twin", "by_value"])))
+        self.assertEqual(a["cu_t_2000"], b["cu_t_2000"])
+        self.assertEqual(a["cu_t_0800"], b["cu_t_0800"])
+        self.assertNotIn("alarm_flood_2000", a)
+        f = b["alarm_flood_2000"]["no_twin"]
+        self.assertGreater(f["events"], 5)                           # one protection trip is a chain of nodes, not one alarm
+        self.assertEqual(f["main"], 1)
+        self.assertEqual(f["issues"], b["n_troubles"])
+        self.assertLess(f["per_10min"], f["isa_per_10min"])          # below the ISA orientation: no flood claimed
+
+
+class TestExperiment23(unittest.TestCase):
+    def test_defaults_keep_the_22_10_behaviour(self):
+        d = trial.DEFAULTS
+        self.assertIsNone(d["copies"])
+        self.assertIsNone(d["crews"])
+        self.assertEqual(d["call_delay_min"], 0.0)
+        self.assertEqual(d["compliance"], 1.0)
+        k = _controller("value")
+        tr = _trouble()
+        self.assertAlmostEqual(k.known_at(tr), 600.0 + trial.EPS)
+        self.assertEqual(k.delay_of(tr), 0.0)
+
+    def test_call_delay_applies_to_the_chosen_kinds_only(self):
+        k = _controller("value", call_delay_min=60.0, delay_kinds=["dose"])
+        self.assertEqual(k.delay_of(_trouble("crusher")), 0.0)
+        dose = _trouble("dose", hidden=True)
+        self.assertEqual(k.delay_of(dose), 60.0)
+        self.assertAlmostEqual(k.known_at(dose), 600.0 + 75.0 + 60.0)
+        k_all = _controller("value", call_delay_min=30.0)
+        self.assertAlmostEqual(k_all.known_at(_trouble("crusher")), 600.0 + 30.0 + trial.EPS)
+
+    def test_no_detection_copy_sees_what_people_see(self):
+        k = _controller("value_nd")
+        dose = _trouble("dose", hidden=True)
+        self.assertEqual(k.known_at(dose), math.inf)              # the quiet loss stays with laboratory and tails alarm
+        cr = _trouble("crusher")
+        self.assertGreaterEqual(k.known_at(cr), 600.0 + k.plant.prm["issue_notice_lo_min"])
+        self.assertLessEqual(k.known_at(cr), 600.0 + k.plant.prm["issue_notice_hi_min"])
+        grid = trial.Trouble("grid", "grid", 0, "power", "", 600.0, False)
+        self.assertAlmostEqual(k.known_at(grid), 610.0)
+        hard = trial.Trouble("hard:1", "hard", 1, "pit", "", 600.0, False)
+        self.assertAlmostEqual(k.known_at(hard), 600.0 + k.plant.prm["scen_hard_lead_h"] * 60.0 + 10.0)
+
+    def test_compliance_draw_is_shared_and_monotone(self):
+        tr = _trouble("crusher")
+        lo, hi = _controller("value", compliance=0.5), _controller("value", compliance=0.75)
+        self.assertTrue(_controller("value").followed(tr))
+        for seed in range(1001, 1040):
+            lo.seed = hi.seed = seed
+            if lo.followed(tr):
+                self.assertTrue(hi.followed(tr))                  # the same draw: a higher share follows a superset
+        shares = []
+        for q in (0.5, 0.75):
+            k = _controller("value", compliance=q)
+            n = 0
+            for seed in range(1001, 1201):
+                k.seed = seed
+                n += k.followed(tr)
+            shares.append(n / 200)
+        self.assertTrue(0.4 < shares[0] < 0.6 and 0.65 < shares[1] < 0.85, shares)
+        ignored = _controller("value", compliance=0.0)
+        self.assertAlmostEqual(ignored.known_at(tr), ignored.seen_at(tr))
+
+    def test_novice_waits_for_the_crew_to_arrive(self):
+        a, b = _trouble("crusher", 600.0), _trouble("trip", 610.0)
+        b.issue, b.node, b.crew = "trip:2", "crusher-2", "crew-kip"
+        k = trial.Controller(_FakePlant(), [b, a], "novice", dict(CFG), 1001, None)
+        booked = []
+
+        def fake_book(tr, t):
+            booked.append(tr.issue)
+            k.booked[tr.issue] = {"t_call_min": t, "t_arrive_min": t + 30.0, "t_done_min": t + 90.0}
+
+        k._book = fake_book
+        k.plant._loud = {a.issue: 1.0, b.issue: 2.0}
+        t = 640.0                                                   # both seen; a appeared first
+        k.tact(t)
+        self.assertEqual(booked, ["crusher:1"])
+        self.assertEqual(k.plant._loud, {})                          # the own call of the plant at the alarm is off
+        k.tact(t + 10.0)
+        self.assertEqual(booked, ["crusher:1"])                      # the crew of the first has not arrived yet
+        k.tact(t + 31.0)
+        self.assertEqual(booked, ["crusher:1", "trip:2"])
+
+    def test_library_and_modes(self):
+        self.assertEqual(set(trial.MODE_OF.values()) - {"asis"}, {"value", "loud", "novice", "value_nd", "novice_det",
+                                                                   "novice_err", "novice_r", "novice_twin"})
+        with self.assertRaises(ValueError):
+            trial.Controller(_FakePlant(), [], "nope", dict(CFG), 1, None)
+        with self.assertRaises(ValueError):
+            trial.run_shift((1001, dict(CFG, copies=["base", "ghost"])))
+
+    def test_slopes_holm_and_linear_contrast(self):
+        rows = [[{"seed": s, "y": 2.0 * x + s} for s in (1, 2, 3)] for x in (0.0, 1.0, 2.0)]
+        sl = trial._slopes(rows, [0.0, 1.0, 2.0], lambda r: r["y"])
+        self.assertEqual(len(sl), 3)
+        for v in sl:
+            self.assertAlmostEqual(v, 2.0)
+        self.assertEqual(trial._holm([0.01, 0.04, 0.03]), [0.03, 0.06, 0.06])
+        r = {"cu_t_2000": {"a": 3.0, "b": 1.0, "c": NO_VALUE}}
+        self.assertEqual(trial._lin([r], {"a": 1.0, "b": -1.0}, "cu"), [2.0])
+        self.assertEqual(trial._lin([r], {"a": 1.0, "c": -1.0}, "cu"), [])        # a missing value drops the shift
+
+    def test_aggregate_on_synthetic_runs(self):
+        import json
+        import tempfile
+
+        def row(seed, ob, od, cl, tw, nv):
+            cu = {"no_twin": ob, "value_nd": od, "by_loud": cl, "by_value": tw, "novice": nv, "base": 330.0}
+            return {"seed": seed, "n_troubles": 2, "shared_crew": seed % 2 == 0, "n_hidden": seed % 2,
+                    "troubles": [{"kind": "crusher"}], "cu_t_2000": cu, "cu_t_0800": cu,
+                    "usd_2000": {k: x * 100.0 for k, x in cu.items()},
+                    "kwh_per_t_cu_2000": {k: 50.0 for k in cu}, "rec_pct_2000": {k: 87.0 for k in cu},
+                    "down_min_2000": {k: dict.fromkeys(trial.DOWN_NODES, 10.0) for k in cu},
+                    "loss_cu_t_2000": {k: 330.0 - x for k, x in cu.items() if k != "base"}}
+
+        rows = [row(s, 300.0, 300.1, 301.0, 301.2, 299.0) for s in range(1, 21)]
+        doc = {"shifts": rows, "seeds": [1, 20], "config": {}}
+        with tempfile.TemporaryDirectory() as d:
+            for tag in ("main_full", "crews1"):
+                with open(os.path.join(d, tag + ".json"), "w", encoding="utf-8") as f:
+                    json.dump(doc, f)
+            out = trial.aggregate(d)
+        pairs = out["b3_d1"]["main_full"]["pairs"]
+        self.assertAlmostEqual(pairs["twin-expert"]["cu"]["mean"], 1.2)
+        self.assertAlmostEqual(pairs["expert-novice"]["cu"]["mean"], 1.0)
+        self.assertTrue(out["b3_d1"]["main_full"]["order_twin_gt_expert_gt_novice"])
+        c = out["b4"]["1"]["contrasts_cu"]
+        self.assertAlmostEqual(c["detection"]["mean"], 0.5 * (1.0 + 1.2 - 0.0 - 0.1))
+        self.assertAlmostEqual(c["interaction"]["mean"], (1.2 - 1.0) - (0.1 - 0.0))
+        self.assertIn("crews2", out["files_missing"])
+
+    def test_experiment_shift_has_new_copies_crews_and_metrics(self):
+        cfg = dict(CFG, copies=["base", "by_value", "no_twin", "novice", "value_nd"], crews=2, library="tier_s")
+        row = trial.run_shift((1001, cfg))
+        self.assertEqual(set(row["cu_t_2000"]), {"base", "by_value", "no_twin", "novice", "value_nd"})
+        self.assertEqual(row["d_cu_t"], NO_VALUE)                 # no by_loud copy in this run
+        for name in row["cu_t_2000"]:
+            self.assertGreater(row["kwh_per_t_cu_2000"][name], 0.0)
+            self.assertEqual(set(row["down_min_2000"][name]), set(trial.DOWN_NODES))
+            self.assertLessEqual(max(row["down_min_2000"][name].values()), 2 * 720.0 + 1e-6)
+        self.assertLessEqual(max(row["down_min_2000"]["base"].values()), 1e-6)    # no troubles, nothing stands
+        self.assertGreater(sum(row["down_min_2000"]["no_twin"].values()), 0.0)
+        with self.assertRaises(KeyError):
+            trial._val(row, "no_twin", "nope")
+        doc = trial.run_trial(dict(cfg, n=1, seed0=1001))
+        self.assertEqual(doc["summary"], {})
+        self.assertIn("no by_value", trial.format_report(doc))
 
 
 if __name__ == "__main__":

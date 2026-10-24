@@ -1,0 +1,2015 @@
+{
+ "config": {
+  "n": 100,
+  "seed0": 1001,
+  "kip": 1,
+  "sigma_ln": 0.4,
+  "miss": 0.0,
+  "detect_min": 75.0,
+  "loud_react_min": 30.0,
+  "no_twin": false,
+  "price": null,
+  "p_two": 0.6,
+  "start_span_h": 10.0,
+  "est_sigma": 0.2,
+  "tact_min": 5.0,
+  "boot": 10000,
+  "jobs": 4,
+  "set": {},
+  "hidden_mult": 1.0,
+  "mag": 1.0,
+  "asis": true,
+  "asis_notice_min": 10.0,
+  "copies": [
+   "base",
+   "by_value"
+  ],
+  "crews": null,
+  "call_delay_min": 60.0,
+  "delay_kinds": [
+   "hpgr"
+  ],
+  "compliance": 1.0,
+  "fine_tact_min": 1.0,
+  "seeds": [
+   1006,
+   1009,
+   1020,
+   1022,
+   1029,
+   1055,
+   1061,
+   1066,
+   1069,
+   1073,
+   1080,
+   1084,
+   1086,
+   1099
+  ],
+  "alarms": null,
+  "library": "tier_s"
+ },
+ "policy": "modules.policy.rank",
+ "n": 14,
+ "seeds": [
+  1006,
+  1099
+ ],
+ "notes": [
+  "D = Cu(by_value) - Cu(by_loud), t Cu; positive = the money order gained [model estimate].",
+  "no_twin = 'as now': operators take the hard-ore, grid and reline decisions when they see them (asis_notice_min after the alarm; hard ore when it reaches the SAG); --no-asis: nobody takes them.",
+  "A grid call is repeated until the shed line's SAG gets the headroom (the plant latches it too).",
+  "Oxidised ore is not in the library: a preset oxide cause has no crew in the plant model and never ends.",
+  "Shared crew = two troubles of the shift need the same crew; only there can the order matter.",
+  "The twin's detection delay (detect_min) and miss share are inputs here, not results of akt-losses.",
+  "by_loud: a quiet finding is called loud_react_min after it; a loud alarm in between goes first.",
+  "Repair, arrival and notice times are drawn from (seed, issue): the same in every copy."
+ ],
+ "summary": {},
+ "cuts": {},
+ "loss_vs_base_cu_t_2000": {
+  "by_value": {
+   "mean": 18.047279602783046,
+   "median": 15.858338918951688
+  }
+ },
+ "shifts": [
+  {
+   "seed": 1006,
+   "n_troubles": 2,
+   "text": "hpgr:2+hard:1",
+   "troubles": [
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 827.7130338918114,
+     "hidden": true,
+     "t_found_min": 902.7130338918114,
+     "missed": false
+    },
+    {
+     "issue": "hard:1",
+     "kind": "hard",
+     "line": 1,
+     "node": "pit",
+     "crew": "",
+     "t_start_min": 1051.7727677193902,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "ore_axb_hard": 24.80041089421352
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 310.0958619426283,
+    "by_value": 306.3832181240295
+   },
+   "cu_t_0800": {
+    "base": 636.8574647733603,
+    "by_value": 615.0007907406675
+   },
+   "usd_2000": {
+    "base": 4190853.315527698,
+    "by_value": 4139569.4734830335
+   },
+   "usd_0800": {
+    "base": 8613028.761980323,
+    "by_value": 8310051.678519111
+   },
+   "loss_cu_t_2000": {
+    "by_value": 3.7126438185987922
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "hpgr:2": {
+      "t_call_min": 965.0,
+      "t_arrive_min": 1004.2333010397188,
+      "t_done_min": 1057.548536413366,
+      "by": "twin"
+     },
+     "hard:1": {
+      "t_call_min": 1055.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 3.52,
+   "rec_pct_2000": {
+    "base": 87.74003672079864,
+    "by_value": 87.84811499345746
+   },
+   "cu_feed_t_2000": {
+    "base": 353.42572619316053,
+    "by_value": 348.7647038833418
+   },
+   "n_hidden": 1,
+   "kwh_per_t_cu_2000": {
+    "base": 10057.38604670901,
+    "by_value": 10162.931534215106
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9794.170705696859,
+    "by_value": 10134.11477351861
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 185.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 395.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 185.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 395.0
+    }
+   }
+  },
+  {
+   "seed": 1009,
+   "n_troubles": 3,
+   "text": "hard:1+hpgr:2+crusher:1",
+   "troubles": [
+    {
+     "issue": "hard:1",
+     "kind": "hard",
+     "line": 1,
+     "node": "pit",
+     "crew": "",
+     "t_start_min": 610.1472163812776,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 641.7788355225011,
+     "hidden": true,
+     "t_found_min": 716.7788355225011,
+     "missed": false
+    },
+    {
+     "issue": "crusher:1",
+     "kind": "crusher",
+     "line": 1,
+     "node": "crusher-1",
+     "crew": "crew-cpd",
+     "t_start_min": 880.0551355944842,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "stock1_t0": 10891.513196381009,
+    "ore_axb_hard": 28.724877768251517
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 319.82165416969855,
+    "by_value": 303.6045119852827
+   },
+   "cu_t_0800": {
+    "base": 625.1476122863422,
+    "by_value": 617.1944178832867
+   },
+   "usd_2000": {
+    "base": 4325272.296630013,
+    "by_value": 4101730.5597612495
+   },
+   "usd_0800": {
+    "base": 8450067.81308266,
+    "by_value": 8340893.183325804
+   },
+   "loss_cu_t_2000": {
+    "by_value": 16.21714218441582
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "hard:1": {
+      "t_call_min": 615.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 780.0,
+      "t_arrive_min": 807.9878277113032,
+      "t_done_min": 877.233871144605,
+      "by": "twin"
+     },
+     "crusher:1": {
+      "t_call_min": 885.0,
+      "t_arrive_min": 919.2771231412299,
+      "t_done_min": 1107.720853921836,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 3.39,
+   "rec_pct_2000": {
+    "base": 86.85522546885954,
+    "by_value": 87.36971802414374
+   },
+   "cu_feed_t_2000": {
+    "base": 368.2238488740843,
+    "by_value": 347.4939817264658
+   },
+   "n_hidden": 1,
+   "kwh_per_t_cu_2000": {
+    "base": 9753.36652776051,
+    "by_value": 10167.346487285535
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9967.334064683291,
+    "by_value": 10047.023614490283
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 225.0,
+     "sag": 55.0,
+     "ball": 0.0,
+     "flot": 50.0,
+     "line_stop": 50.0,
+     "line_limited": 225.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 540.0
+    },
+    "by_value": {
+     "crusher": 225.0,
+     "sag": 55.0,
+     "ball": 0.0,
+     "flot": 50.0,
+     "line_stop": 50.0,
+     "line_limited": 375.0
+    }
+   }
+  },
+  {
+   "seed": 1020,
+   "n_troubles": 3,
+   "text": "dose:2+phdrift:2+hpgr:2",
+   "troubles": [
+    {
+     "issue": "dose:2",
+     "kind": "dose",
+     "line": 2,
+     "node": "flot-2",
+     "crew": "crew-kip",
+     "t_start_min": 853.883310707207,
+     "hidden": true,
+     "t_found_min": 928.883310707207,
+     "missed": false
+    },
+    {
+     "issue": "phdrift:2",
+     "kind": "phdrift",
+     "line": 2,
+     "node": "ph-2",
+     "crew": "crew-kip",
+     "t_start_min": 919.7965229398163,
+     "hidden": true,
+     "t_found_min": 994.7965229398163,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 1018.9868018319512,
+     "hidden": true,
+     "t_found_min": 1093.9868018319512,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "flot_dose_pp": 3.850269860101926
+   },
+   "shared_crew": true,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 323.162140788976,
+    "by_value": 320.8803885346284
+   },
+   "cu_t_0800": {
+    "base": 659.1751960777427,
+    "by_value": 656.1448865037154
+   },
+   "usd_2000": {
+    "base": 4371520.8952243915,
+    "by_value": 4339860.550195601
+   },
+   "usd_0800": {
+    "base": 8921265.16551097,
+    "by_value": 8879237.416532671
+   },
+   "loss_cu_t_2000": {
+    "by_value": 2.281752254347566
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "dose:2": {
+      "t_call_min": 930.0,
+      "t_arrive_min": 960.0,
+      "t_done_min": 976.9798958518408,
+      "by": "twin"
+     },
+     "phdrift:2": {
+      "t_call_min": 995.0,
+      "t_arrive_min": 1032.501332682124,
+      "t_done_min": 1067.8339935175363,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 1155.0,
+      "t_arrive_min": 1192.8662992545353,
+      "t_done_min": 1272.2270096132454,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 3.49,
+   "rec_pct_2000": {
+    "base": 86.57645379390948,
+    "by_value": 86.18657706740406
+   },
+   "cu_feed_t_2000": {
+    "base": 373.2679344412117,
+    "by_value": 372.3090061735217
+   },
+   "n_hidden": 3,
+   "kwh_per_t_cu_2000": {
+    "base": 9651.653722375513,
+    "by_value": 9720.240737474029
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9463.033274599327,
+    "by_value": 9506.714885680853
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 165.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 235.0
+    }
+   }
+  },
+  {
+   "seed": 1022,
+   "n_troubles": 3,
+   "text": "roping:1+hpgr:2+hard:2",
+   "troubles": [
+    {
+     "issue": "roping:1",
+     "kind": "roping",
+     "line": 1,
+     "node": "cyclones-1",
+     "crew": "",
+     "t_start_min": 562.183075291946,
+     "hidden": true,
+     "t_found_min": 637.183075291946,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 707.8608239803631,
+     "hidden": true,
+     "t_found_min": 782.8608239803631,
+     "missed": false
+    },
+    {
+     "issue": "hard:2",
+     "kind": "hard",
+     "line": 2,
+     "node": "pit",
+     "crew": "",
+     "t_start_min": 793.7624734292734,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "ore_axb_hard": 27.30736931174383
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 315.7109902049297,
+    "by_value": 300.21145455144216
+   },
+   "cu_t_0800": {
+    "base": 657.8216416301944,
+    "by_value": 646.8384675195496
+   },
+   "usd_2000": {
+    "base": 4268369.885491472,
+    "by_value": 4053789.8710496346
+   },
+   "usd_0800": {
+    "base": 8903003.65719717,
+    "by_value": 8751141.281111784
+   },
+   "loss_cu_t_2000": {
+    "by_value": 15.499535653487555
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "roping:1": {
+      "t_call_min": 640.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "hard:2": {
+      "t_call_min": 795.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 845.0,
+      "t_arrive_min": 866.5971619876037,
+      "t_done_min": 987.1823371627472,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 3.46,
+   "rec_pct_2000": {
+    "base": 86.95177836253492,
+    "by_value": 86.490583217738
+   },
+   "cu_feed_t_2000": {
+    "base": 363.087444731275,
+    "by_value": 347.10305258974483
+   },
+   "n_hidden": 2,
+   "kwh_per_t_cu_2000": {
+    "base": 9879.494460775586,
+    "by_value": 10359.377114936968
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9483.798753191584,
+    "by_value": 9630.8229496465
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 265.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 60.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 265.0
+    }
+   }
+  },
+  {
+   "seed": 1029,
+   "n_troubles": 2,
+   "text": "hard:1+hpgr:2",
+   "troubles": [
+    {
+     "issue": "hard:1",
+     "kind": "hard",
+     "line": 1,
+     "node": "pit",
+     "crew": "",
+     "t_start_min": 483.4651768564906,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 624.9551936757405,
+     "hidden": true,
+     "t_found_min": 699.9551936757405,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "ore_axb_hard": 26.866788058733015
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 345.43762887396605,
+    "by_value": 321.357476808333
+   },
+   "cu_t_0800": {
+    "base": 684.7311325474758,
+    "by_value": 670.4609108974914
+   },
+   "usd_2000": {
+    "base": 4680649.840922206,
+    "by_value": 4347080.762307037
+   },
+   "usd_0800": {
+    "base": 9276399.10113959,
+    "by_value": 9078663.101379808
+   },
+   "loss_cu_t_2000": {
+    "by_value": 24.080152065633058
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "hard:1": {
+      "t_call_min": 485.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 760.0,
+      "t_arrive_min": 784.939822676066,
+      "t_done_min": 909.2732881513994,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 4.32,
+   "rec_pct_2000": {
+    "base": 86.47155655494107,
+    "by_value": 87.50746384302097
+   },
+   "cu_feed_t_2000": {
+    "base": 399.48121976327184,
+    "by_value": 367.2343622994421
+   },
+   "n_hidden": 1,
+   "kwh_per_t_cu_2000": {
+    "base": 9030.942976550334,
+    "by_value": 9691.6219549581
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9110.833890211952,
+    "by_value": 9297.3761695351
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 270.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 500.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 270.0
+    }
+   }
+  },
+  {
+   "seed": 1055,
+   "n_troubles": 2,
+   "text": "roping:2+hpgr:2",
+   "troubles": [
+    {
+     "issue": "roping:2",
+     "kind": "roping",
+     "line": 2,
+     "node": "cyclones-2",
+     "crew": "",
+     "t_start_min": 572.3591365284651,
+     "hidden": true,
+     "t_found_min": 647.3591365284651,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 939.1899992160381,
+     "hidden": true,
+     "t_found_min": 1014.1899992160381,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 334.4135610073903,
+    "by_value": 329.0348083843178
+   },
+   "cu_t_0800": {
+    "base": 667.5888080068053,
+    "by_value": 662.2531355754611
+   },
+   "usd_2000": {
+    "base": 4528117.175196259,
+    "by_value": 4453528.451324937
+   },
+   "usd_0800": {
+    "base": 9038937.726639763,
+    "by_value": 8964948.367611011
+   },
+   "loss_cu_t_2000": {
+    "by_value": 5.378752623072501
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "roping:2": {
+      "t_call_min": 650.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 1075.0,
+      "t_arrive_min": 1097.306603529253,
+      "t_done_min": 1176.845846527397,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 4.33,
+   "rec_pct_2000": {
+    "base": 87.65454359018001,
+    "by_value": 86.8554312794719
+   },
+   "cu_feed_t_2000": {
+    "base": 381.5130936861724,
+    "by_value": 378.83043528457443
+   },
+   "n_hidden": 2,
+   "kwh_per_t_cu_2000": {
+    "base": 9325.980759664757,
+    "by_value": 9474.706880032601
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9343.278302578536,
+    "by_value": 9416.70430373804
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 220.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 185.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 405.0
+    }
+   }
+  },
+  {
+   "seed": 1061,
+   "n_troubles": 3,
+   "text": "dose:1+grid+hpgr:2",
+   "troubles": [
+    {
+     "issue": "dose:1",
+     "kind": "dose",
+     "line": 1,
+     "node": "flot-1",
+     "crew": "crew-kip",
+     "t_start_min": 618.5508292328864,
+     "hidden": true,
+     "t_found_min": 693.5508292328864,
+     "missed": false
+    },
+    {
+     "issue": "grid",
+     "kind": "grid",
+     "line": 0,
+     "node": "power",
+     "crew": "",
+     "t_start_min": 662.5470442670206,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 728.7013582346499,
+     "hidden": true,
+     "t_found_min": 803.7013582346499,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "pow_c2_limit_mw": 236.6132978356588,
+    "pow_c2_h": 3.5457812958711097,
+    "flot_dose_pp": 3.6775900115930327
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 325.0811083329797,
+    "by_value": 307.1072578389789
+   },
+   "cu_t_0800": {
+    "base": 664.0737737639947,
+    "by_value": 646.2771065309747
+   },
+   "usd_2000": {
+    "base": 4398468.571984957,
+    "by_value": 4152774.4070630483
+   },
+   "usd_0800": {
+    "base": 8989698.513726005,
+    "by_value": 8746465.064502712
+   },
+   "loss_cu_t_2000": {
+    "by_value": 17.97385049400077
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "grid": {
+      "t_call_min": 665.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "dose:1": {
+      "t_call_min": 695.0,
+      "t_arrive_min": 725.0,
+      "t_done_min": 755.0382249425007,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 865.0,
+      "t_arrive_min": 902.1725030204469,
+      "t_done_min": 946.4558899052407,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 4.37,
+   "rec_pct_2000": {
+    "base": 86.96955757540312,
+    "by_value": 86.61155348819965
+   },
+   "cu_feed_t_2000": {
+    "base": 373.7872393465178,
+    "by_value": 354.5800132551838
+   },
+   "n_hidden": 2,
+   "kwh_per_t_cu_2000": {
+    "base": 9595.173818569996,
+    "by_value": 9808.864720824444
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9393.122697071089,
+    "by_value": 9486.47288021483
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 130.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 215.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 415.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 130.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 215.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 415.0
+    }
+   }
+  },
+  {
+   "seed": 1066,
+   "n_troubles": 3,
+   "text": "trip:1+trip:2+hpgr:2",
+   "troubles": [
+    {
+     "issue": "trip:1",
+     "kind": "trip",
+     "line": 1,
+     "node": "crusher-1",
+     "crew": "crew-kip",
+     "t_start_min": 552.4536257009161,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "trip:2",
+     "kind": "trip",
+     "line": 2,
+     "node": "crusher-2",
+     "crew": "crew-kip",
+     "t_start_min": 553.5176410819579,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 751.424431374028,
+     "hidden": true,
+     "t_found_min": 826.424431374028,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "stock1_t0": 14737.798992672608,
+    "stock2_t0": 12685.33610812683
+   },
+   "shared_crew": true,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 320.825028566812,
+    "by_value": 240.6688136450509
+   },
+   "cu_t_0800": {
+    "base": 639.0286263457313,
+    "by_value": 557.0910123082485
+   },
+   "usd_2000": {
+    "base": 4339439.190654611,
+    "by_value": 3232246.616577824
+   },
+   "usd_0800": {
+    "base": 8642918.215885637,
+    "by_value": 7510846.470717813
+   },
+   "loss_cu_t_2000": {
+    "by_value": 80.15621492176112
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "trip:2": {
+      "t_call_min": 555.0,
+      "t_arrive_min": 586.6610491566172,
+      "t_done_min": 770.5769648820338,
+      "by": "twin"
+     },
+     "trip:1": {
+      "t_call_min": 555.0,
+      "t_arrive_min": 804.2019979138291,
+      "t_done_min": 1133.1740890762558,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 890.0,
+      "t_arrive_min": 911.3342158801927,
+      "t_done_min": 1020.6386839096527,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 4.08,
+   "rec_pct_2000": {
+    "base": 87.39327954536387,
+    "by_value": 87.33690692135168
+   },
+   "cu_feed_t_2000": {
+    "base": 367.10491954965374,
+    "by_value": 275.563701679723
+   },
+   "n_hidden": 1,
+   "kwh_per_t_cu_2000": {
+    "base": 9723.223318274366,
+    "by_value": 12490.522062410168
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9760.249460804558,
+    "by_value": 10992.2082443303
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 800.0,
+     "sag": 375.0,
+     "ball": 0.0,
+     "flot": 370.0,
+     "line_stop": 370.0,
+     "line_limited": 315.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 240.0
+    },
+    "by_value": {
+     "crusher": 800.0,
+     "sag": 405.0,
+     "ball": 0.0,
+     "flot": 370.0,
+     "line_stop": 370.0,
+     "line_limited": 485.0
+    }
+   }
+  },
+  {
+   "seed": 1069,
+   "n_troubles": 3,
+   "text": "grid+cyclone:1+hpgr:2",
+   "troubles": [
+    {
+     "issue": "grid",
+     "kind": "grid",
+     "line": 0,
+     "node": "power",
+     "crew": "",
+     "t_start_min": 904.3583814129429,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "cyclone:1",
+     "kind": "cyclone",
+     "line": 1,
+     "node": "cyclones-1",
+     "crew": "crew-mill",
+     "t_start_min": 982.0279474889833,
+     "hidden": true,
+     "t_found_min": 1057.0279474889833,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 1009.4917893173732,
+     "hidden": true,
+     "t_found_min": 1084.4917893173733,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "pow_c2_limit_mw": 238.1965459263056,
+    "pow_c2_h": 3.3964101950054926
+   },
+   "shared_crew": true,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 323.1161715913347,
+    "by_value": 306.7602759005255
+   },
+   "cu_t_0800": {
+    "base": 652.8541855849735,
+    "by_value": 636.2802748785114
+   },
+   "usd_2000": {
+    "base": 4370976.0618230235,
+    "by_value": 4147631.5347499494
+   },
+   "usd_0800": {
+    "base": 8834214.271421177,
+    "by_value": 8607842.884614412
+   },
+   "loss_cu_t_2000": {
+    "by_value": 16.355895690809177
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "grid": {
+      "t_call_min": 910.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "cyclone:1": {
+      "t_call_min": 1060.0,
+      "t_arrive_min": 1088.2116526051716,
+      "t_done_min": 1110.1468192755017,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 1145.0,
+      "t_arrive_min": 1174.7803242430218,
+      "t_done_min": 1253.0347979903158,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 4.37,
+   "rec_pct_2000": {
+    "base": 86.97888609398915,
+    "by_value": 86.9714343695284
+   },
+   "cu_feed_t_2000": {
+    "base": 371.4880542873086,
+    "by_value": 352.71382853954987
+   },
+   "n_hidden": 2,
+   "kwh_per_t_cu_2000": {
+    "base": 9653.987555740156,
+    "by_value": 9831.631147283295
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9555.828408926942,
+    "by_value": 9642.093310701506
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 200.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 280.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 280.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 200.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 555.0
+    }
+   }
+  },
+  {
+   "seed": 1073,
+   "n_troubles": 2,
+   "text": "hpgr:2+crusher:2",
+   "troubles": [
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 827.8497996082889,
+     "hidden": true,
+     "t_found_min": 902.8497996082889,
+     "missed": false
+    },
+    {
+     "issue": "crusher:2",
+     "kind": "crusher",
+     "line": 2,
+     "node": "crusher-2",
+     "crew": "crew-cpd",
+     "t_start_min": 845.5807637604944,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "stock2_t0": 13247.01491366941
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 306.5639103788148,
+    "by_value": 300.4060637397926
+   },
+   "cu_t_0800": {
+    "base": 621.1156099144947,
+    "by_value": 615.271887233396
+   },
+   "usd_2000": {
+    "base": 4141943.8303364823,
+    "by_value": 4057276.0178964464
+   },
+   "usd_0800": {
+    "base": 8394798.541524446,
+    "by_value": 8314466.629157039
+   },
+   "loss_cu_t_2000": {
+    "by_value": 6.157846639022182
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "crusher:2": {
+      "t_call_min": 850.0,
+      "t_arrive_min": 874.4127001052548,
+      "t_done_min": 978.2144955453268,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 965.0,
+      "t_arrive_min": 988.4894888179175,
+      "t_done_min": 1079.732097404875,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 4.54,
+   "rec_pct_2000": {
+    "base": 88.05783804533135,
+    "by_value": 88.2140964422743
+   },
+   "cu_feed_t_2000": {
+    "base": 348.1392652644942,
+    "by_value": 340.542017495325
+   },
+   "n_hidden": 1,
+   "kwh_per_t_cu_2000": {
+    "base": 10166.941002049753,
+    "by_value": 10307.681791769133
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 10039.214041904826,
+    "by_value": 10101.538876945777
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 390.0
+    },
+    "by_value": {
+     "crusher": 130.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 630.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 920.0
+    },
+    "by_value": {
+     "crusher": 130.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 1125.0
+    }
+   }
+  },
+  {
+   "seed": 1080,
+   "n_troubles": 3,
+   "text": "grid+hpgr:2+roping:2",
+   "troubles": [
+    {
+     "issue": "grid",
+     "kind": "grid",
+     "line": 0,
+     "node": "power",
+     "crew": "",
+     "t_start_min": 790.7728402003029,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 931.8457479968895,
+     "hidden": true,
+     "t_found_min": 1006.8457479968895,
+     "missed": false
+    },
+    {
+     "issue": "roping:2",
+     "kind": "roping",
+     "line": 2,
+     "node": "cyclones-2",
+     "crew": "",
+     "t_start_min": 1024.3906946668042,
+     "hidden": true,
+     "t_found_min": 1099.3906946668042,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "pow_c2_limit_mw": 235.3860116786069,
+    "pow_c2_h": 3.4876027126752733
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 334.6482970409194,
+    "by_value": 318.2990249073862
+   },
+   "cu_t_0800": {
+    "base": 686.4673973974313,
+    "by_value": 666.6123893121983
+   },
+   "usd_2000": {
+    "base": 4530995.24780476,
+    "by_value": 4307727.375279661
+   },
+   "usd_0800": {
+    "base": 9300418.080514856,
+    "by_value": 9028490.758373104
+   },
+   "loss_cu_t_2000": {
+    "by_value": 16.34927213353319
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "grid": {
+      "t_call_min": 795.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 1070.0,
+      "t_arrive_min": 1099.218282575978,
+      "t_done_min": 1188.2603366699348,
+      "by": "twin"
+     },
+     "roping:2": {
+      "t_call_min": 1100.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 4.64,
+   "rec_pct_2000": {
+    "base": 86.62284533927784,
+    "by_value": 86.38110612499477
+   },
+   "cu_feed_t_2000": {
+    "base": 386.3279897239511,
+    "by_value": 368.48222856373553
+   },
+   "n_hidden": 2,
+   "kwh_per_t_cu_2000": {
+    "base": 9320.654975094272,
+    "by_value": 9473.633424076037
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9086.747028800904,
+    "by_value": 9201.843002784572
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 210.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 350.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 110.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 210.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 460.0
+    }
+   }
+  },
+  {
+   "seed": 1084,
+   "n_troubles": 3,
+   "text": "trip:1+grid+hpgr:2",
+   "troubles": [
+    {
+     "issue": "trip:1",
+     "kind": "trip",
+     "line": 1,
+     "node": "crusher-1",
+     "crew": "crew-kip",
+     "t_start_min": 506.4130785051366,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "grid",
+     "kind": "grid",
+     "line": 0,
+     "node": "power",
+     "crew": "",
+     "t_start_min": 1008.3212103489873,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    },
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 1056.1337790185376,
+     "hidden": true,
+     "t_found_min": 1131.1337790185376,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "stock1_t0": 9724.721459212911,
+    "pow_c2_limit_mw": 188.08107476453506,
+    "pow_c2_h": 1.0177135022967772
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 320.80920096140625,
+    "by_value": 270.8183651312835
+   },
+   "cu_t_0800": {
+    "base": 643.7223877037898,
+    "by_value": 591.0945695803166
+   },
+   "usd_2000": {
+    "base": 4338896.476818136,
+    "by_value": 3650235.1471281294
+   },
+   "usd_0800": {
+    "base": 8707101.604884947,
+    "by_value": 7981872.965130409
+   },
+   "loss_cu_t_2000": {
+    "by_value": 49.99083583012276
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "trip:1": {
+      "t_call_min": 510.0,
+      "t_arrive_min": 538.3685837913105,
+      "t_done_min": 821.9674061244729,
+      "by": "twin"
+     },
+     "grid": {
+      "t_call_min": 1015.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     },
+     "hpgr:2": {
+      "t_call_min": 1195.0,
+      "t_arrive_min": 1232.1008088192962,
+      "t_done_min": 1303.4681691386868,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 4.57,
+   "rec_pct_2000": {
+    "base": 87.11781875835528,
+    "by_value": 87.10923060258813
+   },
+   "cu_feed_t_2000": {
+    "base": 368.2475130044944,
+    "by_value": 310.89514079950686
+   },
+   "n_hidden": 1,
+   "kwh_per_t_cu_2000": {
+    "base": 9722.860529827873,
+    "by_value": 11037.58335653933
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9690.771106270073,
+    "by_value": 10333.614635183925
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 315.0,
+     "sag": 165.0,
+     "ball": 130.0,
+     "flot": 165.0,
+     "line_stop": 165.0,
+     "line_limited": 255.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 315.0,
+     "sag": 165.0,
+     "ball": 130.0,
+     "flot": 165.0,
+     "line_stop": 165.0,
+     "line_limited": 360.0
+    }
+   }
+  },
+  {
+   "seed": 1086,
+   "n_troubles": 2,
+   "text": "hpgr:2+dose:2",
+   "troubles": [
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 911.8669038394362,
+     "hidden": true,
+     "t_found_min": 986.8669038394362,
+     "missed": false
+    },
+    {
+     "issue": "dose:2",
+     "kind": "dose",
+     "line": 2,
+     "node": "flot-2",
+     "crew": "crew-kip",
+     "t_start_min": 1062.5554084980067,
+     "hidden": true,
+     "t_found_min": 1137.5554084980067,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "flot_dose_pp": 2.115721772613373
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 322.8816252985148,
+    "by_value": 320.7306226886208
+   },
+   "cu_t_0800": {
+    "base": 643.5577150634105,
+    "by_value": 641.2242753623833
+   },
+   "usd_2000": {
+    "base": 4367807.506783517,
+    "by_value": 4338000.5242754435
+   },
+   "usd_0800": {
+    "base": 8705165.848280344,
+    "by_value": 8672824.487369636
+   },
+   "loss_cu_t_2000": {
+    "by_value": 2.1510026098939647
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "hpgr:2": {
+      "t_call_min": 1050.0,
+      "t_arrive_min": 1073.570565861881,
+      "t_done_min": 1158.7894661372022,
+      "by": "twin"
+     },
+     "dose:2": {
+      "t_call_min": 1140.0,
+      "t_arrive_min": 1170.0,
+      "t_done_min": 1203.037387717054,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 3.63,
+   "rec_pct_2000": {
+    "base": 86.69219995995051,
+    "by_value": 86.62534375001886
+   },
+   "cu_feed_t_2000": {
+    "base": 372.44599335081756,
+    "by_value": 370.25033183611583
+   },
+   "n_hidden": 2,
+   "kwh_per_t_cu_2000": {
+    "base": 9660.85359368923,
+    "by_value": 9724.62761910801
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 9692.85838408218,
+    "by_value": 9727.622290063144
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 0.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 230.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 50.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 280.0
+    }
+   }
+  },
+  {
+   "seed": 1099,
+   "n_troubles": 2,
+   "text": "hpgr:2+hard:2",
+   "troubles": [
+    {
+     "issue": "hpgr:2",
+     "kind": "hpgr",
+     "line": 2,
+     "node": "pebble-2",
+     "crew": "crew-mill",
+     "t_start_min": 526.7650852295227,
+     "hidden": true,
+     "t_found_min": 601.7650852295227,
+     "missed": false
+    },
+    {
+     "issue": "hard:2",
+     "kind": "hard",
+     "line": 2,
+     "node": "pit",
+     "crew": "",
+     "t_start_min": 686.5766170856225,
+     "hidden": false,
+     "t_found_min": -1.0,
+     "missed": false
+    }
+   ],
+   "overrides": {
+    "crew_sigma_ln": 0.4,
+    "ore_axb_hard": 26.573666790302696
+   },
+   "shared_crew": false,
+   "policy": "modules.policy.rank",
+   "cu_t_2000": {
+    "base": 315.57407562791275,
+    "by_value": 319.21705810764854
+   },
+   "cu_t_0800": {
+    "base": 613.4862685231999,
+    "by_value": 607.5676032333096
+   },
+   "usd_2000": {
+    "base": 4266761.650455196,
+    "by_value": 4317521.391358279
+   },
+   "usd_0800": {
+    "base": 8288661.949548481,
+    "by_value": 8206732.731179223
+   },
+   "loss_cu_t_2000": {
+    "by_value": -3.6429824797357924
+   },
+   "d_cu_t": -1.0,
+   "d_cu_t_0800": -1.0,
+   "d_usd": -1.0,
+   "bookings": {
+    "base": {},
+    "by_value": {
+     "hpgr:2": {
+      "t_call_min": 665.0,
+      "t_arrive_min": 692.6047482286999,
+      "t_done_min": 760.9649271146785,
+      "by": "twin"
+     },
+     "hard:2": {
+      "t_call_min": 690.0,
+      "t_arrive_min": -1.0,
+      "t_done_min": -1.0,
+      "by": "twin"
+     }
+    }
+   },
+   "seconds": 3.64,
+   "rec_pct_2000": {
+    "base": 87.5935078837611,
+    "by_value": 87.73664178500715
+   },
+   "cu_feed_t_2000": {
+    "base": 360.27107859030815,
+    "by_value": 363.83551001401315
+   },
+   "n_hidden": 1,
+   "kwh_per_t_cu_2000": {
+    "base": 9882.657653666955,
+    "by_value": 9758.837431663538
+   },
+   "kwh_per_t_cu_0800": {
+    "base": 10164.693396309685,
+    "by_value": 10257.914692786111
+   },
+   "down_min_2000": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 340.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 445.0
+    }
+   },
+   "down_min_0800": {
+    "base": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 775.0
+    },
+    "by_value": {
+     "crusher": 0.0,
+     "sag": 0.0,
+     "ball": 0.0,
+     "flot": 0.0,
+     "line_stop": 0.0,
+     "line_limited": 925.0
+    }
+   }
+  }
+ ],
+ "seconds": 16.5
+}

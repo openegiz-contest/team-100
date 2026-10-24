@@ -34,7 +34,7 @@ class TestSitePassport(unittest.TestCase):
         self.assertEqual(len(ore), 23)
         self.assertEqual(sum(1 for r in ore if r[4] == 1), 12)           # 9 CAT 793 + 3 CAT 785 on line 1
         self.assertEqual({r[3] for r in roster if r[1] == "CAT 777"}, {"waste"})
-        self.assertEqual(len(site.PEOPLE), 9)
+        self.assertEqual(len(site.PEOPLE), 13)
         self.assertEqual(len([e for e in site.EXCAVATORS if e[1] == "ore"]), 3)
         for typ, person in site.TYPE_PERSON.items():
             self.assertIn(person, {p[0] for p in site.PEOPLE}, typ)

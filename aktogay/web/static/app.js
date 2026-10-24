@@ -139,7 +139,7 @@ AKT.unc = (gap, sigma, unitFmt) => {
 /* ISA-101: grey = works as it should, colour only for the abnormal. Level 1 (P1) — stopped or dangerous,
    level 2 (P2) — deviation or losing now, level 3 (P3) — soon (the buffer still holds). */
 const RED = new Set(['STOP', 'DOWN', 'ALARM', 'EMPTY', 'FULL', 'OFF', 'FAILED', 'FIRE', 'FAULT', 'LEAK', 'BROKEN', 'TRIP', 'FLOOD', 'FLOODED', 'CLOSED']);
-const YELLOW = new Set(['SLOW', 'STARVED', 'LIMITED', 'LIMITED_GRID', 'UPSET', 'LOW', 'HIGH', 'LIMIT', 'SHORT', 'ONE', 'WARN', 'WARNING', 'STALE', 'REPAIR']);
+const YELLOW = new Set(['COLD', 'SLOW', 'STARVED', 'LIMITED', 'LIMITED_GRID', 'UPSET', 'LOW', 'HIGH', 'LIMIT', 'SHORT', 'ONE', 'WARN', 'WARNING', 'STALE', 'REPAIR']);
 AKT.cls = s => RED.has(s) ? 'st-red' : (YELLOW.has(s) ? 'st-yellow' : 'st-grey');
 AKT.LV_CLS = { 0: 'st-grey', 1: 'st-red', 2: 'st-yellow', 3: 'st-soon' };
 AKT.LV_GLYPH = { 0: '', 1: '◆', 2: '▲', 3: '△' };
@@ -191,7 +191,16 @@ AKT.lineShaftMw = n => {
   return ((sag || 0) + (a || 0) + (b || 0)) / 1000;
 };
 AKT.gridFromShaft = mw => mw == null ? null : mw / 0.96;   // drive efficiency 0.96 (допущение)
-AKT.baseOk = () => AKT.check && !!AKT.scenario() && String(AKT.val('baseline', 'idSimulationRun') || '') === AKT.run && !!AKT.run;
+/* The comparison with the run without the scenario is open in «Режим проверки модели» and, for a visible cause, in any
+   running scenario (a hidden cause stays hidden: the dispatcher has to find it). */
+AKT.leverOn = () => AKT.num('site', 'lever_on') === 1;     // what-if levers of the model are on: the base copy runs without them
+AKT.cmpOpen = () => {
+  const s = AKT.scenario();
+  if (!s) return AKT.leverOn();
+  return !!s && (AKT.check || !s.split('+').some(p => HIDDEN_KINDS.has(p.split(/[:@=]/)[0])));
+};
+AKT.hatchOn = () => AKT.check || AKT.cmpOpen();
+AKT.baseOk = () => AKT.cmpOpen() && String(AKT.val('baseline', 'idSimulationRun') || '') === AKT.run && !!AKT.run;
 AKT.base = (thing, f) => {
   if (!AKT.baseOk()) return null;
   const v = AKT.num('baseline', `${thing}_${f}_base`);
@@ -209,7 +218,7 @@ AKT.differs = (thing, f, minAbs) => {
   return b != null && v != null && Math.abs(v - b) > Math.max(minAbs || 0, 0.02 * Math.abs(b));
 };
 AKT.shiftResult = () => {
-  if (!AKT.check) return null;
+  if (!AKT.check && !AKT.cmpOpen()) return null;
   const r = AKT.val('baseline', 'shift_result');
   if (!r || typeof r !== 'object' || r.run !== AKT.run || !AKT.run) return null;
   if (String(AKT.val('baseline', 'idSimulationRun') || '') !== AKT.run) return null;
@@ -220,9 +229,12 @@ AKT.scenario = () => { const s = AKT.val('site', 'scenario'); return typeof s ==
 const SCEN_RU = { crusher: 'Встала дробилка', grid: 'Сеть урезала мощность', hard: 'Пришла твёрдая руда', reline: 'Перефутеровка SAG',
   fork: 'Две беды сразу', water: 'Беда с водой', hpgr_fire: 'Пожар на прессе дробления гали', dose: 'скрытая причина', cyclone: 'скрытая причина',
   liner: 'скрытая причина', oxide: 'скрытая причина', startup: 'Пуск мельницы при людях внутри', dust: 'Пыление пляжа',
-  winter: 'Зима', balls: 'скрытая причина', conc: 'скрытая причина' };
-const HIDDEN_KINDS = new Set(['dose', 'cyclone', 'liner', 'oxide', 'balls', 'conc']);
-AKT.scenarioRu = s => s.split('+').filter(Boolean).map(p => {
+  winter: 'Зима', balls: 'скрытая причина', conc: 'скрытая причина', pitstop: 'Остановка карьера', conveyor: 'Встал конвейер',
+  icy: 'Метель и гололёд на откатке', fatigue: 'Усталость водителя (допущение)', oil: 'Загрязнение масла EX01',
+  roping: 'скрытая причина', phdrift: 'скрытая причина', hpgr: 'Неравномерное питание ВВД', mantle: 'Замена брони дробилки',
+  sample: 'Анализатор отдаёт старые данные' };
+const HIDDEN_KINDS = new Set(['dose', 'cyclone', 'liner', 'oxide', 'balls', 'conc', 'roping', 'phdrift']);
+AKT.scenarioRu = s => s === 'icy+dust+grid' ? 'Смена с тремя бедами сразу' : s.split('+').filter(Boolean).map(p => {
   const [k, n] = p.split(':');
   return (SCEN_RU[k] || k) + (n && (AKT.check || !HIDDEN_KINDS.has(k)) ? ` (линия ${n})` : '');
 }).join(' + ');
@@ -230,7 +242,7 @@ AKT.scenarioId = s => AKT.check || !s.split('+').some(p => HIDDEN_KINDS.has(p.sp
 /* The way of a trouble to the copper: from the nodes of the open issues down by feeds (dispatcher's view);
    the declared chain of the scenario only in «Режим проверки модели». */
 AKT.scenarioChain = () => {
-  const out = new Set();
+  const out = AKT.cmpOpen() && AKT.prop ? AKT.prop.affected() : new Set();
   let keepWater = false;
   const down = start => { const q = [start]; while (q.length) { const n = q.shift(); if (out.has(n)) continue; out.add(n); for (const f of AKT.feeds(n)) q.push(f); } };
   if (!AKT.check) {
@@ -240,8 +252,8 @@ AKT.scenarioChain = () => {
       if (/^(water|piezo)/.test(node) || ['water-trouble', 'piezo'].includes(AKT.cat(node))) keepWater = true;
       down(node);
     }
-    if (!keepWater) out.delete('water');
-    out.delete('conc-stock');
+    if (!keepWater && !(AKT.cmpOpen() && AKT.prop && AKT.prop.has('water'))) out.delete('water');
+    if (!(AKT.cmpOpen() && AKT.prop && AKT.prop.has('conc-stock'))) out.delete('conc-stock');
     return out;
   }
   for (const p of AKT.scenario().split('+')) {
@@ -256,8 +268,8 @@ AKT.scenarioChain = () => {
       (h.length ? h : (n ? [`pebble-${n}`] : ['pebble-1', 'pebble-2'])).forEach(down);
     }
   }
-  if (!keepWater) out.delete('water');
-  out.delete('conc-stock');
+  if (!keepWater && !(AKT.cmpOpen() && AKT.prop && AKT.prop.has('water'))) out.delete('water');
+  if (!(AKT.cmpOpen() && AKT.prop && AKT.prop.has('conc-stock'))) out.delete('conc-stock');
   return out;
 };
 AKT.issues = () => AKT.ofType('issue').concat(Object.keys(AKT.things).filter(n => n.startsWith('issue-') && AKT.type(n) !== 'issue'))
@@ -344,7 +356,8 @@ AKT.levelOf = name => {
   if (!name || !AKT.things[name]) return 0;
   const s = AKT.st(name), c = AKT.cat(name), t = AKT.type(name);
   let lv = 0;
-  if (!(c === 'person' || c === 'crew' || ['issue', 'batch', 'site', 'control', 'journal', 'validation-calib', 'validation-setup', 'validation-sim', 'baseline'].includes(t) || /^mod-/.test(t))) {
+  const idleBelt = t === 'conveyor' && s === 'STOP' && AKT.raw(name, 'fault') === 0;
+  if (!(idleBelt || c === 'person' || c === 'crew' || ['issue', 'batch', 'site', 'control', 'journal', 'validation-calib', 'validation-setup', 'validation-sim', 'baseline'].includes(t) || /^mod-/.test(t))) {
     if (RED.has(s)) lv = 1;
     else if (c === 'exc' && s === 'IDLE') lv = 2;
     else if (YELLOW.has(s)) lv = 2;
@@ -458,7 +471,8 @@ AKT.people = () => Object.keys(AKT.things).filter(n => ['person', 'crew'].includ
 /* ------------------------------------------------------------------ people */
 const ROLE_SHORT = { crusher_mech: 'Мех. ЦПД', plant_mech: 'Мех. ФАБ', kip: 'КИПиА', mine_dispatcher: 'Диспетчер',
   shift_geologist: 'Геолог', shift_metallurgist: 'Металлург', power_engineer: 'Энергетик', tailings_engineer: 'Технолог',
-  shift_supervisor: 'Нач. смены', shift_mechanic: 'Механик' };
+  shift_supervisor: 'Нач. смены', shift_mechanic: 'Механик', mine_shift_head: 'Нач. карьера', road_service: 'Дорожная',
+  grinding_operator: 'Оператор помола' };
 AKT.personShort = n => {
   const r = AKT.attr(n, 'responsible.role');
   if (ROLE_SHORT[r]) return ROLE_SHORT[r];
@@ -474,6 +488,9 @@ const ROLE_ACC = { 'механик фабрики': 'механика фабри
   'дежурный энергетик': 'дежурного энергетика', 'технолог хвостов и оборотной воды': 'технолога хвостового хозяйства',
   'начальник смены фабрики': 'начальника смены фабрики', 'оператор пульта': 'оператора пульта',
   'сменный руководитель цуп': 'сменного руководителя ЦУП', 'механик фабрики (мельницы)': 'механика фабрики',
+  'начальник смены карьера': 'начальника смены карьера', 'дорожная служба карьера': 'дорожную службу карьера',
+  'сменный механик карьера': 'сменного механика карьера', 'сменный механик': 'сменного механика',
+  'оператор пульта измельчения': 'оператора пульта измельчения',
   'бригада кипиа': 'бригаду КИПиА', 'бригада механиков цпд': 'бригаду механиков ЦПД', 'бригада механиков фабрики': 'бригаду механиков фабрики' };
 const ROLE_KEYS = Object.keys(ROLE_ACC).sort((a, b) => b.length - a.length);
 /* "Механик фабрики и начальник смены фабрики" -> two roles; "Технолог хвостов и оборотной воды" stays one */
@@ -553,7 +570,9 @@ AKT.personAvail = n => {
   if (!n || !AKT.things[n]) return '';
   const i = AKT.personInfo(n);
   if (i.tr) return `в пути (${AKT.wayRu(i.tr)}), будет ≈${NBSP}${AKT.clock(i.tr.eta)}`;
-  if (i.st === 'FREE' || i.st === 'AVAILABLE') return `свободен, сейчас: ${AKT.placeRu(i.loc).toLowerCase()}`;
+  /* only the first letter goes small, abbreviations keep their case («дробилка ЦПД-1», not «дробилка цпд-1») */
+  const pl = AKT.placeRu(i.loc), plc = /^[А-ЯЁA-Z]{2}/.test(pl) ? pl : pl.charAt(0).toLowerCase() + pl.slice(1);
+  if (i.st === 'FREE' || i.st === 'AVAILABLE') return `свободен, сейчас: ${plc}`;
   if (i.free != null && i.free >= 0) return `занят до ${AKT.clockDay(i.free)}`;
   return AKT.stRu(i.st, n);
 };
@@ -606,6 +625,11 @@ AKT.get = async (url) => {
   return d;
 };
 AKT.post = async (url, body) => {
+  /* training mode: calls and postponements stay learning (not written to the journal, not in the reports) */
+  if (AKT.train && AKT.train.on() && /^\/api\/(call|snooze|remind|mech)\b/.test(url)) {
+    AKT.train.record({ title: 'учебный вызов на экране', pick: String((body && (body.role || body.reason)) || ''), right: '', ok: true, url });
+    return { ok: true, training: true };
+  }
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
@@ -660,7 +684,10 @@ AKT.issueTitle = n => {
   let kind = String(AKT.val(n, 'kind') || '');
   /* a leak below the intake cap: no shortage yet, only the water balance shows it */
   if (kind === 'water_short' && /тихая утечка воды/.test(String(AKT.val(n, 'text') || ''))) kind = 'water_leak';
-  return AKT.kindTitle ? AKT.kindTitle(kind, nodeName) : `${nodeName}: ${AKT.kindRu(kind)}`;
+  const base = AKT.kindTitle ? AKT.kindTitle(kind, nodeName) : `${nodeName}: ${AKT.kindRu(kind)}`;
+  /* one pit stop is one trouble per line: the line is in the text of the module */
+  const pl = kind === 'pit_stop' ? /склад линии (\d)/.exec(String(AKT.val(n, 'text') || '')) : null;
+  return pl ? `${base} · линия ${pl[1]}` : base;
 };
 AKT.issueRole = n => String(AKT.val(n, 'responsible') || (AKT.issueNode(n) ? AKT.role(AKT.issueNode(n)) : '') || '');
 AKT.issuePerson = n => { const p = AKT.name(String(AKT.val(n, 'person') || '')); return p && AKT.things[p] ? p : ''; };
@@ -668,6 +695,55 @@ AKT.issuePerson = n => { const p = AKT.name(String(AKT.val(n, 'person') || ''));
 AKT.calls = {};
 AKT.issueCalled = n => ['CALLED', 'IN_WORK'].includes(AKT.st(n)) || (AKT.num(n, 'rank') ?? 0) >= 99 || !!AKT.calls[n + '|' + AKT.run];
 AKT.issueSnoozed = n => AKT.st(n) === 'SNOOZED';
+
+/* life cycle of an issue (UI rules, item 4): new -> called -> accepted -> on the way -> on site -> resolved. «принял / в пути /
+   на месте» come from the called person's screen (journal.mech, read by the module); marked «(механик)». */
+AKT.life = n => {
+  const lc = AKT.val(n, 'lifecycle');
+  if (!lc || typeof lc !== 'object' || !Array.isArray(lc.steps)) return null;
+  const steps = lc.steps.filter(x => x.key !== 'new').map(x => Object.assign({}, x, {
+    text: `${x.ru}${typeof x.t === 'number' && x.t >= 0 ? NBSP + AKT.clock(x.t) : ''}${x.src === 'механик' ? ' (механик)' : ''}` }));
+  return { stage: lc.stage, stageRu: lc.stage_ru, steps, text: steps.map(x => x.text).join(' → '), help: Number(lc.help) === 1, helpText: lc.help_text || '' };
+};
+/* price of an issue split into copper, energy, reagents and the buyer's penalty, and what each part stands on (card, «Подробнее») */
+AKT.delayHourHtml = n => {
+  const x = AKT.exp23;
+  if (!x) return '';
+  if (!x.data) { x.load(() => {}); return ''; }
+  return x.delayFor(String(AKT.val(n, 'kind') || ''));
+};
+AKT.costHtml = n => {
+  const c = AKT.val(n, 'cost');
+  const dh = AKT.delayHourHtml(n);
+  if (!c || typeof c !== 'object') return dh;
+  if (!Array.isArray(c.items) || !c.items.length) return (c.text ? `<p class="note">${AKT.esc(c.text)}</p>` : '') + dh;
+  const esc = AKT.esc;
+  const lab = (l, k) => l ? `<span class="lbl lbl-${esc(k || 'calc')}">${esc(l)}</span>` : '';
+  const sup = a => (a || []).map(x => `<li>${esc(x.what)} ${lab(x.label, x.key)}</li>`).join('');
+  const rows = c.items.map(it => `<tr class="${it.usd_h >= 0.5 ? '' : 'zero'}"><td>${esc(it.title)}</td><td class="n">${it.usd_h >= 0.5 ? esc(AKT.approx(it.usd_h)) + '/ч' : 'не входит'}</td>`
+    + `<td>${lab(it.label, it.weak)}</td><td>${it.usd_h >= 0.5 ? `<ul class="cost-sup">${sup(it.supports)}</ul>` : ''}</td></tr>`).join('');
+  const h = c.horizon || {};
+  return `<div class="cost" id="cost-${esc(n)}"><b>Из чего складывается цена</b> <span class="note">≈ расчёт модели, в час, пока потери идут</span>
+<table class="kv"><tr><th>Статья</th><th>$ в час</th><th>Держится на</th><th>Опора</th></tr>${rows}</table>
+${c.text ? `<p class="note">${esc(c.text)}.</p>` : ''}
+${h.usd > 0 ? `<p>За ${AKT.fmt(h.hours)} ч, если никого не звать: <b>${esc(AKT.approx(h.usd))}</b> ${lab(h.label, 'assumption')} <span class="note">— зависит от сроков:</span></p><ul class="cost-sup">${sup(h.supports)}</ul>` : ''}${dh}</div>`;
+};
+/* the button «Сдать смену»: only in the last handover_btn.lead_min minutes of the shift (the module counts the time) */
+AKT.updateHandoverBtn = () => {
+  const b = AKT.val('mod-priority', 'handover_btn');
+  const fresh = String(AKT.val('mod-priority', 'idSimulationRun') || '') === AKT.run && !!AKT.run;
+  const show = !!(b && typeof b === 'object' && Number(b.show) === 1 && fresh && AKT.st('site') !== 'WARMUP');
+  let el = document.getElementById('ho-btn');
+  if (show && !el) {
+    el = document.createElement('a'); el.id = 'ho-btn'; el.className = 'ho-btn'; el.href = AKT.href('?view=handover');
+    el.textContent = 'Сдать смену';
+    const tools = document.getElementById('tools'); if (tools) tools.insertBefore(el, tools.firstChild);
+  }
+  if (el) {
+    if (!show) { el.remove(); return; }
+    el.title = `Смена кончается в ${AKT.clock(b.end)}: лист сдачи уже собран (открыть и передать)`;
+  }
+};
 /* "Почему": the first part of the module's text, without its tail and technical notes */
 AKT.issueWhy = n => {
   let t = String(AKT.val(n, 'text_plain') || AKT.val(n, 'text') || '');
@@ -693,6 +769,25 @@ AKT.issueAdvice = n => {
   const t = String(AKT.val(n, 'text') || '');
   const m = /Совет:\s*([^·]+)/.exec(t);
   return m ? m[1].replace(/\s*\[оценка на модели\]/g, '').replace(/\s*\(прибытие и ремонт:[^)]*\)/, '').trim() : '';
+};
+/* «Измерения и возраст данных» (second level of the issue card): every measurement behind the issue with the age of its data.
+   age_pub_min: how long ago the thing was published (what the screen shows is this old); age_meas_min: age of the sample itself
+   (analyser cycle, grab sample). A row doubted by the instrument state or by its age is marked in words and by a sign, not by colour alone. */
+AKT.agoMin = m => m == null ? '—' : (m < 1 ? 'только что' : AKT.dur(m) + NBSP + 'назад');
+AKT.evidenceItems = n => { const ev = AKT.val(n, 'evidence'); return ev && Array.isArray(ev.items) ? ev.items : []; };
+AKT.evidenceHtml = n => {
+  const items = AKT.evidenceItems(n), nt = String(AKT.val(n, 'notify_text') || '');
+  if (!items.length && !nt) return '';
+  const e = AKT.esc;
+  const rows = items.map(i => {
+    const flags = [i.suspect ? '▲ под подозрением' : '', i.old ? '⏱ давно' : ''].filter(Boolean).join('; ');
+    const unit = i.unit ? NBSP + e(i.unit) : '';
+    return `<tr class="${i.suspect ? 'ev-susp' : i.old ? 'ev-old' : ''}"><td>${e(i.label)}</td><td class="n">${e(i.text)}${unit}</td><td>${e(i.where || '')}</td>`
+      + `<td>данные ${e(AKT.agoMin(i.age_pub_min))}${i.age_meas_min != null ? `<br>проба ${e(AKT.agoMin(i.age_meas_min))}` : ''}</td><td>${flags ? `<b>${e(flags)}</b>` : '—'}</td></tr>`;
+  }).join('');
+  return (items.length ? `<h4 class="ev-h">Измерения и возраст данных</h4><table class="kv ev-t"><tr><th>измерение</th><th>значение</th><th>где виден</th><th>возраст данных</th><th>пометка</th></tr>${rows}</table>`
+    + `<p class="p-sub">«Данные N мин назад» — сколько времени модели прошло с публикации; «проба» — возраст самого замера (цикл анализатора, ручная проба). ${AKT.evidenceItems(n).some(i => i.suspect) ? '▲ — прибор под подозрением: показание проверить второй пробой.' : ''}</p>` : '')
+    + (nt ? `<p class="ev-n"><b>Также сообщить:</b> ${e(nt)}</p>` : '');
 };
 /* the whole money of the issue before the module's text: losses now, later, none, S0 (old wording kept for tables) */
 AKT.issueMoney = n => { const m = AKT.issueMain(n); return m.text + (m.small ? ' ' + m.small : ''); };
@@ -741,9 +836,9 @@ AKT.nowLine = () => {
       const who = AKT.roleFirst(role) || 'ответственный';
       const where = pi && pi.tr ? `в пути, будет ≈ ${AKT.clock(pi.tr.eta)}` : (pi && /WORK|BUSY/.test(pi.st) ? `на месте, чинит${pi.free != null && pi.free >= 0 ? ' до ' + AKT.clockDay(pi.free) : ''}` : 'позван');
       const from = AKT.num(top, 'loss_from');
-      const money = AKT.lossNow(top) ? ` Теряем ${AKT.approx(AKT.num(top, 'loss_usd_h'))}/ч.` : (from != null ? ` Потерь пока нет: запас до ${AKT.clockDay(from)}.` : '');
+      const money = AKT.lossNow(top) ? ` Теряем ${AKT.approx(AKT.num(top, 'loss_usd_h'))}/ч.` : (from != null ? ` Потерь нет до ${AKT.clockDay(from)}.` : '');
       out.text = `${AKT.rankSign(top) ? AKT.rankSign(top) + ' ' : 'Беда: '}${AKT.issueTitle(top)} — ${who.charAt(0).toLowerCase() + who.slice(1)} ${where}.${money}`
-        + (next ? ` Следующее: ${AKT.rankSign(next) || '•'} ${AKT.nameRu(AKT.issueNode(next))} — ${AKT.issuePrice(next)}.` : ' Других бед нет.');
+        + (next ? ` Следующее: ${AKT.rankSign(next) || '•'} ${AKT.nameRu(AKT.issueNode(next))} — ${AKT.issuePrice(next)}.` : '');
       if (next) out.btn = { issue: next, label: 'Позвать ' + AKT.roleAcc(AKT.roleFirst(AKT.issueRole(next))) };
       return out;
     }
@@ -752,7 +847,9 @@ AKT.nowLine = () => {
     if (AKT.lossNow(top)) out.text = dot(`Главное: ${sign} ${AKT.issueTitle(top)} — ${AKT.issuePrice(top)}`);
     else {
       const from = AKT.num(top, 'loss_from');
-      out.text = dot(`${sign} ${AKT.issueTitle(top)}: потерь пока нет${from != null ? ` (запас до ${AKT.clockDay(from)})` : ''} — ${AKT.issuePrice(top)}`);
+      /* the price may itself say "потерь пока нет": then it is said once */
+      const price = AKT.issuePrice(top), tail = price === 'потерь пока нет' ? '' : ` — ${price}`;
+      out.text = dot(`${sign} ${AKT.issueTitle(top)}: потерь пока нет${from != null ? ` (запас до ${AKT.clockDay(from)})` : ''}${tail}`);
     }
     out.btn = { issue: top, label: 'Позвать ' + acc };
     return out;
@@ -765,6 +862,7 @@ AKT.nowLine = () => {
   const dev = KEY.filter(n => AKT.things[n] && AKT.levelOf(n)).sort((a, b) => AKT.levelOf(a) - AKT.levelOf(b)).slice(0, 3);
   if (dev.length) { out.text = `Бед в очереди нет, но есть отклонения: ${dev.map(n => `${AKT.LV_GLYPH[AKT.levelOf(n)]} ${AKT.nameRu(n)} — ${AKT.stOf(n)}`).join(', ')}. Двойник оценит их за несколько минут модели.`; return out; }
   out.text = `Бед нет. Фабрика работает в норме и даёт ${AKT.f1(AKT.num('site', 'cu_tph'))} т меди в час.`;
+  out.demo = !AKT.scenario() && st === 'RUN';
   return out;
 };
 AKT.ctxLine = () => {
@@ -772,7 +870,7 @@ AKT.ctxLine = () => {
   const paused = st === 'PAUSED' || speed === 0;
   const spd = paused ? '⏸ пауза' : (speed ? `▶ ход ×${AKT.fmt(speed)}${speed === 60 ? ' (минута = час)' : ''}` : '');
   const age = AKT.staleSec();
-  return `Время модели <b>${AKT.clockDay(t)}</b> · ${spd}${age != null && age > 4 ? ` · данные на ${AKT.clock(t)} модели` : ''} · смена 08:00–20:00 · медный рудник в Казахстане, фабрика в 2 линии`;
+  return `Время модели <b>${AKT.clockDay(t)}</b> · ${spd}${age != null && age > 4 ? ` · данные на ${AKT.clock(t)} модели` : ''} · смена 08:00–20:00${AKT.scenario() ? '' : ' · медный рудник в Казахстане, фабрика в 2 линии'}`;
 };
 let toastTimer = null;
 AKT.toast = (text, ms) => {
@@ -789,7 +887,7 @@ const Now = {
     const c = AKT.ctxLine();
     if (ctx.innerHTML !== c) ctx.innerHTML = c;
     const o = AKT.nowLine();
-    const key = (o.chip || '') + '|' + o.text + '|' + (o.btn ? o.btn.issue + o.btn.label : '');
+    const key = (o.chip || '') + '|' + o.text + '|' + (o.btn ? o.btn.issue + o.btn.label : '') + '|' + (o.demo ? 'demo' : '');
     sec.classList.toggle('stale', !!o.stale);
     if (key === this.last) return;
     this.last = key;
@@ -801,6 +899,16 @@ const Now = {
       if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'primary now-call'; act.appendChild(b); b.addEventListener('click', () => Panel.call(b.dataset.issue)); }
       b.textContent = o.btn.label; b.dataset.issue = o.btn.issue;
     } else if (b) b.remove();
+    /* nothing open: a small action that runs one catalog scenario («Два сразу», seed 42); it sits in this line, not in a block of its own */
+    let dm = act.querySelector('button.now-demo');
+    if (o.demo) {
+      if (!dm) {
+        dm = document.createElement('button'); dm.type = 'button'; dm.className = 'quiet now-demo'; dm.textContent = 'Показать пример смены';
+        dm.title = 'Запустит сценарий из каталога «Две беды сразу» с 08:00 (прогон № 42); остановить можно в панели справа';
+        act.appendChild(dm);
+        dm.addEventListener('click', () => { dm.disabled = true; Panel.scenario('fork', { seed: 42, name: 'Две беды сразу' }); });
+      }
+    } else if (dm) dm.remove();
     let off = document.querySelector('#now .offer');
     if (!AKT.store.get('akt-tour') && !off && AKT.tour) {
       off = document.createElement('span'); off.className = 'offer';
@@ -844,8 +952,15 @@ AKT.pollJournal = async function () {
 };
 
 /* --------------------------------------------------------------- routing */
-const MENU = [['plan', 'Обзор'], ['diorama', 'Диорама'], ['site', 'Спутник 3D'], ['line1', 'Линия 1'], ['line2', 'Линия 2'], ['queue', 'Беды']];
-const MENU_MORE = [['handover', 'Сдача смены'], ['ore', 'Руда'], ['calib', 'Калибровка'], ['tree', 'Состав двойника'], ['text', 'Всё текстом'], ['legend', 'Легенда и словарь']];
+/* Menu of 4 groups x 3-5 items, depth 2 (UI rules item 7). The count of open troubles sits on «Сейчас». */
+const MENU4 = [
+  ['now', 'Сейчас', [['plan', 'Обзор'], ['queue', 'Все беды'], ['areas', 'Участки'], ['forecast', 'Прогнозы'], ['copper', 'Путь меди']]],
+  ['shift', 'Смена', [['handover', 'Сдача смены'], ['report', 'Отчёт смены'], ['journal', 'Журнал с выгрузкой']]],
+  ['analysis', 'Анализ', [['economics', 'Экономика'], ['calib', 'Калибровка'], ['ore', 'Руда'], ['inside', 'Изнутри'], ['replay', 'Повтор смены']]],
+  ['learn', 'Обучение и справка', [['howto', 'Как проверить'], ['scenarios', 'Сценарии'], ['train', 'Тренировка'], ['legend', 'Обозначения'], ['tour', 'Как пользоваться']]],
+];
+/* views that live under another item of the menu (the hub «Участки» lists them) */
+const MENU_ALIAS = { levers: 'analysis', line1: 'areas', line2: 'areas', diorama: 'areas', site: 'areas', tree: 'areas', text: 'areas', unit: 'areas' };
 AKT.viewName = () => {
   const v = AKT.params.get('view') || 'plan';
   if (v === 'line') return 'line' + (AKT.params.get('n') || '1');
@@ -854,22 +969,32 @@ AKT.viewName = () => {
   return v;
 };
 AKT.buildMenu = function () {
-  const cur = AKT.viewName();
+  const cur0 = AKT.viewName(), cur = MENU_ALIAS[cur0] || cur0;
   const nav = document.getElementById('nav');
-  const curMore = MENU_MORE.find(([v]) => v === cur);
-  nav.innerHTML = MENU.map(([v, t]) => `<a href="${AKT.href('?view=' + v)}" class="${v === cur ? 'cur' : ''}"${v === cur ? ' aria-current="page"' : ''}>${t}${v === 'queue' ? ' <span class="cnt" id="nav-cnt" hidden></span>' : ''}</a>`).join('')
-    + `<span class="more"><button type="button" id="nav-more" aria-expanded="false" aria-haspopup="true" class="${curMore ? 'cur' : ''}"${curMore ? ` title="Сейчас: ${curMore[1]}"` : ''}>${curMore ? ({ handover: 'Сдача смены', ore: 'Руда', calib: 'Калибровка', tree: 'Состав', text: 'Текстом', legend: 'Легенда' })[curMore[0]] : 'Ещё'} ▾</button><span class="more-menu" id="nav-more-m" hidden>${MENU_MORE.map(([v, t]) => `<a href="${AKT.href('?view=' + v)}">${t}</a>`).join('')}</span></span>`;
-  const mb = document.getElementById('nav-more'), mm = document.getElementById('nav-more-m');
-  const setOpen = o => { mm.hidden = !o; mb.setAttribute('aria-expanded', String(o)); };
-  mb.addEventListener('click', ev => { ev.stopPropagation(); setOpen(mm.hidden); if (!mm.hidden) mm.querySelector('a').focus(); });
-  document.addEventListener('click', ev => { if (!mm.hidden && !mm.contains(ev.target)) setOpen(false); });
-  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') setOpen(false); });
+  nav.innerHTML = MENU4.map(([gid, gname, items]) => {
+    const on = items.some(([v]) => v === cur);
+    const li = items.map(([v, t]) => (v === 'tour' ? `<a href="#" data-tour="1">${t}</a>` : `<a href="${AKT.href('?view=' + v)}"${v === cur ? ' aria-current="page"' : ''}>${t}${v === 'queue' ? ' <span class="cnt" id="nav-cnt2" hidden></span>' : ''}</a>`)).join('');
+    return `<span class="more"><button type="button" data-g="${gid}" aria-expanded="false" aria-haspopup="true" class="${on ? 'cur' : ''}">${gname}${gid === 'now' ? ' <span class="cnt" id="nav-cnt" hidden></span>' : ''} ▾</button><span class="more-menu" id="nav-m-${gid}" hidden>${li}</span></span>`;
+  }).join('');
+  const menus = [...nav.querySelectorAll('.more-menu')], btns = [...nav.querySelectorAll('button[data-g]')];
+  const closeAll = () => { menus.forEach(m => { m.hidden = true; }); btns.forEach(b => b.setAttribute('aria-expanded', 'false')); };
+  btns.forEach(b => b.addEventListener('click', ev => {
+    ev.stopPropagation();
+    const m = document.getElementById('nav-m-' + b.dataset.g), open = m.hidden;
+    closeAll(); m.hidden = !open; b.setAttribute('aria-expanded', String(open));
+    if (open) m.querySelector('a').focus();
+  }));
+  nav.querySelectorAll('a[data-tour]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); closeAll(); if (AKT.tour) AKT.tour.start(); }));
+  document.addEventListener('click', ev => { if (!nav.contains(ev.target)) closeAll(); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeAll(); });
 };
 AKT.updateMenu = () => {
+  AKT.updateHandoverBtn();
   const c = document.getElementById('nav-cnt'); if (!c) return;
   const n = AKT.issues().length;
   c.hidden = !n; c.textContent = String(n);
-  c.parentNode.setAttribute('aria-label', `Беды: ${n}`);
+  c.parentNode.setAttribute('aria-label', `Сейчас, бед: ${n}`);
+  const c2 = document.getElementById('nav-cnt2'); if (c2) { c2.hidden = !n; c2.textContent = String(n); }
 };
 AKT.onClick = ev => {
   const a = ev.target.closest ? ev.target.closest('a') : null;
@@ -916,19 +1041,42 @@ AKT.SCENARIOS = [
     watch: 'Склад руды 1 начнёт убывать; если он кончится раньше ремонта, линия 1 встанет. Двойник покажет беду и кого звать.' },
   { id: 'grid', name: 'Сеть урезала мощность', what: 'Лимит сети 300 → 218 МВт на 2 ч.', watch: 'Нагрузку площадки против лимита и когда лимит снимут.' },
   { id: 'hard:1', name: 'Твёрдая руда', what: 'На линию 1 идёт блок твёрдой руды (A×b 27): мельница будет молоть медленнее.', watch: 'Когда твёрдая руда дойдёт до мельницы SAG-1.' },
-  { id: 'reline:1', name: 'Перефутеровка SAG', what: 'Мельница SAG-1 встаёт на плановую замену брони на 126 ч.', watch: 'Когда мельница вернётся; линия 1 стоит.' },
+  { id: 'reline:1', name: 'Перефутеровка SAG', what: 'Мельница SAG-1 встаёт на плановую замену футеровки на 96 ч (допущение).', watch: 'Когда мельница вернётся; линия 1 стоит.' },
   { id: 'fork', name: 'Две беды сразу', what: 'Скрытый сбой на флотации 1 и поломка дробилки 2 в 09:20; дежурный КИПиА один.', watch: 'Кого звать первым — смотрите карточку ①.' },
   { id: 'water', name: 'Беда с водой', what: 'Сбой водовода и забора свежей воды, растёт давление воды в дамбе.', watch: 'Пьезометры дамбы: давление против тревоги 150 кПа.' },
   { id: 'startup:1', name: 'Пуск мельницы при людях внутри', what: 'Шаровая 1A на ремонте по наряду-допуску, механик внутри; через час кто-то включает команду на пуск.', watch: 'Безопасность людей: беда класса S0 идёт первой, пуск надо отменить.' },
   { id: 'dust', name: 'Пыление пляжа хвостохранилища', what: 'Ветер до 14 м/с над сухим пляжем на 6 ч.', watch: 'Экологическая беда S1 идёт после людей и перед деньгами.' },
-  { id: 'winter', name: 'Зима', what: 'Возврат воды с хвостохранилища снижен (лёд), воздух около −15 °C.', watch: 'Метка «Зима» в шапке; беды с водой дороже и срочнее.' },
+  { id: 'winter', name: 'Зима', what: 'Возврат воды с хвостохранилища снижен (лёд), воздух около −10 °C (аналог: нормы NOAA).', watch: 'Метка «Зима» в шапке; беды с водой дороже и срочнее.' },
+  { id: 'pitstop', name: 'Остановка карьера', what: 'Все экскаваторы руды встают на 8 ч (причина не названа: взрыв, погода или поломка).', watch: 'Склад каждой линии: через сколько часов он кончится и SAG встанет. Двойник покажет беду «Карьер (останов)» и кого звать — горного диспетчера.' },
+  { id: 'conveyor:1', name: 'Встал конвейер', what: 'Главный конвейер линии 1 отключился; дробилка стоит с пустой лентой, ремонт ≈ 2 ч.', watch: 'Склад линии 1 убывает; двойник покажет беду «Конвейер» и кого звать — механика ЦПД.' },
   { id: 'hpgr_fire', name: 'Пожар на прессе дробления гали', what: 'Пожар на прессе дробления гали: люди рядом, узел остановлен.', watch: 'Безопасность людей: беда класса S0 идёт первой.' },
+  { id: 'icy', name: 'Метель и гололёд на откатке', what: 'На 6 ч метель и гололёд: видимость ≈ 120 м, сцепление ≈ 0,3, ветер 16 м/с, воздух −14 °C. Пороги опасности (150 м, 0,4) — допущение: KAZ Minerals называет метели и сильный ветер риском ДТП на Актогае, цифр не публикует.',
+    watch: 'Беда класса S0 «Зимняя дорога»: ограничить движение — горный диспетчер → начальник смены карьера → дорожная служба. После вызова ограничение введено, откатка идёт медленнее: рядом видна цена этого решения. Переработка фабрики от погоды сама не падает.' },
+  { id: 'fatigue', name: 'Усталость водителя (допущение)', what: 'Оповещение об усталости водителя самосвала HT141 и близком сближении техники на 1 ч. Датчика и случаев на Актогае в открытых данных не нашли — это сценарий-допущение.',
+    watch: 'Беда класса S0: снять машину с рейса, развести технику. В деньгах не считается.' },
+  { id: 'roping:1', name: 'Канатирование циклонов', what: 'Гидроциклоны линии 1 «канатируют»: перелив грубеет, циркулирующая нагрузка и нагрузка шаровой растут (≈ 112 % номинала). Через 1,5 ч без решения флотация теряет ещё ≈ 3 п.п. (на Centinela одна нитка флотации стояла ≈ 6 ч — аналог).',
+    watch: 'Беда «Канатирование»: звать оператора пульта измельчения, затем металлурга. Смотрите, как после решения возвращается циркулирующая нагрузка.' },
+  { id: 'phdrift:1', name: 'pH-метр врёт', what: 'Электрод pH флотации 1 зарос накипью извести: онлайн-показание держится на уставке, а реальный pH выше на ≈ 0,6. Ручная проба раз в 4 ч покажет расхождение (период и размер — допущения).',
+    watch: 'Беда «pH-метр под подозрением» появится после контрольной пробы: онлайн-показание и проба рядом, возраст пробы виден в «Подробнее». Звать дежурного КИПиА.' },
+  { id: 'sample:1', name: 'Анализатор отдаёт старые данные', what: 'Пробоотборная линия поточного анализатора линии 1 засорилась: он держит последнее показание, его возраст растёт (цикл 12–16 мин). Засорение линий — типичная проблема анализаторов (Metso Metrics, частот нет); время чистки ≈ 0,5 ч — допущение.',
+    watch: 'Через 30 мин анализатор «под подозрением»: в карточках с хвостами, питанием и извлечением у замера виден возраст данных, в листе сдачи — отклонение «Анализатор 1: данные старше…». Дежурный КИПиА прочищает линию, показания возобновляются.' },
+  { id: 'hpgr:2', name: 'Неравномерное питание ВВД линии 2', what: 'Питание пресса ВВД линии 2 сегрегирует: перекос валков ≈ 12 %, круг гали ограничен. Если никто не вмешается за 2 ч, металл на валках — металлодетектор остановит пресс на 4 ч (допущения; аналог — блог Metso 2022).',
+    watch: 'Беда «Неравномерное питание ВВД»: звать механика фабрики. На «Пути меди» узел ВВД краснеет от перекоса и сигнала металлодетектора.' },
+  { id: 'mantle:1', name: 'Замена брони дробилки 1', what: 'Дробилка 1 встаёт на плановую замену брони ≈ 60 ч (аналог — рудник La Caridad, Metso). Склад кормит SAG, пока не кончится.',
+    watch: 'Часы до остановки SAG-1 и цена после конца склада; дробилка 1 и конвейер стоят, бригада ЦПД работает по наряду-допуску.' },
+  { id: 'oil', name: 'Загрязнение масла EX01', what: 'Гидромасло экскаватора EX01 (EX3600) загрязняется: через ≈ 3 ч тревога датчика на машине; если никто не вмешается, через ≈ 8 ч после неё отказ насоса и ремонт ≈ 57 ч (ремонт — аналог другой машины; сроки — допущения).',
+    watch: 'Беда «Загрязнение масла» с часами до отказа, потом «Отказ экскаватора». Звать сменного механика карьера. В диспетчерскую сигнал идёт, если подключена опция Global e-Service.' },
 ];
 /* the countdown of a running scenario: {text, lv} (lv 3 when less than an hour is left) */
 AKT.scenWatch = scen => {
   const k = scen.split('+')[0].split(':'), kind = k[0], n = k[1] || '1';
   const start = AKT.scenStart();
   const t = AKT.simTime;
+  /* constructor: a token with a start (crusher:1@90) begins later than the scenario */
+  const ctl = AKT.val('control', 'scenario'), cid = ctl && typeof ctl === 'object' && ctl.id ? String(ctl.id) : '';
+  const later = cid.split('+').map(p => /^([a-z_]+)(?::\d+)?@(\d+(?:\.\d+)?)/.exec(p)).filter(Boolean)
+    .map(m => ({ kind: m[1], at: (start != null ? start : 480) + Number(m[2]) })).filter(x => t != null && t < x.at).sort((a, b) => a.at - b.at)[0];
+  if (later) return { text: `Своя беда начнётся в ${AKT.clock(later.at)}: ${AKT.scenarioRu(later.kind)}`, lv: 0 };
   const left = (min, what, at) => ({ text: `${what} через ${AKT.dur(min)}${at != null ? ` (в ${AKT.clockDay(at)})` : ''}`, lv: min < 60 ? 3 : 0 });
   if (kind === 'crusher') {
     const sp = `stockpile-${n}`, h = AKT.num(sp, 'hours_left'), lvl = AKT.num(sp, 'level_t');
@@ -963,6 +1111,46 @@ AKT.scenWatch = scen => {
         ? { text: 'Следите: как только двойник увидит пожар, он поставит его первым (класс S0, опасно для людей)', lv: 0 }
         : { text: `Пожар потушен. Следите, когда пресс дробления гали снова заработает: сейчас ${AKT.stOf('pebble-' + n)}`, lv: 0 });
   }
+  if (kind === 'pitstop') {
+    const f = AKT.fc && AKT.fc.data(), L = f && f.stock && f.stock.lines ? Object.keys(f.stock.lines).sort().map(x => f.stock.lines[x]).filter(r => r.hours >= 0) : [];
+    return L.length ? { text: `Следите: склад кончится раньше всего через ${AKT.durH(Math.min(...L.map(r => r.hours)))}; потом SAG этой линии встанет`, lv: Math.min(...L.map(r => r.hours)) < 1 ? 3 : 0 } : { text: 'Следите: склады линий и когда карьер снова даст руду', lv: 0 };
+  }
+  if (kind === 'conveyor') {
+    const sp = `stockpile-${n}`, h = AKT.num(sp, 'hours_left');
+    return { text: `Следите: конвейер ${n} ${AKT.stopped(AKT.st(`conveyor-${n}`)) ? 'стоит' : 'снова идёт'}; склад ${n} — ${AKT.fmt(AKT.num(sp, 'level_t'))} т${h != null && h <= 48 ? `, кончится через ${AKT.durH(h)}` : ''}`, lv: h != null && h < 1 ? 3 : 0 };
+  }
+  if (kind === 'icy') {
+    const v = AKT.num('pit', 'visibility_m'), g = AKT.num('pit', 'road_grip'), r = AKT.num('pit', 'road_restrict') === 1;
+    return { text: `Следите: видимость ${AKT.fmt(v)} м, сцепление ${AKT.f2(g)}, ограничение движения ${r ? 'введено' : 'не введено'}`, lv: r || v == null || v > 150 ? 0 : 1 };
+  }
+  if (kind === 'fatigue') {
+    const on = AKT.num('fleet', 'fatigue') === 1;
+    return { text: on ? `Следите: оповещение у машины ${AKT.val('fleet', 'fatigue_truck') || ''} (допущение) — беда S0` : 'Оповещение погашено', lv: on ? 1 : 0 };
+  }
+  if (kind === 'roping') {
+    const c = AKT.num(`cyclones-${n}`, 'circ_load_pct'), b = AKT.num(`ball-${n}a`, 'power_pct');
+    return { text: `Следите: циркулирующая нагрузка ${AKT.fmt(c)} %, нагрузка шаровой ${AKT.fmt(b)} %, P80 ${AKT.fmt(AKT.num(`cyclones-${n}`, 'p80_um'))} мкм`, lv: 0 };
+  }
+  if (kind === 'phdrift') {
+    const ph = `ph-${n}`, a = AKT.num(ph, 'age_min');
+    return { text: `Следите: pH онлайн ${AKT.f2(AKT.num(ph, 'ph'))}, ручная проба ${AKT.f2(AKT.num(ph, 'lab_ph'))}${a != null ? ` (${AKT.dur(a)} назад)` : ''}`, lv: 0 };
+  }
+  if (kind === 'sample') {
+    const a = `analyzer-${n}`, age = AKT.num(a, 'age_min');
+    return { text: `Следите: возраст показания анализатора ${n} — ${age != null ? AKT.dur(age) : '—'}${AKT.stOf(a) ? ' · ' + AKT.stOf(a) : ''}`, lv: age != null && age > 30 ? 1 : 0 };
+  }
+  if (kind === 'hpgr') {
+    const pb = `pebble-${n === '1' ? '2' : n}`, m = AKT.num(pb, 'metal_alarm') === 1;
+    return { text: m ? 'Металлодетектор сработал, пресс остановлен — звать механика фабрики' : `Следите: перекос валков ${AKT.f1(AKT.num(pb, 'hpgr_skew_pct'))} %, разница мощности приводов ${AKT.f1(AKT.num(pb, 'hpgr_kw_diff_pct'))} %`, lv: m ? 1 : 0 };
+  }
+  if (kind === 'mantle') {
+    const left = AKT.num(`crusher-${n}`, 'service_left_h'), h = AKT.num(`stockpile-${n}`, 'hours_left');
+    return { text: `Следите: замена брони ещё ${left != null ? AKT.durH(left) : '—'}; склад ${n} ${h != null && h <= 48 ? 'кончится через ' + AKT.durH(h) : '— ' + AKT.fmt(AKT.num(`stockpile-${n}`, 'level_t')) + ' т'}`, lv: h != null && h < 1 ? 3 : 0 };
+  }
+  if (kind === 'oil') {
+    const p = AKT.num('exc-1', 'oil_pct'), a = AKT.num('exc-1', 'oil_alert') === 1, down = AKT.st('exc-1') === 'DOWN';
+    return { text: down ? 'Экскаватор EX01 не работает: отказ насоса, ремонт ≈ 57 ч (аналог)' : `Следите: загрязнение масла EX01 ${AKT.fmt(p)} % от уровня тревоги${a ? ' — тревога на машине' : ''}`, lv: down ? 1 : (a ? 3 : 0) };
+  }
   if (kind === 'fork') return { text: 'Следите: кого звать первым — смотрите карточку ① и строку ②', lv: 0 };
   if (kind === 'startup') return { text: 'Следите: команда на пуск при людях внутри мельницы — беда S0, отменить пуск', lv: 1 };
   if (kind === 'dust') return { text: `Следите: ветер ${AKT.fmt(AKT.num('water', 'wind_ms'))} м/с, сухой пляж ${AKT.fmt(AKT.num('water', 'beach_dry_pct'))} %`, lv: 0 };
@@ -971,8 +1159,11 @@ AKT.scenWatch = scen => {
 };
 /* model minute when the running scenario started: the control command of the same scenario */
 AKT.scenStart = () => {
+  /* a scenario run always starts at 08:00 of the model day (the id of the run says it is a scenario run) */
+  if (/-scen-/.test(AKT.run || '') && AKT.scenario()) return 480;
   const c = AKT.val('control', 'scenario');
-  if (c && typeof c === 'object' && c.id && AKT.scenario().split('+').some(p => p === c.id || p.startsWith(String(c.id).split(':')[0])) && typeof c.sim_time === 'number') {
+  const bare = c && typeof c === 'object' && c.id ? String(c.id).split('+').map(p => p.split(/[@=]/)[0]) : [];
+  if (c && typeof c === 'object' && c.id && AKT.scenario().split('+').some(p => bare.includes(p) || p === c.id || p.startsWith(String(c.id).split(':')[0])) && typeof c.sim_time === 'number') {
     /* a scenario that restarts the shift runs in a new run from 08:00 (the command's time is the old run's clock) */
     if (AKT.simTime != null && c.sim_time > AKT.simTime) return 480;
     return c.sim_time;
@@ -990,17 +1181,21 @@ const Panel = AKT.panel = {
   <div class="b-h"><span class="tag-s">Учебный сценарий:</span> <span id="b-name"></span> · <span id="b-run"></span></div>
   <div class="watch" id="b-watch"></div>
   <div id="b-before"></div>
+  <div id="b-chain" class="b-chain" hidden></div>
   <div class="b-btns" id="b-btns"><button type="button" id="b-stop">Остановить сценарий…</button></div>
   <div class="b-btns" id="b-confirm" hidden><span>Остановить? Фабрика сразу вернётся в состояние, как если бы сценария не было, на то же время модели. Прогон продолжится.</span>
     <button type="button" class="primary" id="b-yes">Да, остановить</button><button type="button" id="b-no">Нет</button></div>
 </div>
+<div id="p-lever" class="banner" hidden><div class="b-h"><span class="tag-s">Рычаги модели:</span> <span id="lv-b-t"></span></div>
+  <div class="p-sub">управление моделью, не фабрикой · ниже плитки и карта показывают ход с рычагами; «база» — копия без них</div>
+  <div class="b-btns"><a href="${AKT.href('?view=levers')}">Рычаги модели →</a> <button type="button" id="lv-b-reset">Сбросить рычаги</button></div></div>
 <div id="p-check" class="check-note" hidden><b>Режим проверки модели.</b> Показаны журнал симулятора (скрытые причины прогона) и копии модели без сценария; диспетчеру на смене это недоступно.<div id="p-hidden" class="p-sub" hidden></div></div>
 <div class="tiles" id="tiles">
   <div class="tile" id="k-loss" role="group"><div class="l">Теряем сейчас</div><div class="v" id="k-loss-v" aria-busy="true">—</div><div class="d" id="k-loss-d"></div></div>
-  <div class="tile" id="k-cu" role="group"><div class="l">Медь в концентрат</div><div class="v" id="k-cu-v">—</div><div class="d" id="k-cu-d"></div></div>
+  <div class="tile" id="k-cu" role="group"><div class="l">Медь в концентрат</div><div class="v" id="k-cu-v">—</div><div class="d" id="k-cu-d"></div><div class="fcw" id="k-cu-f"></div></div>
   <div class="tile" id="k-ore" role="group"><div class="l">Руда на фабрику</div><div class="v" id="k-ore-v">—</div><div class="d" id="k-ore-d"></div></div>
   <div class="tile" id="k-rec" role="group"><div class="l"><span class="term" data-term="recovery">Извлечение</span> меди</div><div class="v" id="k-rec-v">—</div><div class="d" id="k-rec-d"></div></div>
-  <div class="tile" id="k-mw" role="group"><div class="l">Сеть</div><div class="v" id="k-mw-v">—</div><div class="d" id="k-mw-d"></div></div>
+  <div class="tile" id="k-mw" role="group"><div class="l">Электросеть</div><div class="v" id="k-mw-v">—</div><div class="d" id="k-mw-d"></div></div>
   <div class="tile" id="k-usd" role="group" title="Сколько стоит медь, которую фабрика даёт за час, по цене LME за вычетом платы переработчику"><div class="l">Стоимость меди</div><div class="v" id="k-usd-v">—</div><div class="d" id="k-usd-d">по цене <span class="term" data-term="lme">LME</span></div></div>
 </div>
 <h3 id="q-h">Беды <span class="h-sub" id="q-hs"></span><a href="${AKT.href('?view=queue')}">все беды →</a></h3>
@@ -1012,6 +1207,7 @@ const Panel = AKT.panel = {
   <div class="who" id="tc-chain" hidden></div>
   <div class="delay" id="tc-choice" hidden></div>
   <div class="why" id="tc-why"></div>
+  <div class="lv-card" id="tc-lever" hidden></div>
   <div class="acts" id="tc-acts"><button type="button" class="primary" id="tc-call"></button><span class="called-chip" id="tc-called" hidden></span><button type="button" id="tc-snz">Не сейчас…</button><span class="p-sub" id="tc-msg"></span></div>
   <form class="snooze" id="tc-form" hidden>
     <fieldset><legend>Почему не сейчас? Запишется в журнал смены.</legend>
@@ -1023,7 +1219,7 @@ const Panel = AKT.panel = {
     </fieldset>
     <div class="s-btns"><button type="submit" class="primary">Записать</button><button type="button" id="tc-cancel">Отмена</button><span class="s-err" id="tc-err"></span></div>
   </form>
-  <details id="tc-more"><summary>Подробнее</summary><div class="full" id="tc-full"></div></details>
+  <details id="tc-more"><summary>Подробнее</summary><div class="full" id="tc-full"></div><div id="tc-cost"></div><div id="tc-evid"></div></details>
 </article>
 <div id="tc-empty" class="empty" hidden></div>
 <div id="q-more"></div>
@@ -1043,11 +1239,12 @@ const Panel = AKT.panel = {
   <div class="sim-row"><span class="sim-lbl">Скорость</span>
     <button type="button" data-speed="0">⏸ Пауза</button><button type="button" data-speed="60">×60</button><button type="button" data-speed="300">×300</button><button type="button" data-speed="1200">×1200 (быстро до 20:00)</button>
     <span id="sim-lag" class="p-sub"></span></div>
-  <div class="sim-row"><span class="sim-lbl">Учебные сценарии</span><span class="p-sub" id="sim-warm"></span></div>
+  <div class="sim-row"><span class="sim-lbl">Рычаги модели</span><span class="p-sub">подача SAG, помол P80, доза собирателя — управление моделью, не фабрикой</span> <a href="${AKT.href('?view=levers')}">открыть →</a></div>
+  <div class="sim-row"><span class="sim-lbl">Учебные сценарии</span><span class="p-sub" id="sim-warm"></span><a href="${AKT.href('?view=scenarios')}">каталог и конструктор беды →</a></div>
   <div class="sc-list" id="sc-list">${AKT.SCENARIOS.map(s => `<div class="sc" data-sc="${s.id}"><span class="sc-n">${AKT.esc(s.name)}</span><span class="sc-d">${AKT.esc(s.what)}</span><button type="button" data-run="${s.id}">Запустить…</button>
     <div class="sc-confirm" hidden><p><b>Что случится:</b> ${AKT.esc(s.what)}</p><p><b>За чем следить:</b> ${AKT.esc(s.watch)} Обратный отсчёт появится вверху панели.</p><p><b>Как отменить:</b> «Остановить сценарий…» в синей рамке вверху панели — фабрика вернётся в состояние без сценария, на то же время модели.</p><p class="p-sub">Скорость: ×60 (минута = час).</p>
     <div class="b"><button type="button" class="primary" data-go="${s.id}">Запустить</button><button type="button" data-no>Отмена</button></div></div></div>`).join('')}</div>
-  <div class="sim-row"><span class="sim-lbl">Смена заново</span><label>номер прогона (seed) <input type="number" id="sim-seed" min="1" max="99999" step="1" value="42"></label>
+  <div class="sim-row"><span class="sim-lbl">Смена заново</span><label>номер прогона <input type="number" id="sim-seed" min="1" max="99999" step="1" value="42"></label>
     <button type="button" id="sim-reset">Начать смену заново (08:00)</button></div>
   <div class="sim-row"><label class="chk"><input type="checkbox" id="chk"${AKT.check ? ' checked' : ''}> Режим проверки модели</label><span class="p-sub">— показывает скрытые причины прогона и ход без сценария (диспетчеру недоступно)</span></div>
   <div class="sim-row runid" id="sim-run"></div>
@@ -1080,6 +1277,7 @@ const Panel = AKT.panel = {
       if (ev.target.checked) q.set('check', '1'); else q.delete('check');
       location.search = q.toString();
     });
+    $('lv-b-reset').addEventListener('click', async () => { if (AKT.lever && await AKT.lever.reset()) AKT.toast('Рычаги сброшены: обычный ход фабрики.'); });
     $('b-stop').addEventListener('click', () => { $('b-btns').hidden = true; $('b-confirm').hidden = false; $('b-yes').focus(); });
     $('b-no').addEventListener('click', () => { $('b-btns').hidden = false; $('b-confirm').hidden = true; $('b-stop').focus(); });
     $('b-yes').addEventListener('click', async () => {
@@ -1101,21 +1299,25 @@ const Panel = AKT.panel = {
   async cmd(url, body, what) {
     this.msg(`${what}: отправляю…`);
     try {
-      await AKT.post(url, body);
+      const res = await AKT.post(url, body);
+      if (res && res.training) { this.msg(`${what}: учебный вызов, в журнал не записан`); AKT.toast('Тренировка: вызов учебный, в журнал и отчёты не идёт.'); return true; }
       this.msg(`${what}: принято в ${AKT.clock(AKT.simTime)} модели`);
       setTimeout(AKT.poll, 300); setTimeout(AKT.pollJournal, 1500); setTimeout(AKT.pollJournal, 12000);
       return true;
     } catch (e) { this.msg(`${what}: не получилось — ${e.message}. Нажмите ещё раз.`); return false; }
   },
-  async scenario(id) {
+  async scenario(id, opts) {
     const body = { id };
+    if (opts && opts.seed != null) body.seed = opts.seed;
     if (id === 'fork') { body.preset = 'fork'; body.kip = Number(AKT.params.get('kip') || 1); body.auto = Number(AKT.params.get('auto') ?? 1); }
     if (AKT.params.get('safety')) body.safety = Number(AKT.params.get('safety'));
     if (AKT.params.get('speed')) body.speed = Number(AKT.params.get('speed'));
     const s = AKT.SCENARIOS.find(x => x.id === id);
+    const label = opts && opts.name ? opts.name : (s ? s.name : id);
     this.scen = { id, t: AKT.simTime, cu: AKT.num('site', 'cu_tph'), tph: AKT.num('site', 'tph') };
-    const ok = await Panel.cmd('/api/scenario', body, 'сценарий «' + (s ? s.name : id) + '»');
-    if (ok) AKT.toast(`Сценарий «${s ? s.name : id}» запущен. Обратный отсчёт — вверху панели; остановить — там же.`);
+    const ok = await Panel.cmd('/api/scenario', body, 'сценарий «' + label + '»');
+    if (ok) AKT.toast(`Сценарий «${label}» запущен. Обратный отсчёт — вверху панели; остановить — там же.`);
+    return ok;
   },
   async call(issue) {
     if (!issue) return;
@@ -1186,7 +1388,7 @@ const Panel = AKT.panel = {
     set('sim-lag', fact != null && speed && Math.abs(fact - speed) / speed > 0.15 ? `модель не успевает: реально ×${AKT.fmt(fact)}` : '');
     document.querySelectorAll('#sim [data-run], #sim [data-go]').forEach(b => { b.disabled = warm; });
     set('sim-warm', warm ? 'доступно после 08:00 (модель прогревается)' : '');
-    set('sim-run', `прогон ${AKT.run || '—'} · seed ${AKT.fmt(AKT.num('site', 'seed'))} · данные: Ditto и InfluxDB через сервер стенда${AKT.num('site', 'degraded') ? ' · неповторяемый (были потери сообщений)' : ''}`);
+    set('sim-run', `прогон № ${AKT.fmt(AKT.num('site', 'seed'))} (${AKT.run || '—'}) · данные: Ditto и InfluxDB через сервер стенда${AKT.num('site', 'degraded') ? ' · неповторяемый (были потери сообщений)' : ''}`);
     const seedEl = $('sim-seed'); if (seedEl && document.activeElement !== seedEl && AKT.num('site', 'seed') != null && !seedEl.dataset.touched) seedEl.value = String(AKT.num('site', 'seed'));
 
     /* scenario banner */
@@ -1208,8 +1410,13 @@ const Panel = AKT.panel = {
       const w = AKT.scenWatch(scen);
       const we = $('b-watch'); set('b-watch', (w.lv ? '△ ' : '') + w.text); we.className = 'watch' + (w.lv ? ' lv-3' : '');
       const b = this.scen;
+      const pl = AKT.cmpOpen() ? AKT.prop.grouped() : [];
+      $('b-chain').hidden = !pl.length;
+      html('b-chain', pl.length ? `<div class="b-ch-h">Как расходятся последствия (было → стало, по ходу процесса):</div><ol class="b-ch">${pl.slice(0, 7).map(c => `<li class="${AKT.prop.fresh(c.thing) ? 'new' : ''}"><a href="${AKT.href('?view=unit&id=' + AKT.id(c.thing))}">${AKT.esc(c.text)}</a></li>`).join('')}</ol>${pl.length > 7 ? `<div class="p-sub">и ещё ${AKT.fmt(pl.length - 7)} узлов — на карте и в диораме они под штриховкой</div>` : ''}` : '');
       set('b-before', b && b.cu != null && start != null ? `До сценария (${AKT.clock(start)}): медь ${AKT.f1(b.cu)} т/ч → сейчас ${AKT.f1(AKT.num('site', 'cu_tph'))} т/ч` : '');
     }
+    $('p-lever').hidden = !AKT.leverOn();
+    if (AKT.leverOn() && AKT.lever) set('lv-b-t', AKT.lever.describe());
     $('p-check').hidden = !AKT.check;
     const truth = AKT.check ? AKT.val('validation-sim', 'truth_log') : null;
     $('p-hidden').hidden = !truth;
@@ -1242,6 +1449,7 @@ const Panel = AKT.panel = {
     tile('k-loss', lossNow > 0 ? `${AKT.approx(lossNow)}/ч` : 'нет', lossNow > 0 ? `${AKT.glyph(2)} идут потери у ${AKT.fmt(issues.filter(AKT.lossNow).length)} бед` : 'потерь сейчас нет',
       `Теряем сейчас: ${lossNow > 0 ? 'примерно, по расчёту модели, ' + AKT.usd(lossNow) + ' в час' : 'нет'}`, lossNow > 0 ? 2 : 0);
     const dcu = ago(H && H.cu, cu);
+    if (AKT.fc) { AKT.fc.loadSeries(); html('k-cu-f', AKT.fc.tileSvg() + (AKT.fc.tileHtml() ? `<div class="fc-t">${AKT.fc.tileHtml()}</div>` : '')); }
     tile('k-cu', `${AKT.f1(cu)} т/ч`, `${spark(H && H.cu)}<span>${delta(dcu, AKT.f1, '')}</span>`, `Медь в концентрат: ${AKT.f1(cu)} тонны в час${dcu != null ? ', за час ' + AKT.f1(dcu) : ''}`);
     const dt = ago(H && H.tph, tph);
     tile('k-ore', `${AKT.fmt(tph)} т/ч`, `<span>медь в руде ${AKT.f2(grade)} %</span>`, `Руда на фабрику: ${AKT.fmt(tph)} тонн в час, медь в руде ${AKT.f2(grade)} процента${dt != null ? ', за час ' + AKT.fmt(dt) : ''}`);
@@ -1323,7 +1531,7 @@ const Panel = AKT.panel = {
     const res = AKT.shiftResult();
     $('p-result').hidden = !res;
     if (res) {
-      set('p-result-title', res.kind === 'shift' ? `Итог смены (к ${AKT.clockDay(res.t_min)})` : 'Сравнение с ходом без сценария');
+      set('p-result-title', res.kind === 'shift' ? `Итог смены (к ${AKT.clockDay(res.t_min)})` : `Итог смены: ход без сценария и со сценарием (к ${AKT.clockDay(res.t_min)})`);
       html('p-result-body', AKT.shiftTable(res));
     }
     /* journal of the shift: this run, 3 last rows */
@@ -1345,7 +1553,12 @@ const Panel = AKT.panel = {
     if ($('tc-lv')._raw !== lvH) { $('tc-lv')._raw = lvH; $('tc-lv').innerHTML = lvH; }
     set('tc-ttl', AKT.issueTitle(n));
     const called = AKT.issueCalled(n);
-    set('tc-st', AKT.issueSnoozed(n) ? 'отложено' : called ? (AKT.st(n) === 'IN_WORK' ? 'чинят' : 'позвали') : 'не позвали');
+    const life = AKT.life(n);
+    const lifeBadge = life && ['accepted', 'enroute', 'onsite'].includes(life.stage) ? life.stageRu : '';
+    /* where the called person is now: the same source as the line on top (Now), so the badge never says «в пути» while the line says «на месте» */
+    const per0 = called ? AKT.issuePerson(n) : null, pi0 = per0 ? AKT.personInfo(per0) : null;
+    const posBadge = pi0 ? (pi0.tr ? 'в пути' : /WORK|BUSY/.test(pi0.st) ? 'на месте' : '') : '';
+    set('tc-st', AKT.issueSnoozed(n) ? 'отложено' : life && life.help ? 'нужна помощь' : called ? (posBadge || lifeBadge || (AKT.st(n) === 'IN_WORK' ? 'чинят' : 'позвали')) : 'не позвали');
     const money = `${AKT.esc(m.text)}${m.small ? ` <small>${AKT.esc(m.small)}</small>` : ''}`;
     const me = $('tc-money'); if (me._raw !== money) { me._raw = money; me.innerHTML = money; }
     me.className = 'money lv-' + m.lv;
@@ -1375,12 +1588,21 @@ const Panel = AKT.panel = {
     ch.hidden = !called;
     if (called) {
       const at = AKT.calls[n + '|' + AKT.run];
-      set('tc-called', `Позвали${at != null ? ' в ' + AKT.clock(at) : ''}${pi && pi.tr ? ` · в пути, будет ≈ ${AKT.clock(pi.tr.eta)}` : ''}`);
+      const chain = life && life.steps.length ? life.text.charAt(0).toUpperCase() + life.text.slice(1) : `Позвали${at != null ? ' в ' + AKT.clock(at) : ''}`;
+      set('tc-called', `${chain}${life && life.steps.some(x => x.key === 'enroute') ? '' : (pi && pi.tr ? ' · в пути' : '')}${pi && pi.tr ? `, будет ≈ ${AKT.clock(pi.tr.eta)}` : ''}${life && life.help ? ' · нужна помощь' : ''}`);
     }
     const shift = AKT.num(n, 'loss_shift_usd'), adv = AKT.issueAdvice(n);
-    const full = [adv ? 'Совет модуля: ' + adv : '', shift != null && shift > 0 ? `Если никого не звать, за 12 ч ${AKT.approx(shift)}.` : '',
-      AKT.val(n, 'safety_class') ? `Класс безопасности: ${AKT.val(n, 'safety_class')}.` : '', 'Текст модуля целиком:', String(AKT.val(n, 'text') || '—').replace(/\s*\[оценка на модели\]/g, ' (≈)').replace(/\s*\[допущение\]/g, ' (д)')].filter(Boolean).join('\n');
+    /* ore processed in vain = t Cu / (grade x recovery) [calc]: what the copper lost in 12 h would have needed (Г1) */
+    const gAvg = (AKT.num('flot-1', 'feed_cu') + AKT.num('flot-2', 'feed_cu')) / 2, rAvg = (AKT.num('line-1', 'recovery') + AKT.num('line-2', 'recovery')) / 2;
+    const oreVain = shift != null && shift > 0 && gAvg > 0 && rAvg > 0 ? AKT.cuOfUsd(shift) / ((gAvg / 100) * (rAvg / 100)) : null;
+    const full = [adv ? 'Совет модуля: ' + adv : '', shift != null && shift > 0 ? `Если никого не звать, за 12 ч ${AKT.approx(shift)}${oreVain != null ? ` — это ≈ ${AKT.fmt(oreVain)} т руды, переработанной впустую (т меди ÷ (содержание × извлечение), расчёт)` : ''}.` : '',
+      AKT.val(n, 'safety_class') ? `Класс безопасности: ${AKT.val(n, 'safety_class')}.` : '', String(AKT.val(n, 'checklist') || ''), String(AKT.val(n, 'closure') || ''), 'Текст модуля целиком:', String(AKT.val(n, 'text') || '—').replace(/\s*\[оценка на модели\]/g, ' (≈)').replace(/\s*\[допущение\]/g, ' (д)')].filter(Boolean).join('\n');
     set('tc-full', full);
+    if (AKT.lever) AKT.lever.renderCard(n);
+    const eh = AKT.evidenceHtml(n), ee = $('tc-evid');
+    if (ee && ee._raw !== eh) { ee._raw = eh; ee.innerHTML = eh; }
+    const costH = AKT.costHtml(n), ce2 = $('tc-cost');
+    if (ce2 && ce2._raw !== costH) { ce2._raw = costH; ce2.innerHTML = costH; if (AKT.glossify) AKT.glossify(ce2); }
   },
 };
 /* a journal row in words */
@@ -1415,18 +1637,28 @@ AKT.kvTable = obj => {
   }
   return `<table class="kv">${Object.entries(obj).map(([k, v]) => `<tr><td>${AKT.esc(AKT.keyRu(k))}</td><td class="${typeof v === 'number' ? 'n' : ''}">${v !== null && typeof v === 'object' ? AKT.kvTable(v) : cell(k, v)}</td></tr>`).join('')}</table>`;
 };
+/* why there is no table of two runs now */
+AKT.noCompareText = () => {
+  const sc = AKT.scenario();
+  if (sc && !AKT.cmpOpen()) return 'Идёт сценарий со скрытой причиной: сравнение с ходом без него не показывается, пока причину ищет диспетчер (оно открывается в «Режиме проверки модели»).';
+  if (sc) return 'Копии модели ещё считают первые минуты сценария: сравнение появится здесь само.';
+  return 'Сравнение появляется, когда идёт сценарий: симулятор считает рядом ход без сценария (в свободном ходе сравнивать не с чем). Запустите сценарий в разделе «Сценарии».';
+};
 AKT.shiftTable = r => {
-  const names = [['fact', 'как было'], ['base', 'без сценария'], ['loud', 'очередь «кто громче»'], ['no_twin', 'без двойника']];
+  const scen = r.kind === 'scenario';
+  const names = scen ? [['base', 'без сценария (база)'], ['fact', 'со сценарием'], ['loud', 'очередь «кто громче»'], ['no_twin', 'без двойника']]
+    : [['fact', 'как было'], ['base', 'без сценария'], ['loud', 'очередь «кто громче»'], ['no_twin', 'без двойника']];
   const c = r.copies || {};
   const ok = k => c[k] && typeof c[k].cu_t === 'number' && c[k].cu_t >= 0;
   const base = ok('base') ? c.base : null;
   const rows = names.filter(([k]) => ok(k)).map(([k, label]) => {
     const x = c[k];
     const d = base && k !== 'base' ? x.cu_t - base.cu_t : null;
-    return `<tr><td>${r.kind === 'shift' ? 'как было' : label}</td><td class="n">${AKT.f1(x.cu_t)}</td><td class="n">${d == null ? '—' : (d > 0 ? '+' : d < 0 ? '−' : '') + AKT.f1(Math.abs(d))}</td>`
+    return `<tr><td>${label}</td><td class="n">${AKT.f1(x.cu_t)}</td><td class="n">${d == null ? '—' : (d > 0 ? '+' : d < 0 ? '−' : '') + AKT.f1(Math.abs(d))}</td>`
       + `<td class="n">${AKT.fmt(x.ore_t)}</td><td class="n">${AKT.fmt(x.energy_mwh)}</td><td class="n">≈ ${AKT.money(x.usd)}</td></tr>`;
   }).join('');
-  return `<table class="kv"><tr><th></th><th>Медь, т</th><th>к ходу без сценария</th><th>Руда, т</th><th>Энергия, МВт·ч</th><th>≈ Стоимость</th></tr>${rows}</table>`;
+  if (!rows) return '<p class="note">Копии модели ещё считают первые минуты сценария: цифры появятся здесь сами.</p>';
+  return `<table class="kv"><tr><th></th><th>Медь, т</th><th>Разница с ходом без сценария</th><th>Руда, т</th><th>Энергия, МВт·ч</th><th>≈ Стоимость</th></tr>${rows}</table>`;
 };
 AKT.planRu = s => String(s || '').replace(/L(\d)\s*:/g, 'линия $1:').replace(/\b0*(\d+)\s+([MST])\b/g,
   (m, n, c) => `${n}${NBSP}${{ M: 'М', S: 'С', T: 'Т' }[c]}`);
@@ -1491,6 +1723,7 @@ AKT.focusIssue = issue => {
 /* ------------------------------------------------------------------ start */
 AKT.start = async function () {
   AKT.buildMenu();
+  if (AKT.train) AKT.train.apply();
   document.addEventListener('click', AKT.onClick, true);
   document.addEventListener('keydown', AKT.onKey);
   Panel.build();

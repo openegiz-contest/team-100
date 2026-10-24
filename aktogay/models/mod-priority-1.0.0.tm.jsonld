@@ -6,7 +6,7 @@
     "en": "Module: queue of issues",
     "ru": "Модуль «Очередь бед»"
   },
-  "description": "Written by akt-priority every 5 model minutes; auto_call = {seq, issue, role, sim_time}. Decisions in the queue: hard ore (blend), grid cut (what to shed first and its cost), shortage of return water, fire at the HPGR (S0). Shift handover sheet at 07:30 and 19:30 model time: handover {at, text, issues, snoozed, sensors, ore, crews}, handover_draft_text (what to hand over now); escalations {issue-N: {t, eta, text}}: a called person or crew not arrived by ETA + 15 min. Deviations (grinding media overuse) go to deviations/deviations_text, not to the queue; decisions = calls of the shift against the model's order, review_text = 'what if you had called otherwise' for the handover; tariff = hourly tariff band (assumption). Issue: chain (main -> deputy -> shift head), chain_text, choice_text.",
+  "description": "Written by akt-priority every 5 model minutes; auto_call = {seq, issue, role, sim_time}. Decisions in the queue: hard ore (blend), grid cut (what to shed first and its cost), shortage of return water, fire at the HPGR (S0). Shift handover sheet at 07:30 and 19:30 model time: handover {at, text, issues, snoozed, sensors, ore, crews}, handover_draft_text (what to hand over now); escalations {issue-N: {t, eta, text}}: a called person or crew not arrived by ETA + 15 min. Deviations (grinding media overuse) go to deviations/deviations_text, not to the queue; decisions = calls of the shift against the model's order, review_text = 'what if you had called otherwise' for the handover; tariff = hourly tariff band (assumption). Issue: chain (main -> deputy -> shift head), chain_text, choice_text. handover_btn = {show, from, end, lead_min}: the button 'Сдать смену' is shown lead_min minutes before the end of the shift, and only then. alarm_flood = {shift, elapsed_min, events, nodes, now, issues, main, per_10min, isa_per_10min, isa_per_shift, label}: entries of nodes into abnormal states in this shift against the issues of the queue and the one on the main screen (lower bound; ANSI/ISA-18.2 orientation about 150 alarms per operator per day), alarm_flood_text = the same in one line for the shift report.",
   "version": {
     "model": "1.0.0"
   },
@@ -118,6 +118,36 @@
       "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "season_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "forecast"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "forecast_text"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "handover_btn"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "alarm_flood"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "alarm_flood_text"
     },
     {
       "rel": "tm:submodel",

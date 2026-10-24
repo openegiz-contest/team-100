@@ -11,7 +11,8 @@
   const TREND = { sag: ['power_kw', 'feed_tph'], ball: ['power_kw'], crusher: ['tph', 'lube_kpa'], conveyor: ['tph'], stockpile: ['level_t'],
     line: ['tph', 'recovery'], flot: ['tail_cu', 'recovery'], rougher: ['dose_meas_gt', 'stage_recovery'], cleaner: ['conc_cu'], cyclones: ['p80_um'],
     pebble: ['feed_tph'], thick: ['inventory_t'], filter: ['cake_tph'], 'conc-stock': ['stock_t'], water: ['pond_m3', 'intake_m3h'], power: ['site_mw'],
-    site: ['tph', 'cu_tph'], pit: ['mining_tph'], exc: ['tph'], fleet: ['trucks_ready'], crew: [], batch: ['tonnes_left'], issue: ['loss_usd_h'], piezometer: ['kpa'] };
+    site: ['tph', 'cu_tph'], pit: ['mining_tph'], exc: ['tph', 'oil_pct'], fleet: ['trucks_ready'], crew: [], batch: ['tonnes_left'], issue: ['loss_usd_h'], piezometer: ['kpa'],
+    phmeter: ['ph', 'lab_ph'] };
   /* what the thing is, in one line */
   const WHAT = { sag: 'мельница полусамоизмельчения, первая ступень помола линии', ball: 'шаровая мельница, вторая ступень помола',
     pebble: 'пресс дробления гали: дробит крупные куски, которые SAG не домолола, и возвращает их в мельницу', cyclones: 'гидроциклоны: тонкое — на флотацию, крупное — обратно на домол',
@@ -20,14 +21,20 @@
     'conc-stock': 'склад концентрата; отгрузка поездом в 06:00 и 18:00', stockpile: 'склад дроблёной руды перед мельницей; пока он есть, остановка дробилки не останавливает линию',
     crusher: 'дробилка у карьера (ЦПД): дробит руду перед конвейером на склад', conveyor: 'конвейер от дробилки к складу руды', line: 'линия фабрики: помол и флотация',
     water: 'хвостохранилище и вода фабрики', power: 'подстанция и ЛЭП 220 кВ', pit: 'карьер', fleet: 'парк самосвалов и экскаваторов карьера',
-    exc: 'экскаватор в забое', piezometer: 'пьезометр: давление воды в теле дамбы хвостохранилища', truck: 'самосвал карьера', person: 'человек смены', crew: 'бригада' };
+    exc: 'экскаватор в забое', piezometer: 'пьезометр: давление воды в теле дамбы хвостохранилища', truck: 'самосвал карьера', person: 'человек смены', crew: 'бригада',
+    phmeter: 'pH-метр флотации: онлайн-электрод; регулятор извести держит его показание на уставке, поэтому ручная проба раз в несколько часов — проверка датчика',
+    analyzer: 'поточный анализатор: медь в питании, хвостах и концентрате раз в 12–16 минут', weigher: 'конвейерные весы: т/ч руды и счётчик', flowmeter: 'расходомер собирателя на флотации',
+    face: 'забой: блок руды в работе, оценка меди и твёрдости по блочной модели', drill: 'буровой станок: бурит взрывные скважины, готовит развал', dozer: 'бульдозер: зачистка забоя, дорог и отвала', road: 'съезд или дорога карьера' };
   /* main numbers by type: [feature, limit(name) or null, label, format] */
   const kw = v => v == null ? '—' : `${f1(v / 1000)} МВт`;
   const t0 = v => `${fmt(v)} т/ч`;
   const METERS = {
     sag: [['power_kw', n => AKT.num(n, 'power_limit_kw'), 'мощность', kw], ['feed_tph', null, 'питание', t0], ['load_pct', () => 100, 'загрузка', v => `${f1(v)} %`], ['liner_wear_mm', null, 'износ футеровки', v => `${f1(v)} мм`], ['e_kwh_t', null, 'удельная энергия', v => `${AKT.f2(v)} кВт·ч/т`]],
-    ball: [['power_kw', n => (AKT.pass(n, 'drive_mw') || 22) * 1000, 'мощность', kw]],
-    pebble: [['feed_tph', n => AKT.num(n, 'limit_tph'), 'питание', t0], ['load_pct', () => 100, 'загрузка', v => `${fmt(v)} %`]],
+    ball: [['power_kw', n => (AKT.pass(n, 'drive_mw') || 22) * 1000, 'мощность', kw], ['power_pct', () => 105, 'нагрузка привода (порог перегрузки 105 %, допущение)', v => `${fmt(v)} %`]],
+    pebble: [['feed_tph', n => AKT.num(n, 'limit_tph'), 'питание', t0], ['load_pct', () => 100, 'загрузка', v => `${fmt(v)} %`],
+      ['hpgr_skew_pct', () => 6, 'ВВД: перекос валков (порог 6 %, допущение)', v => `${f1(v)} %`], ['hpgr_kw_diff_pct', () => 10, 'ВВД: разница мощности приводов (порог 10 %, допущение)', v => `${f1(v)} %`]],
+    exc: [['tph', null, 'копает', t0], ['oil_pct', () => 100, 'загрязнение гидромасла, % от уровня тревоги', v => `${fmt(v)} %`]],
+    phmeter: [['ph', null, 'pH онлайн', v => AKT.f2(v)], ['lab_ph', null, 'pH, ручная проба', v => AKT.f2(v)], ['age_min', null, 'возраст пробы', v => AKT.dur(v)]],
     stockpile: [['level_t', n => AKT.pass(n, 'live_t'), 'запас', v => `${fmt(v)} т`], ['in_tph', null, 'приход', t0], ['out_tph', null, 'расход', t0]],
     crusher: [['tph', n => AKT.pass(n, 'capacity_tph'), 'производительность', t0], ['lube_kpa', null, 'давление масла', v => `${fmt(v)} кПа`]],
     thick: [['inventory_t', n => AKT.pass(n, 'capacity_t'), 'запас', v => `${fmt(v)} т`]],
@@ -36,7 +43,8 @@
     flot: [['recovery', null, 'извлечение', v => `${f1(v)} %`], ['tail_cu', () => 0.075, 'медь в хвостах (уставка 0,075 %)', v => `${AKT.f3(v)} %`]],
     power: [['site_mw', () => AKT.num('power', 'grid_limit_mw'), 'нагрузка площадки', v => `${fmt(v)} МВт`]],
     piezometer: [['kpa', n => AKT.num(n, 'sp_kpa') || 150, 'давление воды', v => `${f1(v)} кПа`]],
-    cyclones: [['p80_um', null, 'крупность помола', v => `${fmt(v)} мкм`], ['open_count', n => AKT.pass(n, 'units'), 'циклонов в работе', v => fmt(v)]],
+    cyclones: [['p80_um', null, 'крупность помола', v => `${fmt(v)} мкм`], ['open_count', n => AKT.pass(n, 'units'), 'циклонов в работе', v => fmt(v)],
+      ['circ_load_pct', () => 320, 'циркулирующая нагрузка (порог канатирования 320 %, допущение)', v => `${fmt(v)} %`]],
     line: [['tph', null, 'руда', t0], ['cu_tph', null, 'медь в концентрат', v => `${f1(v)} т/ч`], ['recovery', null, 'извлечение', v => `${f1(v)} %`]],
     water: [['intake_m3h', n => AKT.num(n, 'intake_cap_m3h'), 'забор свежей воды', v => `${fmt(v)} м³/ч`], ['recycle_m3h', null, 'оборотная вода', v => `${fmt(v)} м³/ч`], ['pond_m3', null, 'пруд', v => `${AKT.f2(v / 1e6)} млн м³`]],
   };
@@ -60,6 +68,8 @@
       try {
         const d = await AKT.history(thing, [field], opts.range || '2h');
         pts = (d.points || []).filter(p => typeof p[field] === 'number' && p[field] !== -1 && typeof p.sim_time === 'number').sort((a, b) => a.sim_time - b.sim_time);
+        /* two hours of MODEL time: the history is asked in wall time and at a fast model it holds the whole shift */
+        pts = AKT.lastWindow(pts, opts.window || 120);
         while (svg.firstChild) svg.removeChild(svg.firstChild);
         box.querySelectorAll('.ylab, .xlab, .splab, .lastdot, .wait').forEach(e => e.remove());
         if (pts.length < 2) { html('wait', 'Данных за 2 часа ещё нет: смена началась в 08:00 или прогон только начался.'); q('.tr-sum').textContent = ''; return; }
@@ -85,7 +95,7 @@
         html('lastdot', '', { position: 'absolute', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--ink)', left: `calc(${X(last.sim_time) / 4}% - 4px)`, top: `calc(${Y(last[field])}% - 4px)` });
         html('ylab', AKT.fmt(hi - pad, dg), { left: '2px', top: '2px' });
         html('ylab', AKT.fmt(lo + pad, dg), { left: '2px', bottom: '2px' });
-        html('xlab', AKT.clock(t0), { left: '40%', bottom: '2px' });
+        html('xlab', AKT.clock(t0), { left: '34px', bottom: '2px' });
         html('xlab', AKT.clock(t1), { right: '2px', bottom: '2px' });
         const mn = Math.min(...vals), mxv = Math.max(...vals);
         q('.tr-sum').textContent = `Сейчас ${fv(last[field])}${opts.normLabel ? ' · ' + opts.normLabel : ''} · за ${span >= 100 ? '2 ч' : AKT.dur(span)} от ${AKT.fmt(mn, dg)} до ${fv(mxv)}`
@@ -152,6 +162,7 @@
 <h2>${esc(AKT.nameRu(n))} <span class="badge st-grey" id="c-state">—</span></h2>
 <div class="lead" id="c-what">Что это: ${esc(what)}${lineNo && /^(sag|ball|pebble|cyclones|flot|rougher|cleaner|thick|filter|stockpile|crusher|conveyor)/.test(type) ? ' ' + lineNo : ''}.</div>
 <div class="note" id="c-age"></div>
+<div class="note" id="c-sensor-note" hidden></div>
 <div id="c-issue"></div>
 <h3>Главные показатели</h3><div class="meters" id="c-meters"></div>
 <div id="c-trends"></div>
@@ -166,7 +177,7 @@
 <h3>Паспорт (источники)</h3><table class="kv"><tr><th>поле</th><th>значение</th><th>источник · метка</th></tr>${passRows || '<tr><td colspan="3">нет паспорта</td></tr>'}</table>
 <p class="note">${esc(AKT.typeRu(type))} · идентификатор ${esc(t.thingId)} · модель типа: <a href="${esc(defHref)}" target="_blank" rel="noopener">${esc(def || '—')}</a></p>
 <details><summary>Сырые данные вещи (только чтение)</summary><pre id="c-raw">загрузка…</pre></details></details>
-<p><a href="${AKT.href('?view=plan')}">Обзор</a> · <a href="${AKT.href('?view=diorama&focus=' + encodeURIComponent(n))}">в 3D (диорама)</a>${lineNo ? ` · <a href="${AKT.href('?view=line' + lineNo)}">схема линии ${lineNo}</a>` : ''}</p>`;
+<p><a href="${AKT.href('?view=plan')}">Обзор</a> · <a href="${AKT.href('?view=diorama&focus=' + encodeURIComponent(n))}">в 3D (диорама)</a>${lineNo ? ` · <a href="${AKT.href('?view=line' + lineNo)}">схема линии ${lineNo}</a>` : ''}${AKT.insideHref && AKT.insideHref(n) ? ` · <a href="${AKT.insideHref(n)}" id="c-inside">Изнутри: узлы, сигналы, отказы</a>` : ''}</p>`;
       document.getElementById('c-call').addEventListener('click', async () => {
         const iss = AKT.issues().find(i => AKT.issueNode(i) === n);
         if (iss) return AKT.panel.call(iss);
@@ -232,6 +243,14 @@
         const word = frac == null ? '' : frac > 1.0001 ? 'выше предела' : frac >= 0.97 ? 'на пределе' : 'в норме';
         mh += `<div class="meter-c lv-${mlv}"><div class="m-l">${esc(label)}</div><div class="m-v">${esc(fm(v))}${lim ? ` <span class="p-sub">из ${esc(fm(lim))}</span>` : ''}</div>`
           + (lim ? `<div class="m-bar" role="img" aria-label="${esc(label)}: ${Math.round(100 * frac)} % от предела"><i style="width:${Math.min(100, 100 * frac).toFixed(1)}%"></i></div><div class="m-w">${mlv ? AKT.LV_GLYPH[mlv] + ' ' : ''}${word}</div>` : '') + '</div>';
+      }
+      /* where the signal is seen (sensor verification of 23.10.2026): the excavator oil sensor is on the machine */
+      const sn = document.getElementById('c-sensor-note');
+      if (sn) {
+        const note = AKT.num(n, 'oil_pct') != null ? 'Датчик загрязнения масла: на машине (видит оператор); в диспетчерскую — если подключена опция Global e-Service (блок DTU и контракт). Модель EX3600-6 (проспект Hitachi, с. 11); у других экскаваторов датчик в источниках не подтверждён.'
+          : AKT.type(n) === 'phmeter' ? 'Онлайн-показание держится на уставке: накипь извести на электроде этого не покажет. Контрольная проба ручным pH-метром — проверка (периодичность — допущение).'
+            : '';
+        if (sn.textContent !== note) { sn.textContent = note; sn.hidden = !note; }
       }
       const me = document.getElementById('c-meters');
       if (me._raw !== mh) { me._raw = mh; me.innerHTML = mh || '<div class="empty dash">Чисел для шкал у этой вещи нет — все признаки в разделе «Для инженера».</div>'; }

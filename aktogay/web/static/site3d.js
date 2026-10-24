@@ -37,6 +37,19 @@ export async function create(AKT, stage, opts, onFail) {
   wrap.appendChild(attr);
 
   /* ----------------------------------------------------------- renderer */
+  /* программный WebGL (SwiftShader, llvmpipe): сцена считается процессором и без ограничения отнимала у стенда 3 ядра
+     из 8 при 30 кадрах/с (23.10); на нём 8 кадров/с */
+  let frameMs = 33;
+  try {
+    const pc = document.createElement('canvas');
+    const gl = pc.getContext('webgl2') || pc.getContext('webgl');
+    if (gl) {
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      const name = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+      if (/swiftshader|llvmpipe|software|basic render/i.test(name)) frameMs = 120;
+      const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
+    }
+  } catch (e) { /* проба необязательна */ }
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'low-power', preserveDrawingBuffer: false });
   renderer.setPixelRatio(1);
   renderer.shadowMap.enabled = false;
@@ -419,14 +432,14 @@ export async function create(AKT, stage, opts, onFail) {
     const chain = AKT.scenarioChain();
     for (const n in stateMeshes) for (const m of stateMeshes[n]) {
       m.material.color.setHex(colorOf(n));
-      m.material.emissive.setHex(chain.has(n) ? (AKT.check ? 0x1f5fbf : 0xe8a000) : 0x000000);
+      m.material.emissive.setHex(chain.has(n) ? (AKT.hatchOn() ? 0x1f5fbf : 0xe8a000) : 0x000000);
       m.material.emissiveIntensity = chain.has(n) ? 0.35 : 0;
     }
     for (const n in piles) {
       const lvl = AKT.num(n, 'level_t'), live = AKT.pass(n, 'live_t') || 40000;
       const r = 170 * Math.sqrt(Math.max(0.03, Math.min(1, (lvl || 0) / live))), h = Math.max(6, r * 0.5);
       piles[n].scale.set(r, h, r); piles[n].position.y = h / 2;
-      piles[n].material.emissive.setHex(chain.has(n) ? (AKT.check ? 0x1f5fbf : 0xe8a000) : 0); piles[n].material.emissiveIntensity = chain.has(n) ? 0.35 : 0;
+      piles[n].material.emissive.setHex(chain.has(n) ? (AKT.hatchOn() ? 0x1f5fbf : 0xe8a000) : 0); piles[n].material.emissiveIntensity = chain.has(n) ? 0.35 : 0;
     }
     for (const n in belts) {
       const b = belts[n];
@@ -434,7 +447,7 @@ export async function create(AKT, stage, opts, onFail) {
       const st = b.sag ? AKT.st(b.sag) : AKT.st(n);
       b.stopped = AKT.stopped(st) || (tph != null && tph < 1);
       b.speed = b.stopped ? 0 : 0.25 + 1.6 * Math.min(1, (tph || 0) / 4880);   // texture repeats per second ∝ t/h
-      b.mat.color.setHex(b.stopped ? 0xc62828 : (chain.has(n) ? (AKT.check ? 0x9fc0f0 : 0xf1dca0) : 0xffffff));
+      b.mat.color.setHex(b.stopped ? 0xc62828 : (chain.has(n) ? (AKT.hatchOn() ? 0x9fc0f0 : 0xf1dca0) : 0xffffff));
     }
     for (const n in machines) { const lv = AKT.levelOf(n); machines[n].mat.color.setHex(lv === 1 ? 0xc62828 : lv ? 0xe8a000 : 0xb9bec6); }
     updateTrucks();
@@ -446,7 +459,7 @@ export async function create(AKT, stage, opts, onFail) {
       L.el.style.display = t ? '' : 'none';
       const ti = (L.title ? L.title() : t) + ' · нажмите — карточка';
       if (L.el.title !== ti) L.el.title = ti;
-      const cls = `s3l ${L.issue ? 'lv-' + AKT.issueLevel(L.st) : (L.st ? AKT.levelCls(L.st) : 'st-grey')}${L.st && AKT.check && chain.has(L.st) ? ' scen' : ''}${L.extra ? ' s3x' : ''}${L.issue ? ' s3i' : ''}`;
+      const cls = `s3l ${L.issue ? 'lv-' + AKT.issueLevel(L.st) : (L.st ? AKT.levelCls(L.st) : 'st-grey')}${L.st && AKT.hatchOn() && chain.has(L.st) ? ' scen' : ''}${L.extra ? ' s3x' : ''}${L.issue ? ' s3i' : ''}`;
       if (L.el.className !== cls) L.el.className = cls;
     }
     dirty = true;
@@ -512,7 +525,7 @@ export async function create(AKT, stage, opts, onFail) {
       if (!o.placed) { o.m.position.copy(o.target); o.placed = true; }
       const s = AKT.st(n);
       { const lv = cat === 'person' ? 0 : AKT.levelOf(n); o.m.material.color.setHex(lv === 1 ? 0xc62828 : lv ? 0xe8a000 : (cat === 'person' ? 0x454b53 : xColor[cat])); }
-      o.m.material.emissive.setHex(chain.has(n) ? (AKT.check ? 0x1f5fbf : 0xe8a000) : 0); o.m.material.emissiveIntensity = chain.has(n) ? 0.5 : 0;
+      o.m.material.emissive.setHex(chain.has(n) ? (AKT.hatchOn() ? 0x1f5fbf : 0xe8a000) : 0); o.m.material.emissiveIntensity = chain.has(n) ? 0.5 : 0;
       if (extraLabels[n]) extraLabels[n].pos.copy(o.target).add(new THREE.Vector3(0, 30, 0));
     }
     for (const n in extras) if (!seen.has(n)) {
@@ -587,7 +600,7 @@ export async function create(AKT, stage, opts, onFail) {
   const frame = now => {
     if (!alive) return;
     raf = requestAnimationFrame(frame);
-    if (document.hidden || now - last < 33) return;
+    if (document.hidden || now - last < frameMs) return;
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     for (const n in belts) if (belts[n].speed) { belts[n].tex.offset.x -= belts[n].speed * dt; dirty = true; }
     const tt = (now - t0) / 1000;

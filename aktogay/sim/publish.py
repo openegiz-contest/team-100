@@ -327,7 +327,7 @@ BASE = {
     "fleet": {"state": "NORMAL", "exc_total": 3.0, "exc_ready": 3.0, "trucks_total": 36.0, "trucks_ready": 31.0,
               "truck_kio_shift": 0.85, "haul_tph": 8680.0, "mining_tph": 7706.0},
     "crusher": {"state": "RUN", "tph": 3853.0, "power_kw": 750.0, "lube_kpa": 250.0},
-    "conveyor": {"state": "RUN", "tph": 3853.0, "power_kw": 3640.0},
+    "conveyor": {"state": "RUN", "tph": 3853.0, "power_kw": 3640.0, "fault": 0.0},
     "stockpile": {"state": "NORMAL", "level_t": 28000.0, "in_tph": 3853.0, "out_tph": 3853.0, "hours_left": -1.0},
     "line": {"state": "RUN", "tph": 3853.0, "cu_tph": 13.7, "recovery": 87.2},
     "sag": {"state": "RUN", "power_kw": 26000.0, "power_limit_kw": 28000.0, "feed_tph": 3853.0, "speed_pct": 76.0,
@@ -411,6 +411,7 @@ class Demo:
                 out[f + "_total"] = self._count(name, f + "_total", rate, dt_min, 1000.0 * rate)
         elif typ == "sag":
             out["liner_wear_mm"] = self._count(name, "liner_wear_mm", 20.41 * out["feed_tph"] / 1e6, dt_min, 120.0)
+            out["liner_ground_t"] = self._count(name, "liner_ground_t", out["feed_tph"], dt_min, 3.0e6)
         elif typ == "pit":
             out["next_block"] = 1201.0 + math.floor((self.t - self.t0) / 15.0)
             out["plan_text"] = "L1: B-{0:.0f} B-{1:.0f}; L2: B-{2:.0f}".format(

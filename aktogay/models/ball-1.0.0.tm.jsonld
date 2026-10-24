@@ -43,6 +43,12 @@
     },
     {
       "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "power_pct"
+    },
+    {
+      "rel": "tm:submodel",
       "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "idSimulationRun"

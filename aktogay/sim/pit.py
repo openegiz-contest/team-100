@@ -79,8 +79,9 @@ def pit_step(st: PlantState, prm: ParamSet, t_min: float) -> None:
     roads = {n: _road_of(st, n) for n in list(ore_face) + [0]}
     waste_haul = 0.0
     wi = 0
+    rm = {n: route_mult(st, n, prm) for n in set(tr.line for tr in st.trucks)}      # once per step, not per truck
     for tr in st.trucks:
-        cycle = trip * route_mult(st, tr.line, prm)
+        cycle = trip * rm[tr.line]
         tr.cycle_min = cycle
         if not tr.ready:
             tr.state, tr.location, tr.load_t = "DOWN", "", 0.0
@@ -151,7 +152,8 @@ def drill_step(st: PlantState, prm: ParamSet, t_min: float, dt_min: float) -> No
     holes = prm["pit_drill_holes_shift"]
     cycle = shift_min / holes if holes > 0 else shift_min
     for d in st.drills:
-        d.ready = u01(st.seed, hour, "drill", d.k) < kio
+        if d.ready_hour != hour:                  # the draw is hourly: same value for every step of the hour
+            d.ready, d.ready_hour = u01(st.seed, hour, "drill", d.k) < kio, hour
         if d.shift_idx != s_idx:
             d.shift_idx, d.holes_shift = s_idx, 0.0
         face = st.faces.get(d.face)
@@ -167,7 +169,9 @@ def drill_step(st: PlantState, prm: ParamSet, t_min: float, dt_min: float) -> No
             if face is not None:
                 face.blasted_t += rate * prm["pit_drill_t_hole"]
     for z in st.dozers:
-        z.state = "WORK" if u01(st.seed, hour, "dozer", z.k) < kio else "DOWN"
+        if z.ready_hour != hour:
+            z.ready, z.ready_hour = u01(st.seed, hour, "dozer", z.k) < kio, hour
+        z.state = "WORK" if z.ready else "DOWN"
 
 
 def waste_tph(st: PlantState) -> float:

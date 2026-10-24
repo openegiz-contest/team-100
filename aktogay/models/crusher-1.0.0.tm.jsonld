@@ -6,7 +6,7 @@
     "en": "Primary gyratory crusher",
     "ru": "Дробилка ЦПД"
   },
-  "description": "In-pit crushing station; lube_kpa is the oil pressure seen by the trip protection. States: RUN, STOP, SLOW.",
+  "description": "In-pit crushing station; lube_kpa is the oil pressure seen by the trip protection. service = 1 while the planned mantle change stops it. States: RUN, STOP, SLOW.",
   "version": {
     "model": "1.0.0"
   },
@@ -40,6 +40,18 @@
       "href": "http://akt-models/tm/q-kpa-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "lube_kpa"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "service"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-h-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "service_left_h"
     },
     {
       "rel": "tm:submodel",

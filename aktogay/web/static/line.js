@@ -185,10 +185,13 @@
       const lv = AKT.levelOf(ln), r = AKT.lineReason ? AKT.lineReason(N) : null;
       const st = AKT.st(ln), dev = st && !['RUN', 'NORMAL'].includes(st);
       const lineIss = AKT.nodeIssues(ln)[0];
+      /* a trouble on the feed of this line (crusher, conveyor, ore stockpile): the line still runs, but not «в норме» */
+      const feedIss = AKT.issues().find(i => [`crusher-${N}`, `conveyor-${N}`, `stockpile-${N}`].includes(AKT.issueNode(i)));
       const h1 = `Линия ${N} — ${dev ? `<span class="lh-st">${G(lv || 2)}${AKT.esc(AKT.stOf(ln))}${r ? ': ' + AKT.esc(r.text) : ''}</span>`
-        : lv && lineIss ? `<span class="lh-st">${G(lv)}${AKT.esc(AKT.issueTitle(lineIss))}</span>` : lv && r ? `<span class="lh-st">${G(lv)}${AKT.esc(r.text)}</span>` : 'работает в норме'}`;
+        : lv && lineIss ? `<span class="lh-st">${G(lv)}${AKT.esc(AKT.issueTitle(lineIss))}</span>` : lv && r ? `<span class="lh-st">${G(lv)}${AKT.esc(r.text)}</span>`
+        : feedIss ? `<span class="lh-st">${G(AKT.issueLevel(feedIss) || 2)}питание: ${AKT.esc(AKT.issueTitle(feedIss))}</span>` : 'работает в норме'}`;
       if ($('lh-1')._raw !== h1) { $('lh-1')._raw = h1; $('lh-1').innerHTML = h1; }
-      $('lh-1').className = 'lh-1 lv-' + (lv || 0);
+      $('lh-1').className = 'lh-1 lv-' + (lv || (feedIss ? AKT.issueLevel(feedIss) || 2 : 0));
       const iss = AKT.issues().filter(i => { const nd = AKT.issueNode(i); return nd && (AKT.nodeKey(nd) === ln || nd === ln); });
       const ih = iss.slice(0, 2).map(i => `${AKT.rankSign(i) || '•'} ${AKT.esc(AKT.issueTitle(i))} — ${AKT.esc(AKT.issuePrice(i))}${AKT.issueCalled(i) ? ' (позвали)' : ` · <button type="button" class="primary" data-call="${AKT.esc(i)}">Позвать ${AKT.esc(AKT.roleAcc(AKT.roleFirst(AKT.issueRole(i))))}</button>`}`).join('<br>');
       const ie = $('lh-issue');
@@ -214,10 +217,13 @@
         const nIss = AKT.issues().filter(i => AKT.issueNode(i) === name);
         const ri = nIss.find(i => AKT.rankNo(i) != null);
         const isTop = ri && ri === top;
-        const cls = `nd ${AKT.lvCls(nlv)}${AKT.check && chain.has(name) ? ' scen' : ''}${isTop ? ' top' : ''}`;
+        const cls = `nd ${AKT.lvCls(nlv)}${AKT.hatchOn() && chain.has(name) ? ' scen' : ''}${isTop ? ' top' : ''}`;
         if (nd.g.getAttribute('class') !== cls) nd.g.setAttribute('class', cls);
         const devS = s && AKT.cls(s) !== 'st-grey';
-        const sw = devS ? G(nlv || 2) + AKT.stRu(s, name) : (nlv && ri ? G(nlv) + 'беда' : '');
+        /* a load bar at ≥ 97 % is coloured, so it also gets a glyph and a word (colour never alone); a full ore stockpile is normal */
+        const bv = nd.bar ? nd.sp.bar(name) : null, barF = bv && bv[0] != null && bv[1] ? Math.max(0, Math.min(1, bv[0] / bv[1])) : 0;
+        const barHot = barF >= 0.97 && !/^stockpile-/.test(name);
+        const sw = devS ? G(nlv || 2) + AKT.stRu(s, name) : (nlv && ri ? G(nlv) + 'беда' : barHot ? G(2) + 'на пределе' : '');
         if (nd.st.textContent !== sw) nd.st.textContent = sw;
         nd.ttl.setAttribute('y', sw ? nd.y - 4 : nd.y + 5);
         const subs = AKT.thing(name) ? nd.sp.sub(name) : ['нет данных'];
@@ -228,10 +234,8 @@
         const bt = bo && AKT.differs(name, bo[0], bo[2]) ? `${bo[1](AKT.base(name, bo[0]))} → ${bo[1](AKT.num(name, bo[0]))}` : '';
         if (nd.baseT.textContent !== bt) nd.baseT.textContent = bt;
         if (nd.bar) {
-          const [v, m] = nd.sp.bar(name);
-          const f = v != null && m ? Math.max(0, Math.min(1, v / m)) : 0;
-          nd.bar.setAttribute('width', String((nd.NW - 12) * f));
-          nd.bar.setAttribute('class', 'bar' + (f >= 0.97 ? ' st-yellow' : ''));
+          nd.bar.setAttribute('width', String((nd.NW - 12) * barF));
+          nd.bar.setAttribute('class', 'bar' + (barHot ? ' st-yellow' : ''));
         }
         nd.rk.style.display = ri ? '' : 'none';
         if (ri) nd.rkT.textContent = fmt(AKT.rankNo(ri));

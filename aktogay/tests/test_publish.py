@@ -94,7 +94,7 @@ class PublishTest(unittest.TestCase):
 
     def test_demo_all_things_typed(self):
         demo = publish.Demo(self.cat, seed=42)
-        self.assertEqual(len(demo.names), 127)       # 127 things of things.json without validation-setup
+        self.assertEqual(len(demo.names), 135)       # 135 things of things.json without validation-setup
         self.assertNotIn("validation-setup", demo.names)
         for _ in range(3):
             snap = demo.step(5.0)

@@ -6,7 +6,7 @@
     "en": "Call journal",
     "ru": "Журнал звонков"
   },
-  "description": "Written by akt-web only; last = {seq, issue, action, role, text, sim_time}.",
+  "description": "Written by akt-web only; last = {seq, issue, action, role, text, sim_time}; mech = {seq, issue, status, person, run, sim_time, items: {issue-N: {status, person, run, t, log: [{s, t}]}}}: the status that the called person pressed on the mechanic screen (accepted, enroute, onsite, help, done).",
   "version": {
     "model": "1.0.0"
   },
@@ -16,6 +16,12 @@
       "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "last"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "mech"
     },
     {
       "rel": "tm:submodel",

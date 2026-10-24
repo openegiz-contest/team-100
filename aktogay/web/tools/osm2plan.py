@@ -61,6 +61,9 @@ ANCHORS = {
     "line-1": {"xy": [405, 774], "osm": "way/1347766933"},
     "line-2": {"xy": [1881, 837], "osm": "way/1347766934"},
     "conc-stock": {"xy": [700, 290], "scheme": True, "rail": "way/1097493544"},
+    # oxide line (heap leach -> SX-EW): the place is not published, so a scheme west of the concentrator
+    "leach-1": {"xy": [-1500, 420], "scheme": True},
+    "sxew-1": {"xy": [-1500, 150], "scheme": True},
     "water": {"xy": [1215, -1024], "osm": "way/773805070"},
     "power": {"xy": [1800, 1171], "osm": "way/1347766951", "line": "way/1027119995"},
     "crew-kip": {"xy": [1150, 560], "scheme": True},

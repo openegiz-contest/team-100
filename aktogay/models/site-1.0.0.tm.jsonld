@@ -85,6 +85,36 @@
     },
     {
       "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lever_on"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lever_feed_1"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lever_feed_2"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-um-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lever_p80_um"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-gt-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lever_dose_gt"
+    },
+    {
+      "rel": "tm:submodel",
       "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "idSimulationRun"

@@ -31,7 +31,7 @@ Order (run_all):
   7. check_quarters: Q3 2025 recovery from a quarter run at its grade 0.40 %
      vs report 86.1 %, tolerance = error of the constant 87.2 % (the model is
      useful only when its error is smaller). Other quarters: grades not in
-     sources yet.
+     sources yet (the 2018-2024 quarters are checked in sim/backtest.py).
   8. check_balances 2025 and 2024 with the final parameters (cached runs):
      Cu feed = concentrate + tails, concentrate chain, ore stockpile, water
      with pond, peaks of site, SAG and ball mill power within their limits.
@@ -62,6 +62,7 @@ Uses only sim.plant.Plant, sim.params and sim.state; --publish adds
 sim.calib_report (Ditto HTTP, thing validation-calib, with the on/off trial
 summary sim/data/trial_n100.json).
 Run: python -I run.py calib [--seed 42] [--dt 10] [--out calib.json] [--quick] [--publish] [--trial FILE]
+     [--backtest FILE]
 """
 from __future__ import annotations
 
@@ -419,17 +420,20 @@ def _set_liner(plant, prm: ParamSet, year: int, t0: float, availability: float) 
         if ground_mt is not None:
             ln.sag.liner_x = min(1.0, ground_mt / prm["liner_life_mt"])
             ln.sag.liner_wear_mm = feed_end_wear_mm(ground_mt * prm["liner_wear_mm_mt"], prm)
+            ln.sag.liner_ground_t = ground_mt * T_PER_MT
         out[ln.n] = ln.sag.liner_x
     return out
 
 
 def _simulate(prm: ParamSet, year: int, t_start: float, t_end: float,
               bins: list[tuple[str, float, float]], seed: int, dt: float,
-              availability: float) -> tuple[dict[str, list[float]], dict]:
+              availability: float, line_off: tuple[int, ...] = ()) -> tuple[dict[str, list[float]], dict]:
     """Run Plant(mode "calib") over [t_start, t_end) of `year`; returns per-bin accumulators and info.
 
     bins: (name, start_min, end_min); steps are shortened to land on bin
-    edges and each step counts in every bin that contains it.
+    edges and each step counts in every bin that contains it. line_off: lines
+    that stand for the whole run (the back-test of quarters before the second
+    concentrator existed); empty = the annual runs of the calibration, unchanged.
     """
     plant = Plant(prm, seed, mode="calib", t0_min=t_start, year=year, origin_doy=0)
     st = plant.state
@@ -438,7 +442,10 @@ def _simulate(prm: ParamSet, year: int, t_start: float, t_end: float,
     plant.set_relines(rel)
     stops = line_stops(year, prm, seed, availability)
     for line in LINES:
-        plant.set_downtime(line, [(a, b) for a, b in stops[line] if b > t_start and a < t_end])
+        if line in line_off:
+            plant.set_downtime(line, [(t_start - 1.0, t_end + 1.0)])
+        else:
+            plant.set_downtime(line, [(a, b) for a, b in stops[line] if b > t_start and a < t_end])
 
     accs = {name: [0.0] * _NACC for name, _, _ in bins}
     edges = sorted({t_start, t_end} | {x for _, a, b in bins for x in (a, b) if t_start < x < t_end})
@@ -663,27 +670,30 @@ def run_year(prm: ParamSet, year: int, seed: int = 42, dt_min: float | None = No
 
 
 def run_quarter(prm: ParamSet, year: int, quarter: int, seed: int = 42, dt_min: float | None = None,
-                availability: float | None = None, grade: float | None = None) -> dict[str, float]:
+                availability: float | None = None, grade: float | None = None,
+                line_off: tuple[int, ...] = ()) -> dict[str, float]:
     """One quarter (1..4) of `year` in mode "calib", optionally at its own feed grade (% Cu).
 
     The run starts cal_q_warmup_d days before the quarter (not before
     1 January) so stockpiles, flotation lags and the block pipeline carry the
     quarter grade; relines and stops are the annual ones (same draws);
     liner campaign at the start from the calendar. Returns the quarter
-    summary (keys as YearResult.quarters) plus "start_min".
+    summary (keys as YearResult.quarters) plus "start_min". line_off: lines stopped for the whole
+    run (quarters before the second concentrator, see sim/backtest.py).
     """
     p = year_params(prm, year)
     if grade is not None:
         p = p.copy(blk_cu_mean_pct=grade)
     dt = _dt(p, dt_min)
     a = _avail(p, availability)
-    key = _cache_key(p, "quarter", year, quarter, seed, dt, a)
+    off = tuple(sorted(int(x) for x in line_off))
+    key = _cache_key(p, "quarter", year, quarter, seed, dt, a) + ((("off",) + off) if off else ())
     hit = _CACHE.get(key)
     if hit is not None:
         return dict(hit)
     name, q0, q1 = _quarter_bounds(year)[quarter - 1]
     start = max(0.0, q0 - p["cal_q_warmup_d"] * MIN_PER_DAY)
-    accs, _info = _simulate(p, year, start, q1, [(name, q0, q1)], seed, dt, a)
+    accs, _info = _simulate(p, year, start, q1, [(name, q0, q1)], seed, dt, a, off)
     res = _summary(accs[name])
     res["start_min"] = start
     _cache_put(key, dict(res))
@@ -1405,8 +1415,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="write state and report_json to the Ditto thing validation-calib (sim/calib_report.py)")
     ap.add_argument("--trial", default=calib_report.TRIAL_DEFAULT,
                     help="on/off trial summary shown next to the table ('' = none)")
+    ap.add_argument("--backtest", default=calib_report.BACKTEST_DEFAULT,
+                    help="quarterly back-test (sim/backtest.py) shown next to the table ('' = none)")
     a = ap.parse_args(argv)
     trial = calib_report.load_trial(a.trial) if a.publish else None
+    backtest = calib_report.load_backtest(a.backtest) if a.publish else None
     writer = calib_report.DittoWriter.from_env() if a.publish else None
     if writer is not None:
         calib_report.publish_start(writer, trial)
@@ -1435,7 +1448,7 @@ def main(argv: list[str] | None = None) -> int:
         print("error: cannot write", a.out, e)
     if writer is not None:
         try:
-            calib_report.publish_done(writer, report, trial)
+            calib_report.publish_done(writer, report, trial, backtest)
         except Exception as e:  # noqa: BLE001 - the table is printed, exit code stays 0
             print(f"validation-calib not written: {type(e).__name__}: {e}")
     return 0

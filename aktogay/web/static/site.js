@@ -10,6 +10,7 @@
       return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl') || c.getContext('experimental-webgl')));
     } catch (e) { return false; }
   };
+  const WEBGL_NOTE = '3D требует WebGL (видеокарта или Chrome с флагом --enable-unsafe-swiftshader); все данные и последствия сценариев показаны на 2D-плане';
   /* ru: {none, stopped, failed} — the notes over the 2D plan */
   const lazy3d = (url, ru) => ({
     impl: null,
@@ -36,11 +37,11 @@
     highlight(node) { if (this.impl && this.impl.highlight) this.impl.highlight(node); },
   });
   AKT.views.site = lazy3d('/site3d.js', {
-    none: 'В этом браузере нет WebGL, вид «Спутник 3D» недоступен: показан 2D-план.',
+    none: WEBGL_NOTE,
     stopped: 'Вид «Спутник 3D» остановлен', failed: 'Вид «Спутник 3D» не запустился',
   });
   AKT.views.diorama = lazy3d('/diorama/core.js', {
-    none: 'В этом браузере нет WebGL, диорама недоступна: показан 2D-план.',
+    none: WEBGL_NOTE,
     stopped: 'Диорама остановлена', failed: 'Диорама не запустилась',
   });
   /* the 3D code of the opened view loads while the first poll of Ditto runs */

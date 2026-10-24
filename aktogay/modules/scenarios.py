@@ -1,0 +1,361 @@
+"""Catalog of scenarios and the constructor of a trouble (FEATURES_22.md: С2, С3 and feature 24).
+
+One table for two readers: the page «Сценарии» (`web/static/scenarios.json`) shows every scenario with «что должно
+произойти» and «как проверить» and starts it in one click by its seed, and the constructor builds a token
+`kind[:N][@start_min][=magnitude]` from a node, a time and a magnitude. The token is the one the scenario buttons
+send (`POST /api/scenario` -> `control.scenario` in Ditto; `sim/events.py` parses it). A test keeps the JSON equal
+to this module and checks every id and every range against the simulator's parameter table. This module does not
+import the simulator (the modules never do); the ranges below are copies, and the test compares them.
+
+  python -I modules/scenarios.py --write-json web/static/scenarios.json
+
+The texts say only what the model does; numbers carry the label of the parameter row (assumption, analog, ...).
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+import sys
+
+if __package__ in (None, ""):                 # run as a script: python -I modules/scenarios.py
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from modules import readiness  # noqa: E402
+
+SEED = 42                      # default seed of the stand (`control.reset`, `site.seed`); same seed = same numbers
+DELAY_MAX_MIN = 660            # the scenario shift ends at 20:00, 12 h after the start; a trouble may start up to 11 h in
+DELAY_STEP_MIN = 15
+
+GROUPS = (
+    ("equipment", "Оборудование встало"),
+    ("hidden", "Скрытые потери"),
+    ("pit", "Карьер и руда"),
+    ("safety", "Люди и экология"),
+    ("site", "Сеть, вода, погода"),
+    ("multi", "Несколько бед сразу"),
+)
+
+# id, name, group, what (what should happen), first (what must come first on the screen), steps (how to check),
+# card (readiness card), test (test that keeps it), who (when there is no card)
+SCENARIOS: tuple[dict, ...] = (
+    {"id": "crusher:1", "name": "Встала дробилка", "group": "equipment",
+     "what": "Дробилка 1 останавливается в начале смены, ремонт в среднем ≈ 3 ч (диапазон 2–6 ч, допущение). Склад линии 1 убывает.",
+     "first": "Беда «Дробилка 1»: цена после конца склада, кого звать — механика ЦПД.",
+     "steps": ["Обзор: беда ① «Дробилка 1», в ней часы до остановки SAG-1.",
+               "Прогнозы → «Руда на складе»: линия 1 кончится раньше, чем закончится ремонт, или нет.",
+               "Нажать «Позвать»: в журнале смены строка о вызове, в «Людях» механик ЦПД «в пути»."],
+     "card": "", "who": "Механик ЦПД с бригадой ЦПД (допущение: штатное расписание не опубликовано)",
+     "test": "tests/test_plant.py::TestScenarios::test_c1_crusher"},
+    {"id": "conveyor:1", "name": "Встал конвейер", "group": "equipment",
+     "what": "Главная лента линии 1 отключается, дробилка стоит с пустой лентой, ремонт ≈ 2 ч (диапазон 1–4 ч, допущение).",
+     "first": "Беда «Конвейер 1»: склад линии 1 убывает, звать механика ЦПД.",
+     "steps": ["Обзор: беда ① «Конвейер 1» с чек-листом в «Подробнее» (плакат «Не включать!», наряд-допуск).",
+               "Путь меди: лента линии 1 серая, поток 0 т/ч.",
+               "После ремонта беда закрывается сама: строка «устранена» в журнале."],
+     "card": "conveyor_stop", "who": "", "test": "tests/test_forecast.py::ScenarioTest"},
+    {"id": "reline:1", "name": "Перефутеровка SAG", "group": "equipment",
+     "what": "Мельница SAG-1 встаёт на плановую замену футеровки на 96 ч (допущение по эталону RME; диапазон 72–127 ч). Линия 1 стоит.",
+     "first": "Решение, а не ремонт: куда перебросить руду, пока линия 1 стоит; звать механика фабрики.",
+     "steps": ["Обзор: беда ① про SAG-1, цена — медь линии 1 за смену.",
+               "Прогнозы → «Футеровка мельниц SAG»: кривая кампании и дни до перефутеровки.",
+               "Участки → Измельчение: SAG-1 «перефутеровка»."],
+     "card": "fc_liner", "who": "", "test": "tests/test_forecast.py::ForecastTest::test_liner_campaign_numbers"},
+    {"id": "mantle:1", "name": "Замена брони дробилки 1", "group": "equipment",
+     "what": "Дробилка 1 встаёт на плановую замену брони ≈ 60 ч (аналог: рудник La Caridad; диапазон 24–100 ч). Склад кормит SAG, пока не кончится.",
+     "first": "Беда «Замена брони»: часы склада до остановки SAG-1 и цена после конца склада; бригада ЦПД работает по наряду-допуску.",
+     "steps": ["Обзор: беда ① «Замена брони», в «Подробнее» чек-лист по Правилам № 348.",
+               "Прогнозы → «Руда на складе»: часы до остановки SAG-1.",
+               "Люди: механик ЦПД «на работе по наряду-допуску» и недоступен для других вызовов."],
+     "card": "crusher_mantle", "who": "", "test": "tests/test_tier_s.py::CrusherMantleTest"},
+    {"id": "hpgr_fire", "name": "Пожар на прессе дробления гали", "group": "safety",
+     "what": "Пожар на прессе дробления гали линии 1 (как 09.08.2026): рядом люди, узел остановлен, линия 2 работает.",
+     "first": "Беда класса S0 (люди): впереди всего, в деньгах не считается.",
+     "steps": ["Обзор: беда ① с пометкой «S0», денег в ней нет.",
+               "Люди: механик мельницы эвакуирован (статус «нет»).",
+               "Путь меди: ВВД линии 1 красный."],
+     "card": "", "who": "Начальник смены фабрики и механик фабрики",
+     "test": "tests/test_features22.py::SimSideTest"},
+    {"id": "hpgr:2", "name": "Неравномерное питание ВВД линии 2", "group": "hidden",
+     "what": "Питание пресса ВВД линии 2 сегрегирует: перекос валков ≈ 12 %, круг гали ограничен. Без вмешательства за 2 ч металл на валках, металлодетектор остановит пресс на 4 ч (допущения; аналог — блог Metso 2022).",
+     "first": "Беда «Неравномерное питание ВВД»: звать механика фабрики.",
+     "steps": ["Путь меди: узел «ВВД (POLYCOM)» линии 2, перекос и разница мощности приводов.",
+               "Обзор: беда ① с ценой и чек-листом.",
+               "Позвать механика фабрики: перекос возвращается к норме, беда закрывается."],
+     "card": "hpgr_uneven", "who": "", "test": "tests/test_tier_s.py::HpgrUnevenTest"},
+    {"id": "roping:1", "name": "Канатирование циклонов", "group": "hidden",
+     "what": "Гидроциклоны линии 1 «канатируют»: перелив грубеет, циркулирующая нагрузка ≈ 112 % номинала. Через 1,5 ч без решения флотация теряет ещё ≈ 3 п.п. (аналог — Centinela).",
+     "first": "Беда «Канатирование»: звать оператора пульта измельчения, затем металлурга.",
+     "steps": ["Обзор: беда ① «Канатирование» с ценой.",
+               "Изнутри → Фабрика: P80 циклонов и циркулирующая нагрузка линии 1.",
+               "После вызова циркулирующая нагрузка возвращается к норме."],
+     "card": "cyclone_roping", "who": "", "test": "tests/test_tier_s.py::CycloneRopingTest"},
+    {"id": "phdrift:1", "name": "pH-метр врёт", "group": "hidden",
+     "what": "Электрод pH флотации 1 зарос накипью: онлайн-показание держится на уставке, реальный pH выше на ≈ 0,6 (допущение). Ручная проба раз в 4 ч покажет расхождение.",
+     "first": "После контрольной пробы — беда «pH-метр под подозрением»: звать дежурного КИПиА.",
+     "steps": ["Обзор: беда ① «pH-метр», в «Подробнее» таблица «Измерения и возраст данных».",
+               "Изнутри → Среда и данные: pH-метр 1 помечен «под подозрением».",
+               "Электрод прочищен — расхождение пропадает, беда закрывается."],
+     "card": "sensor_suspect", "who": "", "test": "tests/test_tier_s.py::SensorSuspectTest"},
+    {"id": "sample:1", "name": "Анализатор отдаёт старые данные", "group": "hidden",
+     "what": "Пробоотборная линия поточного анализатора линии 1 засорилась: он держит последнее показание, возраст растёт (цикл 12–16 мин). Время чистки ≈ 0,5 ч (допущение).",
+     "first": "Через 30 мин анализатор «под подозрением»: у замеров хвостов виден возраст данных.",
+     "steps": ["Обзор: отклонение «Анализатор 1: данные старше…» в строке отклонений.",
+               "Изнутри → Среда и данные: возраст данных анализатора.",
+               "Лист сдачи смены содержит строку об анализаторе."],
+     "card": "sensor_suspect", "who": "", "test": "tests/test_tier_s.py::SensorSuspectTest"},
+    {"id": "fork", "name": "Две беды сразу", "group": "multi",
+     "what": "В 09:20 скрытый сбой на флотации 1 и останов дробилки 2 по защите; дежурный КИПиА один.",
+     "first": "Порядок вызова: кого звать первым, цена выбора и «почти равны», если разница меньше погрешности.",
+     "steps": ["Обзор: беда ① и строка ②, в «Подробнее» цена порядка.",
+               "Сдача смены: «А если бы позвали иначе?» — фактический порядок против лучшего по модели.",
+               "Режим проверки модели: копии «двойник», «по громкости», «без двойника»."],
+     "card": "", "who": "Дежурный КИПиА (одна бригада на две беды)", "test": "tests/test_plant.py::TestScenarios"},
+    {"id": "icy+dust+grid", "name": "Смена с тремя бедами сразу", "group": "multi",
+     "what": "Метель и гололёд на откатке (люди), пыление пляжа хвостохранилища (экология) и урезание мощности сети (деньги) начинаются вместе.",
+     "first": "Очередь строго по классам: ① зимняя дорога (люди, S0), ② пыление (экология, S1), ③ урезание сети (деньги).",
+     "steps": ["Обзор: беда ① «Зимняя дорога» — только она на главном экране, ② и ③ строками ниже.",
+               "Все беды: порядок люди → экология → деньги, у денежной беды цена за смену.",
+               "Позвать горного диспетчера: беда ① закрывается, очередь сдвигается."],
+     "card": "winter_road", "who": "", "test": "tests/test_scenarios.py::ThreeTroublesTest"},
+    {"id": "startup:1", "name": "Пуск мельницы при людях внутри", "group": "safety",
+     "what": "Шаровая 1A на ремонте по наряду-допуску, механик внутри; через час кто-то включает команду на пуск.",
+     "first": "Беда S0 «Пуск при людях»: отменить пуск, снять напряжение, плакат «Не включать! Работают люди!».",
+     "steps": ["Обзор: беда ① S0 через ≈ 1 ч после начала.",
+               "Люди: механик мельницы «на работе по наряду-допуску» внутри шаровой 1A.",
+               "Позвать начальника смены: команда на пуск снята, беда закрыта."],
+     "card": "", "who": "Начальник смены фабрики и механик фабрики (п. 63 Правил № 348)",
+     "test": "tests/test_features22.py::ModulesTest::test_startup_with_people_inside_is_s0_first"},
+    {"id": "dust", "name": "Пыление пляжа хвостохранилища", "group": "safety",
+     "what": "Ветер до 14 м/с над сухим пляжем (85 %) на 6 ч (допущения).",
+     "first": "Экологическая беда S1 «Пыление»: после людей и перед деньгами, в деньгах не считается.",
+     "steps": ["Обзор: беда ① с пометкой S1 «экология».",
+               "Изнутри → Среда и данные: ветер и влажность пляжа.",
+               "Через 6 ч ветер падает, беда закрывается сама."],
+     "card": "", "who": "Технолог хвостов и оборотной воды",
+     "test": "tests/test_features22.py::ModulesTest::test_dust_is_ecology_s1_after_people_before_money"},
+    {"id": "leachcold", "name": "Холодное выщелачивание на куче", "group": "site",
+     "what": ("На 8 ч (допущение) выпуск катода окисленной линии падает на 25 % против уровня квартала: так упал катод в 4 кв. 2024 г. к 3 кв. "
+              "[факт, другой год]; сам уровень квартала — цифра отчёта KAZ Minerals, а не замер."),
+     "first": "Беда класса «деньги» «Куча выщелачивания: катод ниже нормы»: кого звать — металлурга смены; цена — катод по LME, оплата 100 % [допущение].",
+     "steps": ["Обзор: беда с ценой в $/ч, на плане у кучи (место — схема) появляется подпись.",
+               "Путь меди → «Окисленная руда»: катод ниже уровня квартала на 25 %.",
+               "Через 8 ч спад кончается по таймеру, беда закрывается сама; действия металлурга выпуск в модели не меняют."],
+     "card": "leach_cold", "who": "", "test": "tests/test_oxide.py"},
+    {"id": "icy", "name": "Метель и гололёд на откатке", "group": "site",
+     "what": "На 6 ч метель и гололёд: видимость ≈ 120 м, сцепление ≈ 0,3, ветер 16 м/с, воздух −14 °C. Пороги опасности (150 м, 0,4) — допущение.",
+     "first": "Беда S0 «Зимняя дорога»: ограничить движение — горный диспетчер, затем начальник смены карьера, затем дорожная служба.",
+     "steps": ["Обзор: беда ① S0.",
+               "После вызова ограничение введено: откатка медленнее, рядом цена решения.",
+               "Переработка фабрики от погоды сама не падает (KAZ Minerals, Q1 2019, с. 1)."],
+     "card": "winter_road", "who": "", "test": "tests/test_tier_s.py::WinterRoadTest"},
+    {"id": "fatigue", "name": "Усталость водителя (допущение)", "group": "safety",
+     "what": "Оповещение об усталости водителя самосвала HT141 и близком сближении техники на 1 ч. Датчика и случаев на Актогае в открытых данных нет: сценарий-допущение.",
+     "first": "Беда S0: снять машину с рейса, развести технику; в деньгах не считается.",
+     "steps": ["Обзор: беда ① S0 с номером машины HT141.",
+               "В «Как проверить» стоит метка «не подтверждено»."],
+     "card": "driver_fatigue", "who": "", "test": "tests/test_tier_s.py::DriverFatigueTest"},
+    {"id": "pitstop", "name": "Остановка карьера", "group": "pit",
+     "what": "Все экскаваторы руды встают на 8 ч (диапазон 2–24 ч, допущение; причина не названа). Склад линий (163 кт ≈ 2 суток по ПЭК) держит фабрику.",
+     "first": "Беда «Карьер (останов)» по линиям: часы до остановки SAG, звать горного диспетчера.",
+     "steps": ["Прогнозы → «Руда на складе»: часы по линиям.",
+               "Обзор: беда ① «Карьер» с ценой после конца склада.",
+               "Путь меди: ширина потока от карьера 0, дальше уменьшается по мере выработки склада."],
+     "card": "pit_stop", "who": "", "test": "tests/test_forecast.py::ScenarioTest"},
+    {"id": "oil", "name": "Загрязнение масла EX01", "group": "pit",
+     "what": "Гидромасло экскаватора EX01 загрязняется: через ≈ 3 ч тревога датчика; без вмешательства через ≈ 8 ч после неё отказ насоса и ремонт ≈ 57 ч (ремонт — аналог другой машины; сроки — допущения).",
+     "first": "Беда «Загрязнение масла» с часами до отказа, затем «Отказ экскаватора»; звать сменного механика карьера.",
+     "steps": ["Обзор: беда ① «Загрязнение масла», в «Подробнее» чек-лист.",
+               "Карточка вещи EX01: показатели масла.",
+               "Без вызова через ≈ 11 ч — беда «Отказ экскаватора»."],
+     "card": "oil_contam", "who": "", "test": "tests/test_tier_s.py::OilContaminationTest"},
+    {"id": "hard:1", "name": "Твёрдая руда", "group": "pit",
+     "what": "На линию 1 идёт блок твёрдой руды (A×b 27 против 35 нормы; допущение): мельница молотит медленнее.",
+     "first": "Беда «Руда сменилась»: решение блендировать или снизить подачу, звать металлурга смены.",
+     "steps": ["Руда: партия с низким A×b в плане и её приход к SAG-1.",
+               "Обзор: беда ① с уведомлением металлурга («Также сообщить»).",
+               "Участки → Измельчение: т/ч SAG-1 ниже."],
+     "card": "ore_regime", "who": "", "test": "tests/test_tier_s.py::OreRegimeTest"},
+    {"id": "grid", "name": "Сеть урезала мощность", "group": "site",
+     "what": "Лимит сети 300 → 218 МВт на 2 ч (допущение).",
+     "first": "Беда «Сеть»: что отключать первым, цена выбора; звать дежурного энергетика.",
+     "steps": ["Обзор: плитка «Сеть» показывает лимит, беда ① с ценой.",
+               "Беда: «что отключать первым» с медью на МВт.",
+               "Через 2 ч лимит снят, беда закрывается."],
+     "card": "", "who": "Дежурный энергетик", "test": "tests/test_plant.py::TestScenarios"},
+    {"id": "water", "name": "Беда с водой", "group": "site",
+     "what": "Сбой водовода и забора свежей воды: возврат воды падает, свежая вода упирается в предел, растёт давление в дамбе.",
+     "first": "Беда с водой: звать технолога хвостов и оборотной воды.",
+     "steps": ["Путь меди: баланс воды, м³/т против факта KAZ Minerals 0,60 м³/т.",
+               "Изнутри → Дамба: пьезометры против тревоги 150 кПа.",
+               "Обзор: плитка и беда ① с ценой."],
+     "card": "bal_cu_water", "who": "", "test": "tests/test_calib.py"},
+    {"id": "winter", "name": "Зима", "group": "site",
+     "what": "Возврат воды с хвостохранилища ниже на 3 % (допущение), воздух около −10 °C. Переработку и извлечение зима не меняет.",
+     "first": "Метка «Зима» в шапке; беды с водой дороже и срочнее.",
+     "steps": ["Шапка: метка «Зима».",
+               "Путь меди → баланс воды: возврат ниже.",
+               "Обзор: ни одной новой беды сама зима не создаёт."],
+     "card": "", "who": "Технолог хвостов и оборотной воды", "test": "tests/test_features22.py::SimSideTest"},
+)
+
+# ---------------------------------------------------------------------------------------------- constructor
+# kind: token kind; node: what the person picks; title: what happens; lines: lines of the token (empty = site-wide);
+# mag: (unit, label of the magnitude, step); the range and the default come from the parameter row `param`
+# (the test compares them with sim/params.py). note: what the magnitude does in the model.
+TROUBLES: tuple[dict, ...] = (
+    {"kind": "crusher", "node": "Дробилка", "title": "Останов (поломка)", "lines": [1, 2], "param": "crush_repair_h",
+     "unit": "ч", "label": "Ремонт, медиана", "step": 0.5, "note": "дробилка стоит, пока бригада ЦПД не закончит ремонт"},
+    {"kind": "trip", "node": "Дробилка", "title": "Защита по давлению масла (ложная)", "lines": [1, 2],
+     "param": "crew_trip_fix_h", "unit": "ч", "label": "Починка датчика, медиана", "step": 0.5,
+     "note": "датчик занижает давление масла, дробилка встаёт по защите; идёт КИПиА"},
+    {"kind": "mantle", "node": "Дробилка", "title": "Замена брони (плановая)", "lines": [1, 2], "param": "crush_mantle_h",
+     "unit": "ч", "label": "Длительность", "step": 4.0, "note": "дробилка стоит на замене брони по наряду-допуску"},
+    {"kind": "conveyor", "node": "Конвейер", "title": "Лента отключилась", "lines": [1, 2], "param": "conv_repair_h",
+     "unit": "ч", "label": "Ремонт, медиана", "step": 0.5, "note": "лента стоит, дробилка не разгружается"},
+    {"kind": "reline", "node": "Мельница SAG", "title": "Перефутеровка (плановая)", "lines": [1, 2], "param": "liner_reline_h",
+     "unit": "ч", "label": "Длительность", "step": 6.0, "note": "SAG стоит, линия без руды"},
+    {"kind": "liner", "node": "Мельница SAG", "title": "Износ футеровки (скрытый)", "lines": [1, 2],
+     "param": "hc_liner_eta_loss", "unit": "доля", "label": "Потеря КПД помола", "step": 0.01,
+     "note": "извлечение и т/ч ниже; двойник находит по энергии на тонну"},
+    {"kind": "energy", "node": "Мельница SAG", "title": "Перерасход энергии (тихий)", "lines": [1, 2],
+     "param": "hc_energy_frac", "unit": "доля", "label": "Лишняя энергия на тонну", "step": 0.01,
+     "note": "кВт·ч/т выше нормы, датчиков тревоги нет"},
+    {"kind": "cyclone", "node": "Гидроциклоны", "title": "Засорение (скрытое)", "lines": [1, 2], "param": "hc_cyclone_n",
+     "unit": "шт.", "label": "Засорено гидроциклонов", "step": 1.0, "note": "P80 крупнее, извлечение ниже"},
+    {"kind": "roping", "node": "Гидроциклоны", "title": "Канатирование", "lines": [1, 2], "param": "hc_rope_sev",
+     "unit": "доля", "label": "Тяжесть", "step": 0.1, "note": "перелив грубеет, нагрузка шаровой растёт"},
+    {"kind": "dose", "node": "Флотация", "title": "Недодозировка реагента (скрытая)", "lines": [1, 2],
+     "param": "hc_dose_drop", "unit": "доля", "label": "Падение дозы", "step": 0.05,
+     "note": "расходомер показывает уставку, извлечение ниже"},
+    {"kind": "oxide", "node": "Флотация", "title": "Окисленная руда", "lines": [1, 2], "param": "hc_oxide_ascu_pp",
+     "unit": "п.п.", "label": "Рост доли ASCu", "step": 0.5, "note": "извлечение ниже режима"},
+    {"kind": "conc", "node": "Флотация", "title": "Разбавление концентрата", "lines": [1, 2], "param": "hc_conc_drop_pp",
+     "unit": "п.п.", "label": "Потеря Cu в концентрате", "step": 0.5, "note": "Cu в концентрате ниже нормы покупателя, штраф"},
+    {"kind": "reagent", "node": "Реагенты флотации", "title": "Перерасход собирателя (тихий)", "lines": [1, 2],
+     "param": "hc_reagent_over", "unit": "доля", "label": "Перерасход", "step": 0.05,
+     "note": "расходомер показывает уставку, бак пустеет быстрее"},
+    {"kind": "balls", "node": "Шаровая мельница", "title": "Перерасход шаров (тихий)", "lines": [1, 2],
+     "param": "hc_balls_frac", "unit": "доля", "label": "Перерасход", "step": 0.05, "note": "г/т шаров выше нормы"},
+    {"kind": "startup", "node": "Шаровая мельница", "title": "Пуск при людях внутри", "lines": [1, 2], "param": "",
+     "unit": "", "label": "", "step": 0.0, "note": "механик внутри по наряду-допуску, затем включена команда на пуск"},
+    {"kind": "phdrift", "node": "pH-метр флотации", "title": "Датчик врёт", "lines": [1, 2], "param": "hc_ph_drift",
+     "unit": "pH", "label": "Смещение pH", "step": 0.1, "note": "онлайн-pH на уставке, реальный выше"},
+    {"kind": "sample", "node": "Анализатор", "title": "Старые данные (засорена линия)", "lines": [1, 2], "param": "",
+     "unit": "", "label": "", "step": 0.0, "note": "поточный анализатор держит последнее показание"},
+    {"kind": "hpgr", "node": "ВВД линии 2", "title": "Неравномерное питание", "lines": [2], "param": "", "unit": "",
+     "label": "", "step": 0.0, "note": "перекос валков, через 2 ч металл и останов"},
+    {"kind": "hpgr_fire", "node": "ВВД линии 2", "title": "Пожар на прессе", "lines": [], "param": "scen_fire_h",
+     "unit": "ч", "label": "Узел остановлен", "step": 1.0, "note": "S0: люди рядом, узел остановлен"},
+    {"kind": "grid", "node": "Сеть", "title": "Урезание мощности", "lines": [], "param": "pow_c2_limit_mw", "unit": "МВт",
+     "label": "Лимит сети", "step": 5.0, "note": "площадка упирается в лимит на 2 ч"},
+    {"kind": "water", "node": "Вода и хвосты", "title": "Утечка водовода", "lines": [], "param": "water_leak_frac",
+     "unit": "доля", "label": "Доля оборотной воды", "step": 0.05, "note": "возврат воды падает, свежая упирается в предел"},
+    {"kind": "leak", "node": "Вода и хвосты", "title": "Тихая утечка (без расходомера)", "lines": [],
+     "param": "hc_leak_frac", "unit": "доля", "label": "Доля возврата", "step": 0.01, "note": "находят только балансы"},
+    {"kind": "dust", "node": "Вода и хвосты", "title": "Пыление пляжа", "lines": [], "param": "scen_dust_h", "unit": "ч",
+     "label": "Длительность ветра", "step": 1.0, "note": "S1: экология"},
+    {"kind": "leachcold", "node": "Куча выщелачивания", "title": "Холодное выщелачивание", "lines": [], "param": "scen_leach_h",
+     "unit": "ч", "label": "Длительность", "step": 1.0, "note": "катод ниже уровня квартала на 25 %"},
+    {"kind": "winter", "node": "Вода и хвосты", "title": "Зима (метка и баланс воды)", "lines": [], "param": "",
+     "unit": "", "label": "", "step": 0.0, "note": "возврат воды ниже, переработку не меняет"},
+    {"kind": "pitstop", "node": "Карьер", "title": "Все экскаваторы встали", "lines": [], "param": "scen_pitstop_h",
+     "unit": "ч", "label": "Длительность", "step": 1.0, "note": "склад держит фабрику, пока не кончится"},
+    {"kind": "hard", "node": "Карьер", "title": "Твёрдая руда", "lines": [1, 2], "param": "ore_axb_hard", "unit": "A×b",
+     "label": "A×b блока (меньше = твёрже)", "step": 1.0, "note": "SAG молотит медленнее"},
+    {"kind": "road", "node": "Карьер", "title": "Съезд к дробилке закрыт", "lines": [1, 2], "param": "pit_road_close_h",
+     "unit": "ч", "label": "Закрыт", "step": 0.5, "note": "самосвалы идут в объезд"},
+    {"kind": "icy", "node": "Карьер", "title": "Метель и гололёд", "lines": [], "param": "scen_icy_h", "unit": "ч",
+     "label": "Длительность", "step": 1.0, "note": "S0: ограничить движение"},
+    {"kind": "fatigue", "node": "Карьер", "title": "Усталость водителя (допущение)", "lines": [], "param": "scen_fatigue_h",
+     "unit": "ч", "label": "Длительность", "step": 0.25, "note": "S0: снять машину с рейса"},
+    {"kind": "oil", "node": "Карьер", "title": "Загрязнение масла EX01", "lines": [], "param": "", "unit": "", "label": "",
+     "step": 0.0, "note": "тревога датчика, затем отказ насоса"},
+)
+
+# ranges copied from sim/params.py (value, min, max, label): the test compares them row by row
+RANGES: dict[str, tuple[float, float, float, str]] = {
+    "crush_repair_h": (3.0, 2.0, 6.0, "assumption"), "crew_trip_fix_h": (3.0, 2.0, 6.0, "assumption"),
+    "crush_mantle_h": (60.0, 24.0, 100.0, "analog"), "conv_repair_h": (2.0, 1.0, 4.0, "assumption"),
+    "liner_reline_h": (96.0, 72.0, 126.75102141884372, "assumption"), "hc_liner_eta_loss": (0.04, 0.02, 0.06, "assumption"),
+    "hc_energy_frac": (0.1, 0.05, 0.15, "assumption"), "hc_cyclone_n": (1.0, 1.0, 2.0, "assumption"),
+    "hc_rope_sev": (1.0, 0.3, 1.0, "assumption"), "hc_dose_drop": (0.4, 0.25, 0.5, "assumption"),
+    "hc_oxide_ascu_pp": (2.0, 1.0, 3.0, "assumption"), "hc_conc_drop_pp": (2.5, 1.0, 5.0, "assumption"),
+    "hc_reagent_over": (0.4, 0.2, 0.6, "assumption"), "hc_balls_frac": (0.25, 0.1, 0.5, "assumption"),
+    "hc_ph_drift": (0.6, 0.3, 1.2, "assumption"), "scen_fire_h": (8.0, 2.0, 24.0, "assumption"),
+    "pow_c2_limit_mw": (218.0, 180.0, 240.0, "assumption"), "water_leak_frac": (0.1, 0.05, 0.3, "assumption"),
+    "hc_leak_frac": (0.03, 0.01, 0.06, "assumption"), "scen_dust_h": (6.0, 2.0, 12.0, "assumption"),
+    "scen_leach_h": (8.0, 2.0, 12.0, "assumption"),
+    "scen_pitstop_h": (8.0, 2.0, 24.0, "assumption"), "ore_axb_hard": (27.0, 24.0, 30.0, "assumption"),
+    "pit_road_close_h": (2.0, 0.5, 8.0, "assumption"), "scen_icy_h": (6.0, 2.0, 12.0, "assumption"),
+    "scen_fatigue_h": (1.0, 0.25, 4.0, "assumption"),
+}
+from modules import scenarios_t as _st  # noqa: E402  (tier T of 24.10.2026)
+
+SCENARIOS = SCENARIOS + _st.SCENARIOS_T
+TROUBLES = TROUBLES + _st.TROUBLES_T
+RANGES.update(_st.RANGES_T)
+LABEL_RU = {"fact": "факт", "vendor": "вендор", "project": "проект", "analog": "аналог", "assumption": "допущение",
+            "calc": "расчёт"}
+
+
+def constructor() -> dict:
+    """The constructor catalog: nodes, their troubles with magnitude ranges (labels from the parameter rows)."""
+    out = []
+    for t in TROUBLES:
+        item = {k: t[k] for k in ("kind", "node", "title", "lines", "note")}
+        if t["param"]:
+            v, lo, hi, lab = RANGES[t["param"]]
+            item["mag"] = {"param": t["param"], "label": t["label"], "unit": t["unit"], "default": v, "min": lo,
+                           "max": round(hi, 2), "step": t["step"], "label_src": LABEL_RU[lab]}
+        else:
+            item["mag"] = None
+        out.append(item)
+    return {"delay_max_min": DELAY_MAX_MIN, "delay_step_min": DELAY_STEP_MIN, "troubles": out}
+
+
+def catalog() -> list[dict]:
+    """Scenarios with the fields of the readiness card that answer «как проверить»."""
+    out = []
+    for s in SCENARIOS:
+        item = {k: s[k] for k in ("id", "name", "group", "what", "first", "steps", "test")}
+        if s["card"]:
+            c = readiness.by_id(s["card"])
+            item["card"] = s["card"]
+            item["who"] = re.sub(r"\s*\(WHO:[^)]*\)", "", c["who"])
+            item["backup"] = c["backup"]
+            item["closure"] = c["closure"]
+            item["howto"] = c["howto"]
+            item["limits"] = c["limits"]
+        else:
+            item.update(card="", who=s["who"], backup="", closure="Сигнал вернулся в норму: беда «устранена», строка в журнале и в листе сдачи смены.",
+                        howto="", limits="")
+        item["seed"] = SEED
+        out.append(item)
+    return out
+
+
+def data() -> dict:
+    return {"seed": SEED, "groups": [{"id": g, "name": n} for g, n in GROUPS], "scenarios": catalog(),
+            "constructor": constructor()}
+
+
+def json_text() -> str:
+    return json.dumps(data(), ensure_ascii=False, indent=1) + "\n"
+
+
+def main(argv: list[str] | None = None) -> int:
+    a = list(sys.argv[1:] if argv is None else argv)
+    if len(a) == 2 and a[0] == "--write-json":
+        with open(a[1], "w", encoding="utf-8", newline="\n") as f:
+            f.write(json_text())
+        return 0
+    if not a:
+        print(f"ok: {len(SCENARIOS)} scenarios, {len(TROUBLES)} constructor troubles")
+        return 0
+    print("usage: scenarios.py [--write-json PATH]")
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

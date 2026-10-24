@@ -4,20 +4,28 @@ Design section 6 of the stand. The browser never sees platform credentials:
 this process holds them and forwards a fixed list of requests.
 
   GET  /healthz                       process alive (no platform call)
-  GET  /api/state                     all kz.aktogay things (Ditto search, size 200), cached 1 s
+  GET  /api/state                     all kz.aktogay things (Ditto search, size 200); read once per STATE_REFRESH_S
+                                      for all browsers together (a tab never starts a read of its own)
   GET  /api/thing?id=<thingId>        one thing, raw JSON with _modified and _revision
   GET  /api/history?thing=<name>&field=<f1,f2>&range=2h[&run=<idSimulationRun>]
                                       InfluxDB points of the features, by sim_time
   GET  /api/journal?range=24h         rows written to journal.last (InfluxDB)
-  POST /api/scenario {id, preset, kip, safety, auto, speed}   -> control.scenario
+  POST /api/scenario {id, preset, kip, safety, auto, speed, seed}   -> control.scenario (id may carry a start and a
+                                                                 magnitude per token: crusher:1@90=4.5, see sim/events.py)
   POST /api/cancel   {}                                       -> control.cancel
   POST /api/reset    {}                                       -> control.reset
   POST /api/speed    {value}                                  -> control.speed
+  POST /api/lever    {feed_1?, feed_2?, p80_um?, dose_gt?, reset?}  -> control.lever (what-if levers of the MODEL, not of the
+                                                                 plant: feed 80..120 % of the line rate, grind P80 target
+                                                                 160..200 um or 0 = off, collector dose 15..40 g/t or 0 = off;
+                                                                 reset 1 clears them; a value outside its range is refused)
   POST /api/call     {issue, role, text, via?}                -> journal.last (action "call"; via "deputy" or "head":
                                                                  the main person is busy on a work permit)
   POST /api/snooze   {issue, role, reason}                    -> journal.last (action "snooze")
   POST /api/remind   {issue, role, text, next?}               -> journal.last (action "remind" or "next":
                                                                  the called person has not arrived)
+  POST /api/mech     {issue, status, person?, text?}          -> journal.mech (status of the called person from the
+                                                                 mechanic's screen: accepted, enroute, onsite, help, done)
 
 Reads: Ditto HTTP (search, things) and InfluxDB Flux. Writes: merge patches on
 the control and journal things only, header x-correlation-id akt-web-<thing>,
@@ -58,7 +66,20 @@ INFLUX_TOKEN = os.environ.get("INFLUXDB_TOKEN", "")
 INFLUX_ORG = os.environ.get("INFLUX_ORG", "opentwins")
 INFLUX_BUCKET = os.environ.get("INFLUX_BUCKET", "default")
 
-STATE_CACHE_S = 1.0
+# One read of the whole twin costs Ditto a retrieval per thing (150) and about 0.5 MB of JSON. It is made by one
+# thread every STATE_REFRESH_S while somebody asks (STATE_IDLE_S), whatever the number of tabs and their poll
+# period (22.10: a tab polled every 2 s, each answer waited for its own read under a lock). A browser gets the
+# last read at once; it is told "no link" only when that read is older than STATE_STALE_S.
+STATE_REFRESH_S = float(os.environ.get("AKT_STATE_REFRESH_S", "3"))
+STATE_STALE_S = float(os.environ.get("AKT_STATE_STALE_S", "30"))
+STATE_IDLE_S = 20.0
+# Things published in rotation, each one every 30 model minutes (trucks, faces, ramps, drills, dozers, the dump road)
+# and the calibration report that changes once: read every STATE_SLOW_S, not with every read of the rest. Reading
+# these 62 things cost Ditto more than reading the other 88 (23.10).
+STATE_SLOW_S = float(os.environ.get("AKT_STATE_SLOW_S", "10"))
+SLOW_PREFIXES = ("truck-", "dozer-", "drill-", "face-", "ramp-", "road-")
+SLOW_EXACT = ("validation-calib",)
+INFLUX_CACHE_S = float(os.environ.get("AKT_INFLUX_CACHE_S", "5"))
 TIMEOUT_DITTO = 8
 TIMEOUT_INFLUX = 20
 MAX_BODY = 16 * 1024
@@ -67,7 +88,13 @@ RE_NAME = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
 RE_FIELD = re.compile(r"^[A-Za-z0-9_-]{1,60}$")
 RE_RANGE = re.compile(r"^([1-9][0-9]{0,2})([mhd])$")
 RE_RUN = re.compile(r"^[A-Za-z0-9._:-]{1,80}$")
-RE_SCENARIO = re.compile(r"^[a-z0-9_:+]{0,60}$")   # crusher:1, grid, water, hpgr_fire, hard:1+grid
+RE_SCENARIO = re.compile(r"^[a-z0-9_:+@.=]{0,200}$")   # crusher:1, grid, hard:1+grid, crusher:1@90=4.5 (start min, magnitude)
+RE_ISSUE = re.compile(r"^issue-[0-9]{1,6}$")
+RE_PERSON = re.compile(r"^person-[a-z0-9-]{1,30}$")
+LEVER_RANGES = {"feed_1": (80.0, 120.0, False), "feed_2": (80.0, 120.0, False),      # key -> (min, max, 0 = off allowed)
+                "p80_um": (160.0, 200.0, True), "dose_gt": (15.0, 40.0, True)}       # = lev_* rows of sim/params_lev.py
+MECH_STATUS = ("accepted", "enroute", "onsite", "help", "done")     # accepted, on the way, on site, need help, done
+MECH_LOG_MAX = 12
 
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -122,12 +149,24 @@ def ditto(method: str, path: str, body: dict | None = None, headers: dict | None
 THING_FIELDS = "thingId,policyId,definition,attributes,features,_modified,_revision,_created"
 
 
-def search_things() -> list:
+def slow_filter() -> str:
+    """RQL: the things of the slow tier."""
+    parts = [f'like(thingId,"{NS}:{p}*")' for p in SLOW_PREFIXES] + [f'eq(thingId,"{NS}:{n}")' for n in SLOW_EXACT]
+    return "or(" + ",".join(parts) + ")"
+
+
+def fast_filter() -> str:
+    """RQL: the namespace without the slow tier."""
+    parts = [f'not(like(thingId,"{NS}:{p}*"))' for p in SLOW_PREFIXES] + [f'not(eq(thingId,"{NS}:{n}"))' for n in SLOW_EXACT]
+    return f'and(like(thingId,"{NS}:*"),' + ",".join(parts) + ")"
+
+
+def search_things(flt: str | None = None) -> list:
     items = []
     cursor = None
-    for _ in range(5):  # at most 1000 things; the stand has about 70
+    for _ in range(5):  # at most 1000 things; the stand has about 150
         option = "size(200)" + (f",cursor({cursor})" if cursor else "")
-        q = urllib.parse.urlencode({"filter": f'like(thingId,"{NS}:*")', "option": option, "fields": THING_FIELDS})
+        q = urllib.parse.urlencode({"filter": flt or f'like(thingId,"{NS}:*")', "option": option, "fields": THING_FIELDS})
         page = ditto("GET", f"/api/2/search/things?{q}") or {}
         items.extend(page.get("items", []))
         cursor = page.get("cursor")
@@ -136,19 +175,128 @@ def search_things() -> list:
     return items
 
 
-_state_lock = threading.Lock()
-_state_cache: dict = {"t": 0.0, "body": None}
+class StateCache:
+    """The last read of the twin as ready JSON bytes, kept fresh by one background thread.
+
+    get() answers from memory when the read is younger than 2 * refresh_s; otherwise (first request, a long
+    idle gap, a thread that keeps failing) it reads once under a lock, and a second caller waits for that
+    read instead of making its own. A failed read gives the old bytes while they are younger than stale_s,
+    then UpstreamError.
+    """
+
+    def __init__(self, fetch, refresh_s: float = 2.5, stale_s: float = 30.0, idle_s: float = 20.0,
+                 clock=time.time, thread: bool = True, fetch_slow=None, slow_s: float = 10.0):
+        self.fetch, self.refresh_s, self.stale_s, self.idle_s, self.clock = fetch, refresh_s, stale_s, idle_s, clock
+        self.fetch_slow, self.slow_s = fetch_slow, slow_s
+        self.slow: list = []
+        self.slow_t = -1e18
+        self.slow_reads = 0
+        self.use_thread = thread
+        self.body: bytes | None = None
+        self.t = 0.0
+        self.asked = 0.0
+        self.reads = 0
+        self.failures = 0
+        self._read_lock = threading.Lock()
+        self._thread: threading.Thread | None = None
+
+    def _read(self) -> None:
+        things = self.fetch()
+        if self.fetch_slow is not None and self.clock() - self.slow_t >= self.slow_s:
+            try:
+                self.slow = self.fetch_slow()
+                self.slow_t = self.clock()
+                self.slow_reads += 1
+            except UpstreamError:
+                if not self.slow:                      # nothing to show yet: the read as a whole failed
+                    raise
+        if self.slow:
+            things = things + self.slow
+        self.body = json.dumps({"now": self.clock(), "count": len(things), "things": things},
+                               ensure_ascii=False).encode("utf-8")
+        self.t = self.clock()
+        self.reads += 1
+
+    def get(self) -> bytes:
+        now = self.clock()
+        self.asked = now
+        body, t = self.body, self.t
+        if body is not None and now - t <= 2 * self.refresh_s:
+            self._start()
+            return body
+        with self._read_lock:
+            if self.t > t and self.body is not None:        # another caller has just read it
+                return self.body
+            try:
+                self._read()
+            except UpstreamError:
+                self.failures += 1
+                if self.body is not None and self.clock() - self.t <= self.stale_s:
+                    return self.body
+                raise
+        self._start()
+        return self.body
+
+    def _start(self) -> None:
+        if self.use_thread and self._thread is None:
+            self._thread = threading.Thread(target=self._loop, name="state-refresh", daemon=True)
+            self._thread.start()
+
+    def refresh_if_wanted(self) -> bool:
+        """One round of the background thread: read when somebody asked lately. True when it read."""
+        if self.clock() - self.asked > self.idle_s or not self._read_lock.acquire(blocking=False):
+            return False
+        try:
+            self._read()
+            return True
+        except UpstreamError as e:
+            self.failures += 1
+            log.warning("state read failed: %s", e)
+            return False
+        finally:
+            self._read_lock.release()
+
+    def _loop(self) -> None:
+        while True:
+            t0 = time.monotonic()
+            try:
+                self.refresh_if_wanted()
+            except Exception:  # noqa: BLE001 - the thread must outlive any single failure
+                log.exception("state refresh")
+            time.sleep(max(0.2, self.refresh_s - (time.monotonic() - t0)))
 
 
-def state() -> dict:
-    with _state_lock:
-        now = time.time()
-        if _state_cache["body"] is not None and now - _state_cache["t"] < STATE_CACHE_S:
-            return _state_cache["body"]
-        things = search_things()
-        body = {"now": time.time(), "count": len(things), "things": things}
-        _state_cache.update(t=time.time(), body=body)
-        return body
+STATE = StateCache(lambda: search_things(fast_filter()), STATE_REFRESH_S, STATE_STALE_S, STATE_IDLE_S,
+                   fetch_slow=lambda: search_things(slow_filter()), slow_s=STATE_SLOW_S)
+
+
+def state_bytes() -> bytes:
+    return STATE.get()
+
+
+class TtlCache:
+    """Small time-to-live cache for InfluxDB answers: the same card or journal asked by several tabs is read once."""
+
+    def __init__(self, ttl_s: float, clock=time.time, limit: int = 200):
+        self.ttl_s, self.clock, self.limit = ttl_s, clock, limit
+        self.items: dict = {}
+        self.lock = threading.Lock()
+
+    def get(self, key, fn):
+        now = self.clock()
+        with self.lock:
+            hit = self.items.get(key)
+            if hit and now - hit[0] < self.ttl_s:
+                return hit[1]
+        value = fn()
+        with self.lock:
+            if len(self.items) >= self.limit:
+                self.items = {k: v for k, v in self.items.items() if now - v[0] < self.ttl_s}
+            self.items[key] = (now, value)
+        return value
+
+
+_influx_cache = TtlCache(INFLUX_CACHE_S)
 
 
 def merge_features(thing: str, features: dict) -> None:
@@ -230,14 +378,72 @@ def write_control(feature: str, payload: dict) -> dict:
     return obj
 
 
+def lever_payload(body: dict) -> dict:
+    """Validated body of control.lever: numbers inside the ranges of LEVER_RANGES, nothing else; {reset: 1} clears all."""
+    if body.get("reset"):
+        return {"reset": 1}
+    payload: dict = {}
+    for k, (lo, hi, off) in LEVER_RANGES.items():
+        if body.get(k) in (None, ""):
+            continue
+        try:
+            v = float(body[k])
+        except (TypeError, ValueError):
+            raise ValueError("bad lever value: " + k) from None
+        if v != v or v in (float("inf"), float("-inf")) or not ((off and v == 0.0) or lo <= v <= hi):
+            raise ValueError("lever %s outside %g..%g%s" % (k, lo, hi, " (or 0 = off)" if off else ""))
+        payload[k] = v
+    if not payload:
+        raise ValueError("no lever given")
+    return payload
+
+
 def write_journal(action: str, issue: str, role: str, text: str, via: str = "") -> dict:
     run, sim_time = site_clock()
     obj = {"seq": next_seq("journal", "last"), "issue": issue, "action": action, "role": role,
            "text": text, "sim_time": sim_time, "t_wall": round(time.time(), 1), "run": run}
     if via in ("deputy", "head"):
         obj["via"] = via            # the main person is busy on a permit: the deputy or the shift head goes
+    patch = dict(obj)
+    if "via" not in patch:
+        patch["via"] = None             # a merge patch keeps old keys: a call without via must not inherit the via of an earlier call
     merge_features("journal", {
-        "last": {"properties": {"value": obj}},
+        "last": {"properties": {"value": patch}},
+        "idSimulationRun": {"properties": {"value": run}},
+        "sim_time": {"properties": {"value": sim_time}},
+    })
+    return obj
+
+
+def write_mech(issue: str, status: str, person: str = "", text: str = "") -> dict:
+    """Status of the called person (screen ?view=mech) into journal.mech. The value keeps the last entry and, per issue,
+    the log of statuses with model times (a merge patch replaces arrays, so the log is read and extended here); entries
+    of an earlier run are set to null in the same patch."""
+    if not RE_ISSUE.match(issue):
+        raise ValueError("bad issue")
+    if status not in MECH_STATUS:
+        raise ValueError("bad status")
+    if person and not RE_PERSON.match(person):
+        raise ValueError("bad person")
+    run, sim_time = site_clock()
+    cur = current_value("journal", "mech")
+    cur = cur if isinstance(cur, dict) else {}
+    try:
+        seq = int(float(cur.get("seq", 0))) + 1
+    except (TypeError, ValueError):
+        seq = 1
+    items = cur.get("items") if isinstance(cur.get("items"), dict) else {}
+    prev = items.get(issue) if isinstance(items.get(issue), dict) else {}
+    log = list(prev.get("log") or []) if prev.get("run") == run else []
+    log.append({"s": status, "t": sim_time})
+    entry = {"status": status, "person": person, "run": run, "t": sim_time, "t_wall": round(time.time(), 1),
+             "text": text[:200], "log": log[-MECH_LOG_MAX:]}
+    patch_items = {k: None for k, v in items.items() if isinstance(v, dict) and v.get("run") != run}
+    patch_items[issue] = entry
+    obj = {"seq": max(seq, 1), "issue": issue, "status": status, "person": person, "run": run, "sim_time": sim_time,
+           "t_wall": entry["t_wall"], "items": patch_items}
+    merge_features("journal", {
+        "mech": {"properties": {"value": obj}},
         "idSimulationRun": {"properties": {"value": run}},
         "sim_time": {"properties": {"value": sim_time}},
     })
@@ -381,7 +587,7 @@ class Handler(BaseHTTPRequestHandler):
             if url.path == "/healthz":
                 self._send(200, b"ok\n", "text/plain; charset=utf-8")
             elif url.path == "/api/state":
-                self._json(200, state())
+                self._send(200, state_bytes())
             elif url.path == "/api/thing":
                 self.api_thing(qs)
             elif url.path == "/api/history":
@@ -413,7 +619,7 @@ class Handler(BaseHTTPRequestHandler):
                 for k in ("preset",):
                     if body.get(k):
                         payload[k] = str(body[k])[:20]
-                for k in ("kip", "safety", "auto", "speed"):
+                for k in ("kip", "safety", "auto", "speed", "seed"):
                     if body.get(k) not in (None, ""):
                         payload[k] = float(body[k])
                 self._json(200, {"ok": True, "control": "scenario", "value": write_control("scenario", payload)})
@@ -427,6 +633,8 @@ class Handler(BaseHTTPRequestHandler):
                 if v not in (0.0, 60.0, 300.0, 1200.0):
                     raise ValueError("speed must be 0, 60, 300 or 1200")
                 self._json(200, {"ok": True, "control": "speed", "value": write_control("speed", {"value": v})})
+            elif name == "lever":
+                self._json(200, {"ok": True, "control": "lever", "value": write_control("lever", lever_payload(body))})
             elif name in ("call", "snooze", "remind"):
                 issue = str(body.get("issue", ""))[:40]
                 role = str(body.get("role", ""))[:60]
@@ -436,6 +644,10 @@ class Handler(BaseHTTPRequestHandler):
                 action = ("next" if body.get("next") else "remind") if name == "remind" else name
                 via = str(body.get("via", "")) if name == "call" else ""
                 self._json(200, {"ok": True, "journal": write_journal(action, issue, role, text, via)})
+            elif name == "mech":
+                obj = write_mech(str(body.get("issue", "")), str(body.get("status", "")), str(body.get("person", "")),
+                                 str(body.get("text", "")))
+                self._json(200, {"ok": True, "journal": obj})
             else:
                 self._error(404, "unknown api")
         except UpstreamError as e:
@@ -468,14 +680,14 @@ class Handler(BaseHTTPRequestHandler):
             raise ValueError("bad range (max 7d)")
         if run and not RE_RUN.match(run):
             raise ValueError("bad run")
-        self._json(200, history(thing, fields, rng, run))
+        self._json(200, _influx_cache.get(("h", thing, tuple(fields), rng, run), lambda: history(thing, fields, rng, run)))
 
     def api_journal(self, qs):
         rng = (qs.get("range") or ["24h"])[0]
         run = (qs.get("run") or [""])[0] or None
         if not RE_RANGE.match(rng) or (run and not RE_RUN.match(run)):
             raise ValueError("bad range or run")
-        self._json(200, journal(rng, run))
+        self._json(200, _influx_cache.get(("j", rng, run), lambda: journal(rng, run)))
 
     # -- static
     def static(self, path: str):

@@ -28,6 +28,7 @@ from __future__ import annotations
 import math
 
 from .events import scenario_label
+from . import wear as wear_mod
 from .params import FEATURE_RULES, ParamSet
 from .state import (MIN_PER_H, NO_VALUE, AnalyzerState, FlotState, LabResult, LabState, LineState,
                     PlantState, ThingInfo, normal, topology)
@@ -37,7 +38,7 @@ SERVICE_FEATURES = {"site": ("speed", "speed_fact", "heartbeat", "degraded")}
 
 # Features published as strings; every other feature is a float.
 STR_FEATURES = frozenset({"state", "state_ru", "block", "location", "plan_text", "scenario", "task", "shed_text",
-                          "duty", "hardness", "permit"})
+                          "duty", "hardness", "permit", "fatigue_truck", "brake_truck"})
 
 # Russian words of the state codes (feature state_ru, for display; "state" keeps the code).
 STATE_RU = {
@@ -51,7 +52,7 @@ STATE_RU = {
     "OFF": "вне работы", "LOADING": "погрузка", "HAUL_FULL": "едет гружёный", "QUEUE": "очередь",
     "DUMP": "разгрузка", "RETURN": "едет порожний", "OPEN": "открыта", "CLOSED": "закрыта",
     "ACTIVE": "в работе", "OK": "исправен", "DRIFT": "дрейф", "SUSPECT": "под подозрением",
-    "DRILLING": "бурит", "MOVING": "переезд",
+    "DRILLING": "бурит", "MOVING": "переезд", "COLD": "холодное выщелачивание",
 }
 
 
@@ -135,6 +136,8 @@ def analyzer_step(an: AnalyzerState, fl: FlotState, line: int, t_min: float, see
     tail_cu > acs_tail_sp_pct else 0; alarm = above_count >= acs_cycles.
     """
     cycle = prm["sens_an_cycle_min"]
+    if an.blocked and an.last_t_min != NO_VALUE:
+        return False                                  # blocked sample line: the last reading is held, its age grows
     if an.last_t_min != NO_VALUE and _cycle_no(t_min, cycle) <= _cycle_no(an.last_t_min, cycle):
         return False
     an.last_t_min = float(t_min)
@@ -341,6 +344,10 @@ class _Snap:
             return st.water
         if typ == "conc-stock":
             return st.conc_stock
+        if typ == "leach":
+            return st.leach
+        if typ == "sxew":
+            return st.sxew
         if typ == "water":
             return st.water
         if typ == "power":
@@ -350,7 +357,7 @@ class _Snap:
         ln = self.lines.get(_line_no(tid))
         if ln is None:
             return None
-        if typ in ("line", "analyzer", "weigher", "flowmeter"):
+        if typ in ("line", "analyzer", "weigher", "flowmeter", "phmeter"):
             return ln
         if typ == "ball":
             return next((b for b in ln.balls if b.name == tid), None)
@@ -390,17 +397,35 @@ def _b_site(c: _Snap, tid, st: PlantState):
         "power_mw": c.power(st.power.site_mw, "power-site_mw"),
         "water_m3h": c.flow(st.water.intake_m3h, "water-intake_m3h"),
         "scenario": scenario_label(st.scenario, hidden=not c.m),
+        # what-if levers (control of the model, not of the plant): 100 / -1 = neutral
+        "lever_on": 1.0 if st.levers else 0.0,
+        "lever_feed_1": st.levers.get("feed_1", 100.0), "lever_feed_2": st.levers.get("feed_2", 100.0),
+        "lever_p80_um": st.levers.get("p80_um", NO_VALUE), "lever_dose_gt": st.levers.get("dose_gt", NO_VALUE),
     }
 
 
 def _b_pit(c: _Snap, tid, pit):
+    restrict = pit.restrict_until_min != NO_VALUE and c.st.clock.t_min < pit.restrict_until_min
     return {"state": pit.state, "mining_tph": c.weigher(pit.mining_tph, "pit-mining_tph"),
             "next_block": pit.next_block_no,
-            "plan_text": pit.plan_text, "hard_in_plan": 1.0 if pit.hard_in_plan else 0.0}
+            "plan_text": pit.plan_text, "hard_in_plan": 1.0 if pit.hard_in_plan else 0.0,
+            "visibility_m": pit.visibility_m, "road_grip": pit.road_grip,
+            "haul_speed_pct": _PCT / pit.cycle_mult if pit.cycle_mult > 0.0 else NO_VALUE,
+            "road_restrict": 1.0 if restrict else 0.0}
 
 
 def _b_exc(c: _Snap, tid, e):
-    return {"state": e.state, "tph": c.weigher(e.tph, f"{tid}-tph"), "block": e.block, "bench": e.bench}
+    d = {"state": e.state, "tph": c.weigher(e.tph, f"{tid}-tph"), "block": e.block, "bench": e.bench,
+         "oil_pct": NO_VALUE, "oil_alert": NO_VALUE}
+    if tid in _oil_sensor():               # only machines whose sensor a source confirms (EX3600-6)
+        d["oil_pct"] = e.oil_pct if not c.m else _f(noisy(e.oil_pct, 0.01, c.seed, c.step, f"{tid}-oil_pct"))
+        d["oil_alert"] = 1.0 if e.oil_pct >= c.table["pit_oil_alert_pct"] else 0.0
+    return d
+
+
+def _oil_sensor() -> tuple[str, ...]:
+    from .state import site
+    return tuple(getattr(site(), "OIL_SENSOR", ()))
 
 
 def _b_fleet(c: _Snap, tid, fl):
@@ -410,19 +435,24 @@ def _b_fleet(c: _Snap, tid, fl):
             "trucks_ready": fl.trucks_ready, "truck_kio_shift": fl.truck_kio_shift,
             "haul_tph": fl.haul_tph, "mining_tph": c.weigher(fl.mining_tph, "pit-mining_tph"),
             "trucks_ore": sum(1 for t in st.trucks if t.ready and t.duty == "ore") if st.trucks else NO_VALUE,
-            "waste_tph": c.weigher(sum(e.tph for e in st.waste_excavators), "pit-waste_tph")}
+            "waste_tph": c.weigher(sum(e.tph for e in st.waste_excavators), "pit-waste_tph"),
+            "fatigue": 1.0 if fl.fatigue else 0.0, "fatigue_truck": fl.fatigue_truck}
 
 
 def _b_crusher(c: _Snap, tid, cr):
     n = cr.line
     lube = cr.lube_kpa if c.m else cr.lube_kpa - cr.lube_bias_kpa   # truth: without the sensor fault
+    t = c.st.clock.t_min
+    svc = cr.fault == "mantle"
+    left = max(0.0, cr.service_until_min - t) / MIN_PER_H if svc and cr.service_until_min != NO_VALUE else NO_VALUE
     return {"state": cr.state, "tph": c.weigher(cr.tph, f"conveyor-{n}-tph"),
-            "power_kw": c.power(cr.power_kw, f"{tid}-power_kw"), "lube_kpa": lube}
+            "power_kw": c.power(cr.power_kw, f"{tid}-power_kw"), "lube_kpa": lube,
+            "service": 1.0 if svc else 0.0, "service_left_h": left}
 
 
 def _b_conveyor(c: _Snap, tid, cv):
     return {"state": cv.state, "tph": c.weigher(cv.tph, f"conveyor-{cv.line}-tph"),
-            "power_kw": c.power(cv.power_kw, f"{tid}-power_kw")}
+            "power_kw": c.power(cv.power_kw, f"{tid}-power_kw"), "fault": 1.0 if cv.fault else 0.0}
 
 
 def _b_stockpile(c: _Snap, tid, sp):
@@ -444,7 +474,8 @@ def _b_sag(c: _Snap, tid, sag):
     p = c.power(sag.power_kw, f"{tid}-power_kw")
     q = c.weigher(sag.feed_tph, f"sag-{n}-feed_tph")
     d = {"state": sag.state, "power_kw": p, "power_limit_kw": sag.power_limit_kw, "feed_tph": q,
-         "speed_pct": sag.speed_pct, "load_pct": sag.load_pct, "liner_wear_mm": sag.liner_wear_mm}
+         "speed_pct": sag.speed_pct, "load_pct": sag.load_pct, "liner_wear_mm": sag.liner_wear_mm,
+         "liner_ground_t": sag.liner_ground_t}
     if not c.m:
         d["e_kwh_t"] = sag.e_kwh_t
         d["axb_soft"] = sag.feed_ore.axb if sag.feed_ore.axb > 0.0 else NO_VALUE
@@ -467,7 +498,17 @@ def _b_pebble(c: _Snap, tid, pb):
     else:
         load = pb.load_pct
     fire = 1.0 if c.st.flags.get("fire") == float(pb.line) else 0.0
-    return {"state": pb.state, "feed_tph": feed, "limit_tph": pb.limit_tph, "load_pct": load, "fire": fire}
+    hp = pb.hpgr_tph > 0.0
+    if hp:
+        hload = _PCT * feed / pb.hpgr_tph if c.m and _valid(feed) else pb.hpgr_load_pct
+        hkw = c.power(pb.hpgr_kw, f"{tid}-hpgr_kw") if pb.hpgr_kw > 0.0 else 0.0
+    else:
+        hload = hkw = NO_VALUE
+    return {"state": pb.state, "feed_tph": feed, "limit_tph": pb.limit_tph, "load_pct": load, "fire": fire,
+            "hpgr_tph": pb.hpgr_tph if hp else NO_VALUE, "hpgr_load_pct": hload, "hpgr_kw": hkw,
+            "hpgr_skew_pct": pb.hpgr_skew_pct if hp else NO_VALUE,
+            "hpgr_kw_diff_pct": pb.hpgr_kw_diff_pct if hp else NO_VALUE,
+            "metal_alarm": (1.0 if pb.metal_alarm else 0.0) if hp else NO_VALUE}
 
 
 def _b_ball(c: _Snap, tid, b):
@@ -480,7 +521,12 @@ def _b_ball(c: _Snap, tid, b):
         e = p * n_run / q if _valid(p) and _valid(q) and q > 0.0 else NO_VALUE
     else:
         e = b.e_kwh_t
-    return {"state": b.state, "power_kw": p, "e_kwh_t": e, "start_cmd": b.start_cmd}
+    pct = 0.0
+    if b.state == "RUN":
+        pct = _PCT + b.overload_pct
+        if c.m:
+            pct = c.power(pct, f"{tid}-power_pct")
+    return {"state": b.state, "power_kw": p, "e_kwh_t": e, "start_cmd": b.start_cmd, "power_pct": pct}
 
 
 def _b_cyclones(c: _Snap, tid, cy):
@@ -490,7 +536,11 @@ def _b_cyclones(c: _Snap, tid, cy):
     else:
         p80 = cy.p80_um
         open_n = max(0, cy.open_count - cy.clogged)  # truth: units that really work
-    return {"state": cy.state, "p80_um": p80, "pressure_kpa": cy.pressure_kpa, "open_count": open_n}
+    circ = cy.circ_load_pct
+    if c.m:
+        circ = c.flow(circ, f"{tid}-circ_load_pct")
+    return {"state": cy.state, "p80_um": p80, "pressure_kpa": cy.pressure_kpa, "open_count": open_n,
+            "circ_load_pct": circ}
 
 
 def _b_flot(c: _Snap, tid, fl):
@@ -562,6 +612,15 @@ def _b_conc_stock(c: _Snap, tid, cs):
     return {"state": cs.state, "stock_t": cs.stock_t, "in_tph": c.weigher(cs.in_tph, f"{tid}-in_tph"),
             "shipped_t_shift": cs.shipped_t_shift, "wagons_shift": cs.wagons_shift,
             "hours_to_full": cs.hours_to_full}
+
+
+def _b_leach(c: _Snap, tid, lc):
+    return {"state": lc.state, "quarter_cathode_kt": lc.quarter_cathode_kt, "level_tph": lc.level_tph, "cold_frac": lc.cold_frac}
+
+
+def _b_sxew(c: _Snap, tid, sx):
+    return {"state": sx.state, "cathode_tph": sx.cathode_tph, "cathode_level_tph": sx.cathode_level_tph,
+            "cathode_t_total": sx.cathode_t_total, "year": sx.year, "quarter": sx.quarter}
 
 
 def _b_water(c: _Snap, tid, w):
@@ -666,6 +725,25 @@ def _b_flowmeter(c: _Snap, tid, ln):
     return {"state": state, "dose_gt": dose, "sp_gt": r.dose_sp_gt}
 
 
+def _b_phmeter(c: _Snap, tid, ln):
+    """pH meter of the rougher: the reading is held at the setpoint by the control (a scaled electrode reads low and the lime
+    dosing follows it), the grab sample with a hand-held meter is the check value. Truth snapshot: the real pH."""
+    ph, prm = ln.ph, c.table
+    t = c.st.clock.t_min
+    real = prm["flot_ph_sp"] + ph.bias
+    reading = ph.reading if ph.reading != NO_VALUE else prm["flot_ph_sp"]
+    if c.m:
+        reading = _f(noisy_abs(reading, prm["sens_ph_sigma"], c.seed, c.step, f"{tid}-ph"))
+    else:
+        reading = real
+    age = t - ph.lab_t_min if ph.lab_t_min != NO_VALUE else NO_VALUE
+    found = any(cz.kind == "phdrift" and cz.line == ln.n and cz.t_found_min != NO_VALUE and cz.t_found_min <= t
+                and cz.t_start_min <= t and (cz.t_end_min == NO_VALUE or t < cz.t_end_min) for cz in c.st.causes)
+    gap = abs(ph.lab_ph - ph.reading) if ph.lab_ph != NO_VALUE and ph.reading != NO_VALUE else 0.0
+    state = "DRIFT" if found else ("SUSPECT" if c.m and gap >= prm["sens_ph_suspect_gap"] else "OK")
+    return {"state": state, "ph": reading, "sp_ph": prm["flot_ph_sp"], "lab_ph": ph.lab_ph, "age_min": age}
+
+
 def _b_piezometer(c: _Snap, tid, w):
     prm = c.table
     key = _site_piezo().get(tid)
@@ -688,11 +766,24 @@ _BUILDERS = {
     "conveyor": _b_conveyor, "stockpile": _b_stockpile, "line": _b_line, "sag": _b_sag,
     "pebble": _b_pebble, "ball": _b_ball, "cyclones": _b_cyclones, "flot": _b_flot,
     "rougher": _b_rougher, "cleaner": _b_cleaner, "thick": _b_thick, "filter": _b_filter,
-    "conc-stock": _b_conc_stock, "water": _b_water, "power": _b_power, "crew": _b_crew,
+    "conc-stock": _b_conc_stock, "leach": _b_leach, "sxew": _b_sxew, "water": _b_water, "power": _b_power, "crew": _b_crew,
     "person": _b_person, "truck": _b_truck, "face": _b_face, "road": _b_road, "analyzer": _b_analyzer,
-    "weigher": _b_weigher, "flowmeter": _b_flowmeter, "piezometer": _b_piezometer,
+    "weigher": _b_weigher, "flowmeter": _b_flowmeter, "piezometer": _b_piezometer, "phmeter": _b_phmeter,
     "drill": _b_drill, "dozer": _b_dozer,
 }
+
+
+def _with_wear(build, typ):
+    """Builder of a thing type that carries a monitored signal of tier T (sim/wear.py): the signal is added to the raw dict."""
+    def wrapped(c, tid, obj):
+        d = build(c, tid, obj)
+        d.update(wear_mod.signals(c.st, tid, typ))
+        return d
+    return wrapped
+
+
+for _typ in wear_mod.SIGNAL_TYPES:
+    _BUILDERS[_typ] = _with_wear(_BUILDERS[_typ], _typ)
 
 
 def _snapshot(st: PlantState, prm: ParamSet | None, measured: bool) -> dict[str, dict[str, float | str]]:

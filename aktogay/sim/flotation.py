@@ -105,7 +105,7 @@ def grade_gain_total_pp(feed_cu: float, prm: ParamSet) -> float:
 
 
 def r_inf_pct(feed_cu: float, ascu_pct: float, p80_um: float, dose_ratio: float,
-              prm: ParamSet) -> float:
+              prm: ParamSet, loss_pp: float = 0.0) -> float:
     """Rougher ultimate recovery R_inf, %.
 
     feed_cu % Cu, ascu_pct % of total Cu, p80_um flotation feed P80 (um),
@@ -128,6 +128,7 @@ def r_inf_pct(feed_cu: float, ascu_pct: float, p80_um: float, dose_ratio: float,
     r -= prm["flot_jose_ascu"] / _base_stage_share(prm) * (ascu_pct - prm["flot_ascu_ref_pct"])
     r -= prm["flot_p80_pp_10um"] * max(0.0, p80_um - prm["flot_p80_ref_um"]) / 10.0
     r -= dose_penalty_pp(dose_ratio, prm)
+    r -= loss_pp / _base_stage_share(prm)     # extra recovery loss on total recovery: pH above setpoint, a rougher line stopped
     return _clamp(r, 0.0, 100.0)
 
 
@@ -191,7 +192,7 @@ def tails_cu_pct(feed_cu: float, total_rec_pct: float, conc_cu: float) -> float:
 
 
 def flotation_steady(q_tph: float, ore: OreProps, p80_um: float, dose_ratio: float,
-                     prm: ParamSet) -> FlotResult:
+                     prm: ParamSet, loss_pp: float = 0.0) -> FlotResult:
     """Instant (no lag) flotation result for one line.
 
     q_tph fresh feed, t/h; ore true feed properties; p80_um flotation feed
@@ -205,7 +206,7 @@ def flotation_steady(q_tph: float, ore: OreProps, p80_um: float, dose_ratio: flo
         return _no_flow_result()
     g = ore.cu_pct
     tau = residence_min(q_tph, prm)
-    rinf = r_inf_pct(g, ore.ascu_pct, p80_um, dose_ratio, prm)
+    rinf = r_inf_pct(g, ore.ascu_pct, p80_um, dose_ratio, prm, loss_pp)
     r_r = rougher_recovery_pct(rinf, tau, prm)
     pull = mass_pull_pct(g, prm)
     r_c = cleaner_recovery_pct(pull, prm)
@@ -269,7 +270,8 @@ def _delay_lag(fl: FlotState, rec_now: float, grade_now: float, t_min: float, dt
 
 def flotation_step(fl: FlotState, rough: RougherState, clean: CleanerState, q_tph: float,
                    ore: OreProps, p80_um: float, dose_ratio: float, dose_meas_gt: float,
-                   t_min: float, dt_min: float, prm: ParamSet, conc_drop_pp: float = 0.0) -> FlotResult:
+                   t_min: float, dt_min: float, prm: ParamSet, conc_drop_pp: float = 0.0,
+                   rec_loss_pp: float = 0.0) -> FlotResult:
     """Advance flotation of one line; returns the lagged result used for accounting.
 
     q_tph t/h; ore true feed; p80_um um; dose_ratio true / setpoint dose;
@@ -308,7 +310,7 @@ def flotation_step(fl: FlotState, rough: RougherState, clean: CleanerState, q_tp
         fl.cu_tph = fl.conc_tph = 0.0
         return res
 
-    ss = flotation_steady(q_tph, ore, p80_um, dose_ratio, prm)
+    ss = flotation_steady(q_tph, ore, p80_um, dose_ratio, prm, rec_loss_pp)
     _delay_lag(fl, ss.total_rec_pct, ss.conc_cu_pct, t_min, dt_min, prm)
     g = ore.cu_pct
     rec = fl.rec_lag

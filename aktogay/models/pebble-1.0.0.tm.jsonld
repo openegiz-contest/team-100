@@ -6,7 +6,7 @@
     "en": "Pebble crushing",
     "ru": "Дробление гали"
   },
-  "description": "Pebble crushing loop back to the SAG mill; LIMIT at 95 % of the limit. States: RUN, LIMIT, STOP.",
+  "description": "Pebble crushing loop back to the SAG mill; LIMIT at 95 % of the limit. Line 2: limit = min(cones, HPGR 1 061 t/h); hpgr_* features show the HPGR load and drive power. States: RUN, LIMIT, STOP.",
   "version": {
     "model": "1.0.0"
   },
@@ -46,6 +46,42 @@
       "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "fire"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "hpgr_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "hpgr_load_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-kw-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "hpgr_kw"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "hpgr_skew_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "hpgr_kw_diff_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "metal_alarm"
     },
     {
       "rel": "tm:submodel",

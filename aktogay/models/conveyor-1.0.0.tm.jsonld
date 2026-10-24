@@ -37,6 +37,18 @@
     },
     {
       "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "fault"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-degc-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "idler_temp_c"
+    },
+    {
+      "rel": "tm:submodel",
       "href": "http://akt-models/tm/q-text-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "idSimulationRun"

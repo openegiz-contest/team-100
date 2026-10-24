@@ -25,16 +25,16 @@ class TwinModelTest(unittest.TestCase):
     def test_counts(self):
         m = self.m
         service = [t for t in m.things if t["type"] in m.service]
-        self.assertEqual(len(m.things), 128)                   # 50 (4 crews) + 77 generated from the site passport
+        self.assertEqual(len(m.things), 136)                   # 52 (4 crews, leach pad and SX-EW) + 83 generated from the site passport (+4 people, +2 pH meters)
         self.assertEqual(len(service), 9)
-        self.assertEqual(len(m.types) - len(m.service), 32)   # 32 own types incl. batch
+        self.assertEqual(len(m.types) - len(m.service), 35)   # 33 own types incl. batch (+ phmeter, leach, sxew)
         by_type = {}
         for t in m.things:
             by_type[t["type"]] = by_type.get(t["type"], 0) + 1
         self.assertEqual((by_type["person"], by_type["truck"], by_type["exc"], by_type["face"], by_type["road"]),
-                         (9, 37, 5, 5, 3))
-        self.assertEqual((by_type["analyzer"], by_type["weigher"], by_type["flowmeter"], by_type["piezometer"]),
-                         (2, 2, 2, 3))
+                         (13, 37, 5, 5, 3))
+        self.assertEqual((by_type["analyzer"], by_type["weigher"], by_type["flowmeter"], by_type["piezometer"],
+                          by_type["phmeter"]), (2, 2, 2, 3, 2))
         self.assertEqual((by_type["drill"], by_type["dozer"]), (6, 7))
         self.assertEqual(m.by_name["truck-21"]["passport"]["bort"][:3], ["HT141", "", "kaz_equip2024"])
         self.assertEqual(m.by_name["exc-1"]["passport"]["bort"][0], "EX01")

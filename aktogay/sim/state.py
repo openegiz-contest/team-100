@@ -157,6 +157,9 @@ class ExcavatorState:
     bench: int = 1
     down_until_min: float = NO_VALUE
     duty: str = "ore"         # "ore" (PlantState.excavators) | "waste" (PlantState.waste_excavators)
+    oil_pct: float = 0.0      # truth: hydraulic oil contamination, % of the alert level of the on-machine sensor
+    oil_event_min: float = NO_VALUE   # scenario oil: model minute the contamination starts to rise
+    oil_fix_min: float = NO_VALUE     # model minute the oil service (called) is done
 
 
 @dataclass
@@ -199,6 +202,7 @@ class DrillState:
     state: str = "DRILLING"   # DRILLING | MOVING | IDLE | DOWN
     holes_shift: float = 0.0  # holes drilled in the current shift
     shift_idx: int = -1
+    ready_hour: int = -1      # model hour of the last readiness draw (the draw is hourly: cached, same value)
 
 
 @dataclass
@@ -208,6 +212,8 @@ class DozerState:
     place: str                # face or road it works on
     k: int                    # index of its hourly readiness draw (stream "dozer")
     state: str = "WORK"       # WORK | IDLE | DOWN
+    ready_hour: int = -1      # model hour of the last readiness draw (the draw is hourly: cached, same value)
+    ready: bool = True
 
 
 @dataclass
@@ -248,6 +254,8 @@ class FleetState:
     kio_sum: float = 0.0           # accumulator for truck_kio_shift
     kio_n: int = 0
     last_draw_h: int = -1          # model hour of last Binomial draw
+    fatigue: bool = False          # alert of a tired driver / close approach (scenario fatigue)
+    fatigue_truck: str = ""
 
 
 @dataclass
@@ -261,6 +269,10 @@ class PitState:
     blend: dict[int, bool] = field(default_factory=lambda: {1: False, 2: False})  # C3 response
     haul: dict[int, list[Parcel]] = field(default_factory=lambda: {1: [], 2: []})  # to crusher pocket
     target_tph: dict[int, float] = field(default_factory=lambda: {1: 0.0, 2: 0.0})  # regulator output
+    visibility_m: float = 10000.0     # haul roads: visibility, m (weather)
+    road_grip: float = 0.8            # haul roads: friction index 0..1 (weather)
+    cycle_mult: float = 1.0           # truck cycle multiplier of weather and restriction (set by the plant each step)
+    restrict_until_min: float = NO_VALUE   # traffic restriction (speed limit) in force until this minute
 
 
 # ---------------------------------------------------------------------------
@@ -276,8 +288,9 @@ class CrusherState:
     lube_kpa: float = 0.0
     lube_bias_kpa: float = 0.0          # truth: sensor fault offset (scenario "trip")
     pocket: list[Parcel] = field(default_factory=list)   # dumped, waiting
-    fault: str = ""           # cause of STOP: "", "scenario", "lube_trip"
+    fault: str = ""           # cause of STOP: "", "scenario", "lube_trip", "mantle" (planned mantle change)
     fault_until_min: float = NO_VALUE   # repair end (set by crew model)
+    service_until_min: float = NO_VALUE   # planned end of the mantle change (scenario mantle:N)
 
 
 @dataclass
@@ -289,6 +302,8 @@ class ConveyorState:
     power_kw: float = 0.0
     belt: list[Parcel] = field(default_factory=list)
     weighed_t_total: float = 0.0   # belt weigher totalizer since the start (weighed rate x dt)
+    fault: str = ""                # "" | "scenario": belt tripped (scenario conveyor:N); the crusher then has no room
+    fault_until_min: float = NO_VALUE
 
 
 @dataclass
@@ -324,6 +339,7 @@ class SagState:
     e_kwh_t: float = 0.0
     axb_soft: float = NO_VALUE
     liner_wear_mm: float = 0.0   # published counter (by norm)
+    liner_ground_t: float = 0.0  # published counter: ore ground since the last reline, t (tonnage counter, by norm)
     liner_x: float = 0.0         # truth: campaign share used
     eta: float = 1.0             # truth: liner efficiency multiplier
     reline_until_min: float = NO_VALUE
@@ -339,6 +355,13 @@ class PebbleState:
     limit_tph: float = 0.0
     load_pct: float = 0.0
     stop_until_min: float = NO_VALUE
+    hpgr_tph: float = 0.0       # rated HPGR throughput of the circuit (line 2: thyssenkrupp POLYCOM, vendor), 0 = not in the model
+    hpgr_load_pct: float = 0.0  # feed / hpgr_tph
+    hpgr_kw: float = 0.0        # HPGR drive power now: rated 2 x 1 750 kW x load, 0 when the circuit stands
+    hpgr_eff: float = 1.0       # truth: share of the HPGR throughput kept (uneven feed / skew lowers it)
+    hpgr_skew_pct: float = 0.0  # roll gap skew, % of the mean gap
+    hpgr_kw_diff_pct: float = 0.0   # difference of the power of the two drives, %
+    metal_alarm: bool = False   # metal detector in front of the HPGR tripped
 
 
 @dataclass
@@ -349,6 +372,7 @@ class BallState:
     power_kw: float = 0.0     # shaft
     e_kwh_t: float = 0.0
     start_cmd: float = 0.0    # 1 while a start command is on (scenario startup: people may be inside)
+    overload_pct: float = 0.0  # truth: draw above the rating, % (cyclone roping)
 
 
 @dataclass
@@ -361,6 +385,8 @@ class CycloneState:
     pressure_kpa: float = 0.0
     open_count: int = 0
     clogged: int = 0           # truth: clogged but "open" units
+    rope: float = 0.0          # truth: roping severity 0..1 (scenario roping:N)
+    circ_load_pct: float = 0.0  # circulating load of the ball mill circuit, %
 
 
 # ---------------------------------------------------------------------------
@@ -440,6 +466,28 @@ class FilterState:
 
 
 @dataclass
+class LeachState:
+    """Heap leach pad of the oxide line (sim/oxide.py): one state, the cathode level of the quarter."""
+    name: str = "leach-1"
+    state: str = "NORMAL"     # NORMAL | COLD
+    quarter_cathode_kt: float = 0.0
+    level_tph: float = 0.0
+    cold_frac: float = 0.0
+
+
+@dataclass
+class SxewState:
+    """SX-EW plant of the oxide line: cathode t/h (a quarterly figure of the reports, not a measurement)."""
+    name: str = "sxew-1"
+    state: str = "NORMAL"     # NORMAL | LOW
+    cathode_tph: float = 0.0
+    cathode_level_tph: float = 0.0
+    cathode_t_total: float = 0.0
+    year: float = 0.0
+    quarter: float = 0.0
+
+
+@dataclass
 class ConcStockState:
     name: str = "conc-stock"
     state: str = "NORMAL"     # NORMAL | HIGH | FULL
@@ -463,6 +511,19 @@ class AnalyzerState:
     conc_cu: float = NO_VALUE
     above_count: int = 0      # consecutive cycles with tail_cu above ACS setpoint
     alarm: bool = False
+    blocked: bool = False     # truth: the sample line is blocked, the analyser keeps its last reading (scenario sample:N)
+
+
+@dataclass
+class PhState:
+    """pH sensor of the rougher: the control holds the reading at the setpoint; a scaled electrode reads low, so the real pH
+    is above the reading (truth bias) and a grab sample with a hand-held meter shows it."""
+    reading: float = NO_VALUE        # online reading (held at the setpoint by the control)
+    bias: float = 0.0                # truth: real pH minus reading
+    lab_ph: float = NO_VALUE         # last grab sample
+    lab_t_min: float = NO_VALUE      # model minute of the grab sample
+    lab_idx: int = -1                # index of the grab sample interval
+    confirmed: bool = False          # drift found (call of the module)
 
 
 @dataclass
@@ -515,6 +576,7 @@ class LineState:
     filter: FilterState | None = None
     analyzer: AnalyzerState = field(default_factory=AnalyzerState)
     lab: LabState = field(default_factory=LabState)
+    ph: PhState = field(default_factory=PhState)
     down_windows: list[tuple[float, float]] = field(default_factory=list)  # calib: planned stops
 
 
@@ -652,6 +714,9 @@ class CauseEffects:
     ascu_add_pp: float = 0.0        # ASCu above estimate
     balls_mult: float = 1.0         # grinding media consumption multiplier (silent overuse)
     conc_drop_pp: float = 0.0       # concentrate grade lost to dilution, pp
+    rope: float = 0.0               # cyclone roping severity 0..1 (ramps up after the start)
+    rope_flot_pp: float = 0.0       # recovery loss after heavy roping that nobody stopped, pp
+    ph_bias: float = 0.0            # real pH above the pH reading (scaled electrode)
 
 
 @dataclass
@@ -720,6 +785,8 @@ class PlantState:
     next_batch_no: int = 1
     lines: list[LineState] = field(default_factory=list)   # index 0 -> line 1
     conc_stock: ConcStockState = field(default_factory=ConcStockState)
+    leach: LeachState = field(default_factory=LeachState)
+    sxew: SxewState = field(default_factory=SxewState)
     water: WaterState = field(default_factory=WaterState)
     power: PowerState = field(default_factory=PowerState)
     crews: dict[str, CrewState] = field(default_factory=dict)
@@ -737,6 +804,11 @@ class PlantState:
     people: dict[str, PersonState] = field(default_factory=dict)
     drills: list[DrillState] = field(default_factory=list)
     dozers: list[DozerState] = field(default_factory=list)
+    wear: dict[str, dict] = field(default_factory=dict)   # tier T: key "gmd:1" -> {t0, fix, failed} (scenario only)
+
+    # what-if levers (control of the model, off = empty): feed_1, feed_2 (% of the nominal line rate), p80_um (grind target),
+    # dose_gt (collector dose). Set by Plant.set_levers only; a neutral value is never stored.
+    levers: dict[str, float] = field(default_factory=dict)
 
     def line(self, n: int) -> LineState:
         return self.lines[n - 1]
@@ -805,6 +877,8 @@ def topology() -> dict[str, ThingInfo]:
         add(f"thick-{n}", "thick", (f"line-{n}",), (f"filter-{n}", "water"), "plant_shift_manager")
         add(f"filter-{n}", "filter", (f"line-{n}",), ("conc-stock",), "plant_shift_manager")
     add("conc-stock", "conc-stock", ("site",), (), "plant_shift_manager")
+    add("leach-1", "leach", ("site",), ("sxew-1",), "shift_metallurgist")
+    add("sxew-1", "sxew", ("site",), (), "shift_metallurgist")
     add("water", "water", ("site",), ("line-1", "line-2"), "tailings_engineer")
     add("power", "power", ("site",), (), "power_engineer")
     # a crew answers through the person who leads it (site CREW_PERSON, modules/priority.CREW_LEAD)
@@ -858,6 +932,10 @@ CREW_FOR = {
     "leak": "crew-water",           # silent return-water leak, found by the water balance
     "water": "crew-water",          # return-water pipeline: the tailings and water team, not the mill mechanics
     "startup": "crew-mill",         # mill under repair with people inside: the mill crew
+    "phdrift": "crew-kip",          # scaled pH electrode: the I&C technician cleans and calibrates it
+    "hpgr": "crew-mill",            # uneven HPGR feed / tramp metal: the mill crew
+    "mantle": "crew-cpd",           # planned mantle change of the primary crusher
+    "sample": "crew-kip",           # blocked sample line of the analyser: the I&C technician cleans it
 }
 
 
@@ -881,6 +959,19 @@ def feed_end_wear_mm(wear_mm: float, prm) -> float:
     cap = prm["liner_feed_end_mm"]
     w = max(0.0, wear_mm)
     return math.fmod(w, cap) if cap > 0.0 else w
+
+
+def hpgr_tph(prm, line: int) -> float:
+    """Rated HPGR throughput of the pebble circuit of `line`, t/h: line 2 has the thyssenkrupp POLYCOM (1 061 t/h, vendor);
+    line 1 has an HPGR section too (fire of 09.08.2026) but no published rating: 0 = not in the model."""
+    return float(prm["peb_hpgr_l2_tph"]) if line == 2 else 0.0
+
+
+def peb_limit_tph(prm, line: int) -> float:
+    """Throughput limit of the pebble circuit of `line`, t/h: the cone crushers (peb_limit_tph); on line 2 also
+    below the HPGR (min of both, so the cones stay the limit while they are the smaller)."""
+    h = hpgr_tph(prm, line)
+    return min(float(prm["peb_limit_tph"]), h) if h > 0.0 else float(prm["peb_limit_tph"])
 
 
 def initial_state(prm, seed: int | None = None, mode: str = "free", t0_min: float | None = None,
@@ -931,18 +1022,23 @@ def initial_state(prm, seed: int | None = None, mode: str = "free", t0_min: floa
             sag=SagState(f"sag-{n}", n, power_kw=sag_kw, power_limit_kw=prm["sag_rated_mw"] * 1000.0,
                          power_sp_kw=sag_kw, feed_tph=q, speed_pct=prm["sag_speed_pct"],
                          load_pct=prm["sag_load0_pct"], e_kwh_t=sag_kw / q, axb_soft=ore.axb,
-                         liner_x=prm["liner_x0"],
+                         liner_x=prm["liner_x0"], liner_ground_t=prm["liner_x0"] * prm["liner_life_mt"] * 1.0e6,
                          liner_wear_mm=feed_end_wear_mm(
                              prm["liner_x0"] * prm["liner_life_mt"] * prm["liner_wear_mm_mt"], prm),
                          feed_ore=ore.copy()),
-            pebble=PebbleState(f"pebble-{n}", n, feed_tph=prm["peb_frac_base"] * q, limit_tph=prm["peb_limit_tph"],
-                               load_pct=100.0 * prm["peb_frac_base"] * q / prm["peb_limit_tph"]),
+            pebble=PebbleState(f"pebble-{n}", n, feed_tph=prm["peb_frac_base"] * q, limit_tph=peb_limit_tph(prm, n),
+                               load_pct=100.0 * prm["peb_frac_base"] * q / peb_limit_tph(prm, n),
+                               hpgr_tph=hpgr_tph(prm, n),
+                               hpgr_load_pct=(100.0 * prm["peb_frac_base"] * q / hpgr_tph(prm, n)
+                                              if hpgr_tph(prm, n) > 0.0 else 0.0),
+                               hpgr_kw=(prm["peb_hpgr_l2_kw"] * min(1.0, prm["peb_frac_base"] * q / hpgr_tph(prm, n))
+                                        if hpgr_tph(prm, n) > 0.0 else 0.0)),
             # each running mill grinds q / (mills running)
             balls=[BallState(f"ball-{n}{s}", n, power_kw=ball_kw, e_kwh_t=ball_kw * len(ball_ids) / q)
                    for s in ball_ids],
             cyclones=CycloneState(f"cyclones-{n}", n, p80_um=prm["ball_p80_target_um"],
                                   p80_grind_um=prm["ball_p80_target_um"], pressure_kpa=prm["cyc_pressure_kpa"],
-                                  open_count=int(prm["cyc_open"])),
+                                  open_count=int(prm["cyc_open"]), circ_load_pct=prm["cyc_circ_base_pct"]),
             rougher=RougherState(f"rougher-{n}", n, feed_tph=q, mass_pull_pct=prm["flot_pull0_pct"],
                                  residence_min=prm["flot_tau0_min"], dose_sp_gt=prm["flot_dose_sp_gt"],
                                  dose_meas_gt=prm["flot_dose_sp_gt"], dose_true_gt=prm["flot_dose_sp_gt"],
@@ -951,6 +1047,7 @@ def initial_state(prm, seed: int | None = None, mode: str = "free", t0_min: floa
                                  conc_tph=conc_tph, feed_tph=clean_feed, tail_cu=clean_tail),
             flot=FlotState(f"flot-{n}", n, feed_cu=g, tail_cu=tail, conc_cu=grade_c, recovery=rec,
                            cu_tph=q * g / 100.0 * rec / 100.0, conc_tph=conc_tph, rec_lag=rec, grade_lag=grade_c),
+            ph=PhState(reading=prm["flot_ph_sp"], lab_ph=prm["flot_ph_sp"], lab_t_min=t0),
             thick=ThickenerState(f"thick-{n}", n, feed_tph=conc_tph, underflow_tph=conc_tph,
                                  inventory_t=prm["thick_t0"], solids_pct=prm["thick_uf_solids_pct"]),
             filter=FilterState(f"filter-{n}", n, presses_on=int(prm["filt_presses"]), cake_tph=conc_tph,
@@ -975,7 +1072,7 @@ def initial_state(prm, seed: int | None = None, mode: str = "free", t0_min: floa
     n_exc = int(prm["pit_exc_count"])
     for i in range(1, n_exc + 1):
         st.excavators.append(ExcavatorState(f"exc-{i}", line=1 if i == 1 else 2 if i == 2 else 1,
-                                            tph=prm["pit_exc_tph"]))
+                                            tph=prm["pit_exc_tph"], oil_pct=prm["pit_oil_start_pct"]))
     s = site()
     for eid, duty, _face in s.EXCAVATORS[n_exc:n_exc + int(prm["pit_exc_waste_count"])]:
         if duty == "waste":

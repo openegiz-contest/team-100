@@ -1,0 +1,21 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "tm:ThingModel",
+  "title": "Mass (thousands of tonnes), kt",
+  "version": {
+    "model": "1.0.0"
+  },
+  "properties": {
+    "value": {
+      "type": "number",
+      "default": -1.0,
+      "unit": "kt",
+      "description": "-1 means no value."
+    },
+    "unit": {
+      "type": "string",
+      "const": "kt",
+      "default": "kt"
+    }
+  }
+}

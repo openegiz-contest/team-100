@@ -16,6 +16,15 @@ accepted too, since "+" in a query string decodes to a space):
   trip:N                                    crusher-N lube sensor fault (loud)
   energy:N  reagent:N  leak                 silent causes set explicitly (SAG energy overspend,
                                             collector overdose, small return-water leak)
+  icy  fatigue  oil                         tier S of 23.10.2026: ice and snowstorm on the haul roads, tired driver
+                                            (assumption), hydraulic oil contamination of the excavator EX01
+  roping:N  phdrift:N                       cyclone roping with ball mill overload, scaled pH electrode (scenario only)
+  hpgr:2  mantle:N                          uneven HPGR feed / tramp metal (line 2), planned mantle change of a crusher
+  sample:N                                  blocked sample line of the on-stream analyser: it keeps its last reading (data age grows)
+Constructor of a trouble (feature 24): every token may carry a start and a magnitude, kind[:N][@start_min][=magnitude],
+e.g. "crusher:1@90=4.5" = crusher 1 stops 90 model minutes after the start of the scenario (08:00), the repair takes
+a median of 4.5 h. The magnitude is in the unit of MAGNITUDE (hours, MW, share, pp), kept inside the min..max of the
+parameter row it replaces; a kind without a magnitude (hpgr, startup, sample, oil, winter...) rejects "=".
 preset "fork" = dose:1 at scen_fork_dose_h + crusher-2 lube trip at
 scen_fork_trip_h; auto defaults to True for fork, False otherwise.
 
@@ -25,8 +34,9 @@ travel and notice delays in minutes.
 from __future__ import annotations
 
 import math
+import re
 
-from .params import ParamSet
+from .params import TABLE, ParamSet
 from .state import (CREW_FOR, MIN_PER_DAY, MIN_PER_H, NO_VALUE, CauseEffects, CrewJob, CrewState,
                     HiddenCause, PlannedCall, ScenarioEvent, ScenarioSpec, normal, u01)
 
@@ -38,7 +48,7 @@ SILENT = ("energy", "reagent", "leak")
 SILENT_FOUND_BY = {"energy": "report", "reagent": "audit", "leak": "patrol"}
 # Silent causes set only by a scenario (never drawn in free run, so the draws of the others stay as they were):
 # balls = grinding media overuse, conc = concentrate grade lost to dilution.
-EXTRA = ("balls", "conc")
+EXTRA = ("balls", "conc", "roping", "phdrift")
 COPIES = ("fact", "base", "loud", "no_twin")
 POLICIES = ("by_value", "loud", "no_twin")
 PRESETS = ("", "fork")
@@ -48,8 +58,11 @@ LINES = (1, 2)
 #   water      leak of the return-water pipeline: recycle falls, fresh water hits its cap, ore is cut
 #   hpgr_fire  fire at the HPGR of concentrator 1 during maintenance (event of 09.08.2026, scen_fire_line)
 #   road:N     ramp to crusher N closed, trucks take a detour
-SITE_KINDS = ("grid", "water", "hpgr_fire", "leak", "winter", "dust")
-LINE_KINDS = ("crusher", "hard", "reline", "trip", "road") + HIDDEN + ("energy", "reagent") + EXTRA + ("startup",)
+SITE_KINDS = ("grid", "water", "hpgr_fire", "leak", "winter", "dust", "pitstop", "icy", "fatigue", "oil", "leachcold",
+              "brake", "track")
+LINE_KINDS = ("crusher", "hard", "reline", "trip", "road", "conveyor") + HIDDEN + ("energy", "reagent") + EXTRA + (
+    "startup", "hpgr", "mantle", "sample", "gmd", "idler", "froth", "rake", "cloth", "slurry")
+HPGR_LINES = (2,)           # the HPGR is in the model on line 2 only (thyssenkrupp POLYCOM, vendor)
 
 # Standard normal 0.90 quantile (P90 of a lognormal = median * exp(Z90 * sigma)).
 Z90 = 1.2815515655446004
@@ -62,17 +75,56 @@ _NODE = {
     "dose": "flot-{n}", "cyclone": "cyclones-{n}", "liner": "sag-{n}", "oxide": "flot-{n}",
     "grid": "power", "safety": "water", "water": "water", "hpgr_fire": "pebble-{n}", "road": "ramp-{n}",
     "energy": "sag-{n}", "reagent": "rougher-{n}", "leak": "water", "balls": "ball-{n}a", "conc": "flot-{n}",
-    "startup": "ball-{n}a", "winter": "water", "dust": "water",
+    "startup": "ball-{n}a", "winter": "water", "dust": "water", "conveyor": "conveyor-{n}", "pitstop": "pit",
+    "icy": "pit", "fatigue": "fleet", "oil": "exc-1", "roping": "cyclones-{n}", "phdrift": "ph-{n}",
+    "hpgr": "pebble-{n}", "mantle": "crusher-{n}", "sample": "analyzer-{n}", "leachcold": "leach-1",
+    "gmd": "sag-{n}", "idler": "conveyor-{n}", "froth": "flot-{n}", "rake": "thick-{n}", "cloth": "filter-{n}",
+    "slurry": "cyclones-{n}", "brake": "fleet", "track": "exc-1",
 }
 # Key of the magnitude in ScenarioEvent.data and the parameter that sets it.
 _MAG_KEY = {"dose": "drop", "cyclone": "n", "liner": "loss", "oxide": "ascu_pp",
-            "energy": "e_frac", "reagent": "over", "leak": "leak_frac", "balls": "over", "conc": "drop_pp"}
+            "energy": "e_frac", "reagent": "over", "leak": "leak_frac", "balls": "over", "conc": "drop_pp",
+            "roping": "rope", "phdrift": "ph_bias"}
 _MAG_PARAM = {"dose": "hc_dose_drop", "cyclone": "hc_cyclone_n", "liner": "hc_liner_eta_loss",
               "oxide": "hc_oxide_ascu_pp", "energy": "hc_energy_frac", "reagent": "hc_reagent_over",
-              "leak": "hc_leak_frac", "balls": "hc_balls_frac", "conc": "hc_conc_drop_pp"}
+              "leak": "hc_leak_frac", "balls": "hc_balls_frac", "conc": "hc_conc_drop_pp",
+              "roping": "hc_rope_sev", "phdrift": "hc_ph_drift"}
 # Median repair time after arrival per issue kind (other kinds: crew_dose_fix_h).
 _WORK_PARAM = {"crusher": "crush_repair_h", "trip": "crew_trip_fix_h", "lube_trip": "crew_trip_fix_h",
+               "conveyor": "conv_repair_h", "mantle": "crush_mantle_h", "hpgr": "peb_hpgr_fix_h", "sample": "sens_an_clean_h",
                "dose": "crew_dose_fix_h", "water": "water_leak_fix_h"}
+
+# Magnitude of a trouble set by the constructor: kind -> (slot, parameter row that it replaces). Slot "hours" =
+# duration of the event, "work" = median repair time after arrival (and the duration), anything else = key of
+# ScenarioEvent.data. The value stays inside min..max of the row.
+MAGNITUDE = {
+    "crusher": ("work", "crush_repair_h"), "trip": ("work", "crew_trip_fix_h"), "conveyor": ("work", "conv_repair_h"),
+    "mantle": ("work", "crush_mantle_h"), "reline": ("hours", "liner_reline_h"), "pitstop": ("hours", "scen_pitstop_h"),
+    "icy": ("hours", "scen_icy_h"), "fatigue": ("hours", "scen_fatigue_h"), "dust": ("hours", "scen_dust_h"),
+    "leachcold": ("hours", "scen_leach_h"),
+    "road": ("hours", "pit_road_close_h"), "hpgr_fire": ("hours", "scen_fire_h"),
+    "grid": ("limit_mw", "pow_c2_limit_mw"), "hard": ("axb", "ore_axb_hard"), "water": ("leak_frac", "water_leak_frac"),
+    "dose": ("drop", "hc_dose_drop"), "cyclone": ("n", "hc_cyclone_n"), "liner": ("loss", "hc_liner_eta_loss"),
+    "oxide": ("ascu_pp", "hc_oxide_ascu_pp"), "energy": ("e_frac", "hc_energy_frac"), "reagent": ("over", "hc_reagent_over"),
+    "leak": ("leak_frac", "hc_leak_frac"), "balls": ("over", "hc_balls_frac"), "conc": ("drop_pp", "hc_conc_drop_pp"),
+    "roping": ("rope", "hc_rope_sev"), "phdrift": ("ph_bias", "hc_ph_drift"),
+    # tier T: the magnitude is the work of the person after the arrival, hours (data["fix_h"])
+    "gmd": ("fix_h", "w_gmd_fix_h"), "idler": ("fix_h", "w_idler_fix_h"), "froth": ("fix_h", "w_froth_fix_h"),
+    "rake": ("fix_h", "w_rake_fix_h"), "cloth": ("fix_h", "w_cloth_fix_h"), "slurry": ("fix_h", "w_slurry_fix_h"),
+    "brake": ("fix_h", "w_brake_fix_h"), "track": ("fix_h", "w_track_fix_h"),
+}
+_RE_TOKEN = re.compile(r"^([a-z_]+(?::\d+)?)(?:@(\d+(?:\.\d+)?))?(?:=(-?\d+(?:\.\d+)?))?$")
+
+
+def split_token(tok: str) -> tuple[str, float | None, float | None]:
+    """'crusher:1@90=4.5' -> ('crusher:1', 90.0, 4.5); a token without modifiers -> (tok, None, None).
+    A token that does not fit the pattern is returned as it is (the parser names it unknown)."""
+    m = _RE_TOKEN.match(tok)
+    if not m:
+        return tok, None, None
+    return (m.group(1), float(m.group(2)) if m.group(2) is not None else None,
+            float(m.group(3)) if m.group(3) is not None else None)
+
 
 
 # ---------------------------------------------------------------------------
@@ -131,12 +183,14 @@ def _parse_token(tok: str) -> tuple[str, int]:
             raise ValueError(f"bad line in scenario token: {tok}") from None
         if line not in LINES:
             raise ValueError(f"line must be one of {LINES}: {tok}")
+        if kind == "hpgr" and line not in HPGR_LINES:
+            raise ValueError(f"the HPGR is in the model on line 2 only: {tok}")
         return kind, line
     raise ValueError(f"unknown scenario token: {tok}")
 
 
-def _event(kind: str, line: int, t_min: float, prm: ParamSet) -> ScenarioEvent:
-    """ScenarioEvent with its parameters from the table (see parse_scenario)."""
+def _event(kind: str, line: int, t_min: float, prm: ParamSet, mag: float | None = None) -> ScenarioEvent:
+    """ScenarioEvent with its parameters from the table (see parse_scenario); mag replaces the default size."""
     issue, node, crew = issue_for(kind, line)
     data: dict = {"issue": issue, "node": node, "crew": crew}
     dur = NO_VALUE
@@ -150,6 +204,16 @@ def _event(kind: str, line: int, t_min: float, prm: ParamSet) -> ScenarioEvent:
         data["leak_frac"] = prm["water_leak_frac"]
     elif kind == "road":
         dur = prm["pit_road_close_h"]
+    elif kind == "pitstop":
+        dur = prm["scen_pitstop_h"]
+    elif kind == "conveyor":
+        dur = prm["conv_repair_h"]
+    elif kind == "icy":
+        dur = prm["scen_icy_h"]
+    elif kind == "fatigue":
+        dur = prm["scen_fatigue_h"]
+    elif kind == "mantle":
+        dur = prm["crush_mantle_h"]
     if kind == "crusher":
         dur = prm["crush_repair_h"]
     elif kind == "grid":
@@ -165,10 +229,24 @@ def _event(kind: str, line: int, t_min: float, prm: ParamSet) -> ScenarioEvent:
         data["bias_kpa"] = prm["scen_trip_lube_kpa"] - prm["crush_lube_kpa"]
     elif kind == "dust":
         dur = prm["scen_dust_h"]
+    elif kind == "leachcold":
+        dur = prm["scen_leach_h"]
     elif kind in HIDDEN or kind in SILENT or kind in EXTRA:
         data[_MAG_KEY[kind]] = _magnitude(kind, prm)
     elif kind == "safety":
         data["flag"] = "piezo"
+    if mag is not None:
+        if kind not in MAGNITUDE:
+            raise ValueError(f"scenario token {kind} takes no magnitude")
+        slot, key = MAGNITUDE[kind]
+        row = TABLE[key]
+        v = min(max(float(mag), row.min), row.max)
+        if slot in ("hours", "work"):
+            dur = v
+            if slot == "work":
+                data["work_h"] = v
+        else:
+            data[slot] = v
     return ScenarioEvent(kind, line, float(t_min), float(dur), data)
 
 
@@ -191,6 +269,9 @@ def parse_scenario(text: str, t0_min: float, prm: ParamSet, preset: str = "",
     hpgr_fire -> ScenarioEvent("hpgr_fire", scen_fire_line, t0, scen_fire_h,
                                {"people": scen_fire_people, "safety_h": scen_fire_safety_h})
     road:N    -> ScenarioEvent("road", N, t0, pit_road_close_h)
+    conveyor:N -> ScenarioEvent("conveyor", N, t0, conv_repair_h): the main belt of line N trips, the crew of the
+                 crusher repairs it; the stockpile carries the SAG meanwhile
+    pitstop   -> ScenarioEvent("pitstop", 0, t0, scen_pitstop_h): every ore excavator stands (DOWN) for that long
     preset "fork": dose:1 at day start + scen_fork_dose_h and
       ScenarioEvent("trip", 2, day start + scen_fork_trip_h, crew_trip_fix_h)
       (crusher-2 lube sensor fault: lube_bias drives the reading below trip;
@@ -202,6 +283,8 @@ def parse_scenario(text: str, t0_min: float, prm: ParamSet, preset: str = "",
     A token naming a preset ("fork", as the button "Два сразу" and the address
     ?scenario=fork send it) selects that preset; with another preset given it
     is a ValueError.
+    A token may carry a start and a magnitude, kind[:N][@minutes after t0][=magnitude] (MAGNITUDE, split_token);
+    the scenario text (site.scenario) keeps the bare kinds.
     Unknown token, line outside 1..2, unknown preset or kip < 1 -> ValueError.
     """
     preset_n = (preset or "").strip().lower()
@@ -223,15 +306,19 @@ def parse_scenario(text: str, t0_min: float, prm: ParamSet, preset: str = "",
         seen.update({("dose", 1), ("trip", 2)})
     tokens = _tokens(text)
     norm: list[str] = []
+    end = _day_start(t0) + prm["scen_end_h"] * MIN_PER_H
     for tok in tokens:
-        kind, line = _parse_token(tok)
+        base, delay, mag = split_token(tok)
+        kind, line = _parse_token(base)
         key = f"{kind}:{line}" if line else kind
         if key not in norm:
             norm.append(key)
         if (kind, line) in seen:
             continue
         seen.add((kind, line))
-        events.append(_event(kind, line, t0, prm))
+        if delay is not None and t0 + delay >= end - _EPS:
+            raise ValueError(f"scenario token starts after the end of the scenario shift: {tok}")
+        events.append(_event(kind, line, t0 + (delay or 0.0), prm, mag))
     if safety:
         events.append(_event("safety", 0, t0 + prm["scen_safety_min"], prm))
     events.sort(key=lambda e: e.t_start_min)
@@ -406,6 +493,14 @@ def cause_effects(causes: list[HiddenCause], line: int, t_min: float, prm: Param
             fx.balls_mult *= 1.0 + max(0.0, c.magnitude)
         elif c.kind == "conc":
             fx.conc_drop_pp += max(0.0, c.magnitude)
+        elif c.kind == "roping":
+            ramp = prm["cyc_rope_ramp_min"]
+            share = 1.0 if ramp <= 0.0 else min(1.0, max(0.0, (t_min - c.t_start_min) / ramp))
+            fx.rope = max(fx.rope, max(0.0, c.magnitude) * share)
+            if t_min - c.t_start_min >= prm["cyc_rope_escalate_h"] * MIN_PER_H:
+                fx.rope_flot_pp = max(fx.rope_flot_pp, prm["cyc_rope_flot_pp"])    # heavy roping nobody stopped
+        elif c.kind == "phdrift":
+            fx.ph_bias += max(0.0, c.magnitude)
         else:
             raise ValueError("unknown hidden cause kind: " + str(c.kind))
     fx.clogged = min(fx.clogged, int(prm["cyc_open"]))

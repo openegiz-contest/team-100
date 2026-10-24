@@ -45,6 +45,7 @@ S_LIHIR = "Lihir, AusIMM Mill Operators 2024 (pebble crusher stop: +6 % / +10 % 
 S_LME = "Westmetall, LME Cu cash 15.10.2026; range: World Bank CMO April 2026"
 S_NIST = "NIST/SEMATECH e-Handbook 6.3.2.3 (CUSUM, k = 0.5, h chosen for ARL)"
 S_D4 = "design file 17, section 4"
+S_BOZ = ("Bozshakol concentrator (the same operator), regression on daily plant data 2022 - Apr 2025 and laboratory composites, Satbayev University repository, table 2 p. 61, tables 4-6 p. 62: https://repository.satbayev.university/api/files/ep83fzrdl7c6ztx7jeo3dj51w.pdf (opened 24.10.2026; P80 of Aktogay 180 um from the Bradken whitepaper p. 3)")
 S_COMMO = ("CommoFlow 26.08.2026 (vendor blog, opened 23.10.2026): payable 96.5 % of contained copper or the grade "
            "less one unit, whichever is less favourable to the seller")
 S_MIR = ("MIR RK order no. 348 of 30.12.2014, items 12, 63, 315, 316, 326 (opened 23.10.2026): work permit, work inside "
@@ -64,6 +65,18 @@ S_VAZIFEH = ("Vazifeh, Jorjani, Bagherian 2010, Trans. Nonferrous Met. Soc. Chin
              "plant Z11 22 g/t + AP407 21 g/t (means of 90 operating days), lab optimum 12 + 11 g/t; analog")
 S_KUJAWA = ("Kujawa (Paterson & Cooke), AIChE 2016 Water Recovery in Mining, slide 20: tailings water loss 0.72 / 0.41 / "
             "0.37 / 0.18 m3/t (vendor engineering example; context only)")
+S_KAZ_WINTER = ("KAZ Minerals ESG, Enhancing winter safety at Aktogay (opened 23.10.2026): winter conditions raise the risk of road "
+                "accidents, snowstorms and strong winds; no thresholds in the source")
+S_CIDRA_KEN = ("CiDRA with Rio Tinto Kennecott, Comminution 2014, p. 12: control prevents ball mill overload and hydrocyclone roping")
+S_CIDRA_CEN = ("CiDRA, Centinela, p. 3: heavy roping of one battery stopped a rougher flotation line for about 6 h (May 2014)")
+S_ABB_PH = ("ABB application note, pH/ORP in copper flotation, p. 3: slurry abrasion and lime scale are the hazards of the sensor")
+S_METSO_HPGR = ("Metso blog 31.01.2022 (read through WebFetch): feed segregation gives skew; tramp metal is not 'seen' by the HPGR "
+                "pressure, a metal detector is needed; another maker than the thyssenkrupp POLYCOM of line 2 (analog)")
+S_METSO_MANTLE = ("Metso, La Caridad (10.03.2023): mantle change about 60 h, 75 000-100 000 t of ore not crushed (another mine, analog)")
+S_HITACHI36 = ("Hitachi EX3600-6 brochure KS-EN056T, p. 11: contamination sensor alerts the operator; Global e-Service needs the optional DTU")
+S_ABDU = ("Abduazizov et al., Mining of Mineral Deposits 20(2), 2026: contamination is about 70 % of hydraulic failures; MTTR 57.45 h is "
+          "of the PC3000 (analog)")
+S_VESTI_M = ("Vesti Semey 06.06.2024, press tour of Aktogay (5 Hitachi excavators, 2 700-3 700 t/h)")
 S_PLOCHER = ("Plocher et al. 2011 'Effective Shift Handover' (Honeywell, ENGEN refinery, simulator, 10 operator pairs): "
              "logged items 57.48 -> 76.11 % (p < 0.02), recall 42.10 -> 51.06 % (p = 0.12); literature, context only")
 
@@ -110,6 +123,11 @@ PARAMS: tuple[Param, ...] = (
     _p("ball_f80_um", 2500, 1500, 3500, "um", S_D4, "analog"),
     _p("ball_p80_min_um", 120, 100, 150, "um", S_D4, "assumption", "cyclone overflow floor"),
     _p("p80_ref_um", 180, 180, 180, "um", S_BRAD, "vendor", "flotation feed P80 target"),
+    # what-if lever suggested by an advice (the click is the dispatcher's; the module never writes a lever)
+    _p("lev_adv_feed_pct", 95, 80, 120, "%", "stand lever (control of the model, not of the plant)", "assumption",
+       "advice 'reduce the feed' (SAG energy overspend, liner wear, overload): suggested feed rate, % of the nominal line rate"),
+    _p("lev_adv_rope_feed_pct", 90, 80, 120, "%", "stand lever (control of the model, not of the plant)", "assumption",
+       "advice for cyclone roping: suggested feed rate of the line, % of the nominal line rate"),
     # ---- flotation (section 4) ----
     _p("flot_tau0_min", 30, 20, 40, "min", S_D4, "assumption", "rougher residence at base t/h"),
     _p("flot_ktau0", 3.5, 2.5, 4.5, "-", S_D4, "assumption", "k tau at base residence"),
@@ -119,6 +137,16 @@ PARAMS: tuple[Param, ...] = (
     _p("flot_jose_ascu", 1.043, 0.5, 1.5, "pp/pp", S_JOSE, "assumption", "total R per pp of ASCu"),
     _p("flot_ascu_ref_pct", 5.0, 2.0, 10.0, "% of Cu", S_D4, "assumption"),
     _p("flot_p80_pp_10um", 0.3, 0.1, 0.5, "pp", S_D4, "assumption", "R loss per 10 um above 180"),
+    _p("ox_alarm_frac", 0.10, 0.05, 0.20, "-", S_D4, "assumption",
+       "oxide line: the trouble \"cold leaching\" opens when the cathode output is below the level of the quarter by more than this share"),
+    _p("cathode_payable_frac", 1.0, 0.95, 1.0, "-", S_D4, "assumption",
+       "oxide line: share of the LME price paid for cathode copper; cathode is sold as metal, no concentrate deductions (not published)"),
+    _p("grind_pp_10um", 1.2, 0.79, 1.95, "pp", S_BOZ, "analog",
+       "price of the trouble \"coarse grind\": R loss per +10 um of P80 above 180; the laboratory composite 1 (85.85 -> 78.55 % over 60 um = 1.22 pp per 10 um), the lower end of the plant slope; the stand keeps flot_p80_pp_10um (0.3, assumption) in its physics, so the card shows a larger loss than the model books"),
+    _p("grind_pp_10um_lo", 0.79, 0.79, 0.79, "pp", S_BOZ, "analog",
+       "laboratory composite 2: 71.10 -> 66.34 % over 60 um = 0.79 pp per 10 um (calculation from table 6)"),
+    _p("grind_pp_10um_hi", 1.95, 1.95, 1.95, "pp", S_BOZ, "analog",
+       "regression of the plant daily data: -1.95 pp of Cu recovery per +10 um (linear model, not a direct measurement)"),
     _p("flot_dose_pp", 3.5, 2.0, 4.0, "pp", S_D7, "assumption", "R loss at 40 % under-dose"),
     _p("flot_dose_ref_deficit", 0.40, 0.40, 0.40, "-", S_D7, "assumption"),
     _p("flot_dose_sp_gt", 25, 20, 30, "g/t", S_OVOS, "project", "xanthate 0.025 kg/t"),
@@ -165,11 +193,13 @@ PARAMS: tuple[Param, ...] = (
     _p("cu_price_usd_t", 14539, 10000, 15000, "USD/t", S_LME, "fact", "LME cash 15.10.2026; band 10 000-15 000"),
     _p("cu_price_lo_usd_t", 10000, 10000, 10000, "USD/t", S_LME, "fact", "band low"),
     _p("cu_price_hi_usd_t", 15000, 15000, 15000, "USD/t", S_LME, "fact", "band high"),
-    _p("payable_frac", 0.955, 0.90, 0.97, "-", S_KAZ25, "calc", "210.4 / 220.3 kt payable in concentrate"),
+    _p("payable_frac", 0.955, 0.95, 0.96, "-", S_KAZ25 + "; Q4 2024 p. 3", "calc",
+       "calculated from the reports: payable / contained copper 0.9549 (2023), 0.9552 (2024), 0.9551 (2025)"),
     # ---- ore forecast (section 3 'stockpile is not FIFO', section 5) ----
     _p("pit_block_t", 15000, 10000, 30000, "t", S_D4, "assumption", "one block = one batch"),
     _p("pit_haul_min", 30, 20, 45, "min", S_D4, "assumption", "face to crusher"),
-    _p("conv_travel_min", 14, 10, 20, "min", S_D4, "calc", "3.8 km / 4.5 m/s"),
+    _p("conv_travel_min", 9.3, 9, 14, "min", "PEK of KAZ Minerals Aktogay 2023-2024, p. 18 (belt of concentrator 2: 2 504 m)", "calc",
+       "2.504 km / 4.5 m/s (the model's conv_transit_min)"),
     _p("exc_dig_tph", 2600, 2000, 3000, "t/h", S_D4, "assumption", "one excavator"),
     _p("stock_live_t", 40000, 30000, 50000, "t", S_D4, "assumption", "live capacity of a stockpile"),
     _p("stock_column_frac", 0.30, 0.20, 0.40, "-", S_D4, "assumption", "draw column share of the live stock"),
@@ -236,10 +266,17 @@ PARAMS: tuple[Param, ...] = (
     _p("remind_eta_min", 10, 5, 20, "min", S_D5, "assumption", "expected arrival after a reminder (as the model)"),
     _p("handover_am_h", 7.5, 7.0, 8.0, "h", S_D5 + "; " + S_PLOCHER, "assumption", "handover sheet before the 08:00 shift"),
     _p("handover_pm_h", 19.5, 19.0, 20.0, "h", S_D5 + "; " + S_PLOCHER, "assumption", "handover sheet before the 20:00 shift"),
+    _p("handover_btn_lead_min", 60, 30, 90, "min", "UI rules of the stand (UI_RULES_28.md, item 1: about 60 min before the end of the shift)",
+       "assumption", "the button «Сдать смену» appears this many minutes before the end of the shift, and only then"),
     # ---- features 1-9, 14, 15 (22.10.2026): hourly tariff, winter, grind, concentrate grade, grinding media, dust
     _p("tariff_kzt_kwh_mean", 16.0, 16.0, 27.0, "KZT/kWh", S_TARIFF, "fact", "mean price (same row as the model)"),
-    _p("tariff_night_mult", 0.70, 0.5, 1.0, "-", "structure of the zonal tariff not confirmed (KEGOC page 16 not opened: "
-       "certificate error)", "assumption", "night price against the day price before normalising the day to the mean"),
+    _p("tariff_zones_on", 0, 0, 1, "-", "Order of the acting Minister of National Economy no. 445 of 29.12.2017 "
+       "(registered 12.01.2018 no. 16222): tariffs by zones of the day for final consumers no longer exist; "
+       "https://zakon.uchet.kz/rus/docs/V1700016222 (opened 23.10.2026)", "fact",
+       "0 = flat 16 KZT/kWh all day (default); 1 = what-if scenario 'peak / night' with the assumed structure below"),
+    _p("tariff_night_mult", 0.70, 0.5, 1.0, "-", "structure of the zonal tariff is not published for final consumers; "
+       "what-if only (project / assumption)", "assumption",
+       "what-if only: night price against the day price before normalising the day to the mean"),
     _p("tariff_day_mult", 1.00, 1.0, 1.0, "-", "same", "assumption", "day price (reference)"),
     _p("tariff_peak_mult", 1.40, 1.0, 2.0, "-", "same", "assumption", "evening peak price against the day price"),
     _p("tariff_night_from_h", 23, 20, 24, "h", "same", "assumption", "night band starts"),
@@ -247,8 +284,9 @@ PARAMS: tuple[Param, ...] = (
     _p("tariff_peak_from_h", 18, 16, 20, "h", "same", "assumption", "peak band starts"),
     _p("tariff_peak_to_h", 22, 20, 24, "h", "same", "assumption", "peak band ends"),
     _p("winter_water_mult", 1.5, 1.0, 3.0, "-", "Bozshakol TSF, ATC Williams (analog): decant water recovery in winter "
-       "below -10 C for more than three months a year", "assumption",
-       "winter: the price of a water trouble (more fresh water, heating, ice) against summer"),
+       "below -10 C for more than three months a year; the multiplier itself has no source", "assumption",
+       "winter: the price of a WATER trouble (more fresh water, heating, ice) against summer; not applied to throughput "
+       "or recovery (Q1 2019 report: sulphide plants ran at design throughput in winter)"),
     _p("winter_repair_mult", 1.5, 1.0, 2.5, "-", "same", "assumption", "winter: repair of a water trouble takes longer (frost)"),
     _p("winter_freeze_air_c", -10, -30, 0, "degC", "same: -10 C", "analog", "below this air temperature pipes freeze"),
     _p("p80_alarm_um", 15, 8, 30, "um", S_D4, "assumption",
@@ -259,9 +297,10 @@ PARAMS: tuple[Param, ...] = (
        "buyer deduction per dry tonne of concentrate per percentage point below the norm (extra treatment charge and freight "
        "of the diluted mass); no contract published"),
     _p("conc_window_min", 60, 30, 120, "min", S_D5, "assumption", "mean of the concentrate analyser over this window"),
-    _p("ball_norm_gt", 600, 300, 1000, "g/t", "no Aktogay figure published (analog, order of magnitude)", "assumption",
-       "norm of grinding media consumption (same row as the model)"),
-    _p("ball_usd_kg", 1.2, 0.8, 2.0, "USD/kg", "no contract published", "assumption", "price of grinding balls"),
+    _p("ball_norm_gt", 800, 600, 1000, "g/t", "analogs: Chile 2014 (SAG 390 + balls 535 = 925 g/t, CODELCO), Cyprus Pima "
+       "754 g/t; no Aktogay figure", "analog", "norm of grinding media consumption (same row as the model)"),
+    _p("ball_usd_kg", 1.25, 0.8, 2.0, "USD/kg", "Perez, Villaseca (CODELCO), ferrous alloys in copper mining, p. 9: ball "
+       "typically 1 250 USD/t (Chile 2014); Aktogay contract not published", "analog", "price of grinding balls"),
     _p("ball_over_min_frac", 0.08, 0.05, 0.20, "-", S_D5, "assumption",
        "consumption above the norm by this share (mean of the window) is an overuse: a deviation, not a trouble"),
     _p("ball_window_min", 60, 30, 180, "min", S_D5, "assumption", "mean of the scale reading over this window"),
@@ -275,7 +314,89 @@ PARAMS: tuple[Param, ...] = (
     _p("review_min_fork_usd", 50.0, 10.0, 500.0, "USD", S_D5, "assumption",
        "a call that costs less than this against the best order is not a mistake (as the order test of the queue)"),
     _p("shift_h", 12, 12, 12, "h", S_OVOS + " p. 26", "project"),
+    # ---- forecasts 10, 11, 13 (23.10.2026): stockpile hours, SAG liner campaign, copper to the end of shift and day
+    _p("stock_total_t", 163000, 163000, 163000, "t", "PEK of KAZ Minerals Aktogay 2023-2024, p. 10 (working volume of the ore "
+       "stockpile of concentrator 1 = 2 days of grinding): https://ecoportal.kz/Public/PubHearings/LoadFile/111450", "project",
+       "working volume of a stockpile; the model keeps 40 kt of it as live stock (stock_live_t, assumption)"),
+    _p("stock_pek_days", 2.0, 2.0, 2.0, "day", "same, p. 10", "project", "the PEK states 163 kt as 2 days of grinding"),
+    _p("fc_avail", 0.92, 0.85, 0.96, "-", "calibration of 2025 (cal_avail 0.9206 of the model)", "calc",
+       "share of the calendar the line grinds, for days to the end of the liner campaign"),
+    _p("liner_life_mt", 30, 20, 45, "Mt", "campaign of 10-18 months; a reline brought forward is reported (KAZ Minerals Q3 2023); "
+       "the length is ours", "assumption", "ore ground by one liner set (same row as the model)"),
+    _p("liner_eta_new", 0.96, 0.95, 0.97, "-", "Powell et al. 2006, direction only", "assumption", "new liner: capacity multiplier"),
+    _p("liner_x_ramp", 0.10, 0.05, 0.20, "-", "same", "assumption", "campaign share where the multiplier reaches 1"),
+    _p("liner_eta_peak", 1.03, 1.00, 1.05, "-", "same", "assumption", "peak late in the campaign"),
+    _p("liner_x_peak", 0.70, 0.50, 0.85, "-", "same", "assumption", "campaign share of the peak"),
+    _p("liner_eta_end", 0.98, 0.95, 1.00, "-", "same", "assumption", "end of the campaign"),
+    _p("liner_reline_h", 96, 72, 126, "h", "RME relining benchmark (2-5 % of the year), not the August 2025 reline", "assumption",
+       "length of a SAG reline (same row as the model)"),
+    _p("plan_cu_day_t", 603.6, 550, 650, "t", S_KAZ25 + ": 220.3 kt copper in concentrate in 2025 / 365", "calc",
+       "average day of 2025, the reference line of the copper forecast (there is no published daily plan)"),
+    _p("fc_rate_window_min", 60, 30, 120, "min", S_D5, "assumption", "mean copper rate over this window is the rate of the forecast"),
+    _p("fc_sigma_window_min", 180, 90, 360, "min", S_D5, "assumption", "spread of the copper rate over this window"),
+    _p("fc_z", 1.64, 1.28, 1.96, "-", "normal quantile of a 90 % corridor", "calc", "corridor of the copper forecast: mean +- z sd of the rate"),
+    _p("rep_pit_h", 6, 2, 12, "h", S_D4, "assumption", "median wait until the pit gives ore again after a stop (cause not known)"),
+    # ---- tier S of 23.10.2026 ----
+    _p("pit_vis_min_m", 150, 50, 400, "m", S_KAZ_WINTER, "assumption",
+       "winter road: visibility at or below this is a hazard (a threshold of the site's road rules, not in the source)"),
+    _p("pit_grip_min", 0.40, 0.20, 0.60, "-", S_KAZ_WINTER, "assumption",
+       "winter road: friction index at or below this is a hazard (set per site)"),
+    _p("pit_restrict_cycle_mult", 1.12, 1.0, 1.5, "-", S_KAZ_WINTER, "assumption",
+       "truck cycle multiplier of a traffic restriction (speed limit): the price of the safety decision"),
+    _p("pit_exc_max_tph", 3000, 2700, 3700, "t/h", S_VESTI_M, "fact", "one ore excavator, inside the 2 700-3 700 t/h of the press tour"),
+    _p("pit_exc_ore_count", 3, 3, 3, "-", S_VESTI_M, "assumption", "excavators on ore (3 of 5 Hitachi; the split is ours)"),
+    _p("oil_fail_h", 8.0, 2.0, 24.0, "h", S_ABDU, "assumption",
+       "hours from the oil contamination alert to the failure of a hydraulic pump when nobody acts (the time is ours; "
+       "contamination is about 70 % of hydraulic failures - Abduazizov 2026)"),
+    _p("rep_oil_h", 2.0, 0.5, 6.0, "h", "our rounding", "assumption", "oil service by the shift mechanic (filtration, flushing)"),
+    _p("rep_exc_h", 57.45, 20.0, 100.0, "h", S_ABDU, "analog",
+       "repair of the hydraulic system of an excavator after the failure: mean time to repair of the PC3000 (Komatsu), not of the EX3600"),
+    _p("rope_circ_alarm_pct", 320, 280, 450, "%", S_CIDRA_KEN, "assumption",
+       "circulating load at or above which the cyclones are roping (normal about 250 %, site value not published)"),
+    _p("ball_overload_pct", 105, 101, 115, "%", S_CIDRA_KEN, "assumption", "ball mill draw as % of the rating at or above which it is overloaded"),
+    _p("rope_escalate_h", 1.5, 0.5, 4.0, "h", S_CIDRA_CEN, "assumption",
+       "hours of roping after which the flotation loses more (heavy roping stopped a rougher line at Centinela)"),
+    _p("rope_flot_pp", 3.0, 1.0, 6.0, "pp", S_CIDRA_CEN, "assumption", "extra recovery loss of the line after heavy roping, pp"),
+    _p("rope_flot_h", 6.0, 3.0, 8.0, "h", S_CIDRA_CEN, "analog", "length of the rougher line stop after heavy roping: about 6 h at Centinela"),
+    _p("rep_rope_h", 0.5, 0.25, 1.0, "h", "our rounding", "assumption", "the grinding operator lowers the feed and opens cyclones (a decision, no crew)"),
+    _p("ph_gap_alarm", 0.30, 0.15, 0.6, "pH", S_ABB_PH, "assumption",
+       "grab sample minus online reading at or above this: the sensor is suspect (accuracy of a hand-held meter about 0.1)"),
+    _p("ph_pp_unit", 2.0, 0.5, 4.0, "pp/pH", S_ABB_PH, "assumption", "total recovery lost per pH unit above the setpoint"),
+    _p("rep_ph_h", 1.0, 0.5, 3.0, "h", S_ABB_PH, "assumption", "cleaning and calibration of the electrode by the I&C technician"),
+    _p("hpgr_skew_alarm_pct", 6, 2, 12, "%", S_METSO_HPGR, "assumption", "HPGR roll gap skew at or above this is uneven feed"),
+    _p("hpgr_kwdiff_alarm_pct", 10, 4, 25, "%", S_METSO_HPGR, "assumption", "power difference of the two HPGR drives at or above this"),
+    _p("hpgr_limit_nominal_tph", 740, 682, 792, "t/h", S_OVOS + " p. 26", "assumption", "pebble circuit limit with the cones (the HPGR is above it)"),
+    _p("rep_hpgr_h", 1.5, 0.5, 4.0, "h", S_METSO_HPGR, "assumption", "median repair of the HPGR feed after the crew arrives"),
+    _p("hpgr_tramp_after_h", 2.0, 0.5, 6.0, "h", S_METSO_HPGR, "assumption",
+       "hours of uneven feed without a repair after which tramp metal can reach the rolls (the time is ours)"),
+    _p("rep_mantle_h", 60, 24, 100, "h", S_METSO_MANTLE, "analog", "mantle change of the primary crusher: about 60 h at La Caridad"),
+    _p("mantle_ref_kt_lo", 75, 75, 75, "kt", S_METSO_MANTLE, "analog", "ore not crushed in the mantle change at La Caridad, lower bound"),
+    _p("mantle_ref_kt_hi", 100, 100, 100, "kt", S_METSO_MANTLE, "analog", "ore not crushed in the mantle change at La Caridad, upper bound"),
+    _p("crush_cap_tph", 4386, 4386, 5043.9, "t/h", S_OVOS + " p. 26", "project", "crusher capacity 4 386-5 043.9 t/h"),
+    _p("age_stale_an_cycles", 2, 1, 4, "-", S_METSO, "assumption",
+       "an analyser reading older than this many cycles is stale (the same count as the model's sens_an_stale_cycles)"),
+    _p("an_cycle_min", 15, 12, 16, "min", S_METSO, "vendor", "cycle of the on-stream analyser; Metso Courier: 12-16 min"),
+    _p("settle_min", 150, 60, 240, "min", "CUSUM decay after a cause ends (cap 2 h of S at k 0.5 per 5 min tact: about 130 min) plus the "
+       "response lag of the flotation (15 + 20 min)", "calc",
+       "minutes after a roping or pH trouble is closed during which the lagging detectors of the line are not raised as a new loss"),
+    _p("age_stale_dcs_min", 10, 5, 30, "min", "our rounding", "assumption",
+       "a measurement published longer ago than this (model minutes) is shown as old in the trouble card"),
+    _p("age_stale_lab_h", 6, 2, 24, "h", S_ABB_PH, "assumption", "a grab sample or lab result older than this is shown as old"),
 )
+
+
+ROW = {p.key: p for p in PARAMS}      # key -> row (label and source of every number a price stands on)
+
+
+try:
+    from . import params_t as _params_t
+except ImportError:          # run as a script: python -I modules/params.py
+    import importlib.util as _iu
+    import os as _os
+    _spec = _iu.spec_from_file_location("params_t", _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "params_t.py"))
+    _params_t = _iu.module_from_spec(_spec)
+    _spec.loader.exec_module(_params_t)
+PARAMS = PARAMS + tuple(Param(*_r) for _r in _params_t.ROWS)     # tier T of 24.10.2026
 
 
 class Prm(dict):

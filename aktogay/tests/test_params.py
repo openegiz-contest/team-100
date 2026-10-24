@@ -87,7 +87,7 @@ class TestTable(unittest.TestCase):
 
     def test_feature_rules_cover_topology(self):
         # 22 plant types + person, truck, face, road and four instruments of the site passport
-        self.assertEqual(len(FEATURE_RULES), 32)            # + drill rigs and dozers
+        self.assertEqual(len(FEATURE_RULES), 35)            # + drill rigs and dozers + pH meter
         for typ, rules in FEATURE_RULES.items():
             self.assertIn("state_ru", rules, typ)
         types = {t.type for t in topology().values()}
@@ -229,13 +229,15 @@ class TestDerived(unittest.TestCase):
         ore = self.v("tgt_2024_ore_mt") * 1e6
         evap = (self.v("tgt_2024_water_mm3") * 1e6 - ore * (pore * (1 - y) + y * moist)) / (366 * 24)
         self.assertAlmostEqual(self.v("water_evap_m3h"), evap, places=6)
-        # belt: main conveyor 2.45 km by OSM at 4.5 m/s, about 9 min (the 14 min of the design file was 3.8 km)
-        self.assertEqual(self.v("conv_length_km"), 2.45)
-        self.assertEqual(TABLE["conv_length_km"].label, "fact")
-        self.assertIn("openstreetmap", TABLE["conv_length_km"].source)
+        # belt: main conveyor 2 504 m by the PEK p. 18 (OSM 2.45 km as a cross-check) at 4.5 m/s, about 9 min
+        # (the 14 min of the design file was the 3.8 km Bozshakol belt)
+        self.assertEqual(self.v("conv_length_km"), 2.504)
+        self.assertEqual(TABLE["conv_length_km"].label, "project")
+        self.assertIn("p. 18", TABLE["conv_length_km"].source)
+        self.assertIn("openstreetmap", TABLE["conv_length_km"].source.lower())
         self.assertAlmostEqual(self.v("conv_transit_min"),
                                self.v("conv_length_km") * 1000 / self.v("conv_speed_ms") / 60, places=9)
-        self.assertAlmostEqual(self.v("conv_transit_min"), 9.07, delta=0.01)
+        self.assertAlmostEqual(self.v("conv_transit_min"), 9.27, delta=0.01)
         # fresh water reference: OVOS 73 512.92 m3/d over the design 25 Mt / 8 059 h
         self.assertAlmostEqual(self.v("water_fresh_hi_m3_t"), 0.99, places=9)
         self.assertEqual(self.v("pond_proc_m3_per_line"), 56000)

@@ -10,14 +10,69 @@
 networks:
   simnet: {}
 
+# Operating changes to the platform services (the template files stay as they are; every line here is listed with
+# its reason in README_dev.md, "Long run"). 23.10: a stand left running for hours must not fill the disk with logs
+# and must keep the Ditto cluster ahead of a browser (a software-WebGL page takes whole cores) for CPU.
+x-akt-logging: &akt-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   mosquitto:
+    logging: *akt-logging
+    cpu_shares: 4096
     networks:
       - default
       - simnet
 
+  # Ditto: INFO of org.eclipse.ditto wrote a line per command and per retrieved thing (450 lines/s in things,
+  # 10 GB of log in a day); WARN keeps errors and cluster messages (those come from akka, not from this logger).
+  # cpu_shares: under contention (a browser rendering WebGL in software on the same machine) the JVMs and the
+  # database get four times the weight of an ordinary process, so the cluster heartbeat is not starved.
+  mongodb:
+    logging: *akt-logging
+    cpu_shares: 4096
+  policies:
+    logging: *akt-logging
+    cpu_shares: 4096
+    environment:
+      LOG_LEVEL_APPLICATION: WARN
+  things:
+    logging: *akt-logging
+    cpu_shares: 4096
+    environment:
+      LOG_LEVEL_APPLICATION: WARN
+  things-search:
+    logging: *akt-logging
+    cpu_shares: 4096
+    environment:
+      LOG_LEVEL_APPLICATION: WARN
+  connectivity:
+    logging: *akt-logging
+    cpu_shares: 4096
+    environment:
+      LOG_LEVEL_APPLICATION: WARN
+  gateway:
+    logging: *akt-logging
+    cpu_shares: 4096
+    environment:
+      LOG_LEVEL_APPLICATION: WARN
+  ditto-nginx:
+    logging: *akt-logging
+  influxdb:
+    logging: *akt-logging
+  telegraf:
+    logging: *akt-logging
+  grafana:
+    logging: *akt-logging
+  extended-api:
+    logging: *akt-logging
+
   # WoT Thing Models: http://akt-models/tm/ inside the network, :8092/tm/ on the host.
   akt-models:
+    logging: *akt-logging
     image: docker.io/library/nginx:1.25-alpine
     restart: unless-stopped
     mem_limit: 32m
@@ -72,6 +127,7 @@ services:
   # Analysis modules (losses, ore forecast, issue queue): read Ditto HTTP and InfluxDB Flux only,
   # write mod-losses, mod-ore, mod-priority and issue-* through Ditto merge commands.
   akt-modules:
+    logging: *akt-logging
     image: aktogay/modules:local
     build:
       context: ../../aktogay
@@ -87,6 +143,10 @@ services:
       INFLUX_ORG: opentwins
       INFLUX_BUCKET: default
       POLL_S: "1.0"
+      AKT_SETTLE_S: "2.0"
+      AKT_RETRY_S: "1.5"
+      AKT_MAX_AGE_S: "10"
+      AKT_DUTY: "0.3"
       AKT_AUTO_CALL: ${AKT_AUTO_CALL:-0}
       AKT_SEED: "42"
     depends_on:
@@ -106,6 +166,7 @@ services:
   # Web interface: static files + /api proxy to Ditto and InfluxDB (credentials stay here).
   # Reads Ditto and InfluxDB only; writes the control and journal things only.
   akt-web:
+    logging: *akt-logging
     build:
       context: ../../aktogay
       dockerfile: web/docker/web.Dockerfile
@@ -137,6 +198,7 @@ services:
   # events of control, journal and mod-* on MQTT. Free run x60 from 08:00,
   # seed 42, after start; see sim/service.py for the variables.
   akt-sim:
+    logging: *akt-logging
     build:
       context: ../../aktogay
       dockerfile: docker/sim.Dockerfile

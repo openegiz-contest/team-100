@@ -51,6 +51,8 @@ Control objects (any extra keys are ignored):
   speed    {seq, value: 60 | 300 | 1200 | 0}   0 pauses
   reset    {seq, seed: 42, speed: 60}
   cancel   {seq}
+lever    {seq, feed_1, feed_2 (% of the nominal line rate), p80_um (grind target, 0 = off), dose_gt (collector dose, 0 = off),
+          reset: 1 clears every lever}   what-if levers: control of the model, not of the plant
 
 Environment: MQTT_HOST, MQTT_PORT, DITTO_URL (optional), DITTO_USER,
 DITTO_PASSWORD, AKT_SEED, AKT_SPEED, AKT_MAX_RATE, AKT_RAMP_S, AKT_QOS,
@@ -96,7 +98,7 @@ from sim.state import MIN_PER_H, NO_VALUE, PlantHooks, PlantState  # noqa: E402
 log = logging.getLogger("service")
 
 EPS = 1e-6
-CONTROL_FEATURES = ("scenario", "speed", "reset", "cancel")
+CONTROL_FEATURES = ("scenario", "speed", "reset", "cancel", "lever")
 CALL_ACTIONS = ("call", "auto_call")
 REMIND_ACTIONS = ("remind", "next")      # "not arrived": remind the person, or call the next one of the trade
 EVENT_THINGS = ("control", "journal", "mod-losses", "mod-ore", "mod-priority")
@@ -113,6 +115,10 @@ BASE_FEATURES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("power", ("site_mw", "grid_limit_mw", "headroom_mw")),
     ("water", ("intake_m3h", "recycle_m3h", "pond_m3")),
     ("conc-stock", ("stock_t",)),
+    ("pit", ("mining_tph",)),
+    ("exc-1", ("state", "tph")),
+    ("exc-2", ("state", "tph")),
+    ("exc-3", ("state", "tph")),
 ) + tuple(
     (name.format(n=n), feats)
     for n in (1, 2)
@@ -137,15 +143,17 @@ SHIFT_KEYS = ("cu_t", "ore_t", "energy_mwh", "water_m3", "usd")
 BATCH_TAG_RU = {"": "блок плана карьера", "hard": "блок сценария «Твёрдая руда»",
                 "blend": "мягкая руда для шихтовки 50/50", "initial": "руда на складе и в пути к 06:00"}
 BATCH_PURGE_MAX = 99            # at process start: delete batch-0001..0099 left by an earlier process
-BATCH_DELETE_REPEATS = 3         # a batch delete is sent again at the next checkpoints (a lost delete
-                                 # would leave a batch thing with an old sim_time behind)
+BATCH_DELETE_REPEATS = 1         # a batch delete is sent once more at the next checkpoint (a lost delete would
+                                 # leave a batch thing with an old sim_time behind). Every send after the one that
+                                 # worked fails in Ditto (ThingNotAccessible, a WARN with a stack and dead letters
+                                 # in the things log: 3 repeats gave 3 such errors per batch, 23.10)
 BATCH_CREATE_REPEATS = 2         # a batch create (modify /) is sent again at the next checkpoints, and
 BATCH_HEAL_MIN = 60.0            # every live batch once a model hour: a create lost under load would
                                  # leave merges that Ditto refuses (ThingNotAccessible) for good
 # Rate budget (publish.Publisher, 20 msg/s with a ramp): the site passport things go out less often.
 SLOW_TYPES = ("truck", "face", "road", "drill", "dozer")   # in rotation: each every SLOW_EVERY checkpoints
 SLOW_EVERY = 6
-CHECKPOINT_TYPES = ("person", "analyzer", "weigher", "flowmeter", "piezometer")   # checkpoints only, not live
+CHECKPOINT_TYPES = ("person", "analyzer", "weigher", "flowmeter", "piezometer", "leach", "sxew")   # checkpoints only, not live
 FULL_REASONS = ("start", "cancel", "pause", "auto-pause")   # points that carry every thing
 
 
@@ -600,6 +608,7 @@ class Runner:
         self._announce_warmup()
         self.plant = Plant(self.prm, self.seed, mode="free", hooks=self.hooks)
         self.plant.base_winter = self.plant.winter_on = self.season_winter()
+        self.plant.ox_date = self.host_date()
         self.plant.late_calls = True           # a called person may get the message late (crew_late_p)
         self.warming = True
         try:
@@ -644,12 +653,20 @@ class Runner:
         for c in self.copies.copies.values():
             if not c.winter_on:
                 c.base_winter = c.winter_on = self.season_winter()
+            c.ox_date = self.host_date()
         # late arrivals of called people on the fact copy of a training scenario; never in "Two at once",
         # whose copies are compared call by call
         self.plant.late_calls = (preset or "").strip().lower() != "fork" and "fork" not in str(text).lower()
         self._publish_start()
         self._anchor(self.t_min)
         return True
+
+    @staticmethod
+    def host_date() -> tuple[int, int]:
+        """(year, 0-based day of the year) of the host date: the quarter of the oxide line (sim/oxide.py)."""
+        import datetime
+        d = datetime.date.today()
+        return d.year, d.timetuple().tm_yday - 1
 
     def season_winter(self) -> bool:
         """Season of the run: AKT_SEASON = auto (date of the model clock = the host date), winter or summer."""
@@ -670,10 +687,52 @@ class Runner:
         if self.copies is None:
             log.info("cancel: no scenario active")
             return
+        lever_only = self.copies.lever_only
         self.copies.cancel()
         self.plant = self.copies.copies["fact"]
-        log.info("run %s: scenario cancelled at %s", self.run_id, self.plant.state.clock.hhmm())
+        if lever_only:
+            self._leave_lever_comparison()            # a free run again: levers off, no base copy
+        log.info("run %s: %s at %s", self.run_id, "levers cleared" if lever_only else "scenario cancelled",
+                 self.plant.state.clock.hhmm())
         self.publish_point("cancel")
+
+    def _leave_lever_comparison(self) -> None:
+        """Back to a plain free run: the fact copy (without levers) goes on alone, the baseline thing is blanked."""
+        self.copies = None
+        self.baseline_dirty = True
+
+    def set_levers(self, obj: dict) -> None:
+        """Command control.lever: set (or, with reset, clear) the what-if levers on the fact copy.
+
+        In a free run the first lever starts the comparison: the base copy is a clone of the plant at that minute (no
+        levers) and is stepped with it, so the interface shows base / fact / difference. When every lever is neutral again
+        the base copy is dropped. In a scenario run the base copy is the run without scenario and without levers."""
+        if self.plant is None:
+            return
+        reset = _truthy(obj.get("reset"))
+        vals = {}
+        if not reset:
+            for k in Plant.LEVER_KEYS:
+                if obj.get(k) is not None:
+                    try:
+                        vals[k] = float(obj[k])
+                    except (TypeError, ValueError):
+                        log.warning("lever %s: bad value %r", k, obj[k])
+        if not reset and not vals:
+            return
+        if self.copies is None and not reset:
+            self.copies = CopySet.from_plant(self.plant)
+            self.baseline_dirty = True
+        fact = self.copies.copies["fact"] if self.copies is not None else self.plant
+        try:
+            now = fact.set_levers(None if reset else vals)
+        except ValueError as e:
+            log.warning("lever rejected: %s", e)
+            return
+        log.info("levers at %s: %s", fact.state.clock.hhmm(), now or "off")
+        if not now and self.copies is not None and self.copies.lever_only:
+            self._leave_lever_comparison()
+        self.publish_point("lever")
 
     def set_speed(self, value) -> None:
         try:
@@ -719,6 +778,8 @@ class Runner:
             return
         if self.copies is not None:
             job = self.copies.copies["fact"].call(node, issue=issue, via=via)
+            if self.copies.lever_only:                   # the base copy of the levers is the same shift: same decisions
+                self.copies.copies["base"].call(node, issue=issue, via=via)
         else:
             job = self.plant.call(node, issue=issue, via=via)
         self.stats.calls += 1
@@ -807,6 +868,8 @@ class Runner:
             self.start_free(obj.get("seed"), obj.get("speed", self.cfg.speed))
         elif f == "cancel":
             self.cancel()
+        elif f == "lever":
+            self.set_levers(obj)
 
     def drain_events(self) -> None:
         for topic, payload in self.sink.events():

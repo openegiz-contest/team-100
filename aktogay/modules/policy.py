@@ -57,6 +57,8 @@ class Trouble:
     text: str = ""
     person: str = ""             # person twin who is called (thing name), "" when unknown
     hold: str = ""               # the call waits for this ("пожарные разрешат ремонт"), "" when none
+    usd_extra_h: float = 0.0     # part of rate_usd_h that is not copper (energy, reagents, buyer's penalty, water), USD/h
+    rep_key: str = ""            # parameter row of the median repair time (its label says what the price stands on)
 
 
 @dataclass

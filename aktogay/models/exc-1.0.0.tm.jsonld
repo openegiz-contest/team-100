@@ -6,7 +6,7 @@
     "en": "Excavator",
     "ru": "Экскаватор"
   },
-  "description": "Face shovel (Hitachi): on ore it digs the current block, on stripping it digs waste. States: DIG, MOVE, IDLE, DOWN.",
+  "description": "Face shovel (Hitachi): on ore it digs the current block, on stripping it digs waste. oil_pct / oil_alert: hydraulic oil contamination sensor (-1 where no source confirms one; EX3600-6 has it). States: DIG, MOVE, IDLE, DOWN.",
   "version": {
     "model": "1.0.0"
   },
@@ -40,6 +40,24 @@
       "href": "http://akt-models/tm/q-n-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "bench"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "oil_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "oil_alert"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "track_press_pct"
     },
     {
       "rel": "tm:submodel",

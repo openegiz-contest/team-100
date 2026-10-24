@@ -16,6 +16,10 @@ here: 100 shifts take about 3 min on 3 processes, so the stand shows the file
 written by `run.py trial --n 100 --no-twin`; the same seeds give the same
 numbers.
 
+The quarterly back-test (sim/backtest.py, file sim/data/backtest_q.json, written by `run.py backtest`; 32
+quarters of the KAZ Minerals reports, about 2.5 min on 4 processes) goes into the same document under the key
+`backtest`; the calibration page draws it. Missing or broken file: the key is null.
+
 Writes go to Ditto HTTP as merge patches on /features (definitions stay),
 header x-correlation-id akt-calib-validation-calib, so Telegraf keeps one
 series for this writer. Ditto may answer 503 for a while after start: every
@@ -37,6 +41,7 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TRIAL_DEFAULT = os.path.join(HERE, "data", "trial_n100.json")
+BACKTEST_DEFAULT = os.path.join(HERE, "data", "backtest_q.json")
 NS = "kz.aktogay"
 THING = "validation-calib"
 ROW_KEYS = ("group", "name", "model", "report", "unit", "tol", "ok", "note")
@@ -61,6 +66,22 @@ def load_trial(path: str | None) -> dict | None:
     return {k: doc[k] for k in TRIAL_KEYS if k in doc}
 
 
+def load_backtest(path: str | None) -> dict | None:
+    """Quarterly back-test document (sim/data/backtest_q.json) or None when absent or broken."""
+    if not path:
+        return None
+    try:
+        with open(path, encoding="utf-8") as f:
+            doc = json.load(f)
+    except (OSError, ValueError) as e:
+        print(f"back-test not read ({path}): {e}")
+        return None
+    if not isinstance(doc, dict) or not isinstance(doc.get("rows"), list) or "summary" not in doc:
+        print(f"back-test not read ({path}): no 'rows' or 'summary'")
+        return None
+    return doc
+
+
 def _round(x, nd: int = 6):
     """Rounded copy; NaN and infinities become None (JSON has no such numbers)."""
     if isinstance(x, float):
@@ -72,7 +93,7 @@ def _round(x, nd: int = 6):
     return x
 
 
-def build_report(calib: dict, trial: dict | None) -> dict:
+def build_report(calib: dict, trial: dict | None, backtest: dict | None = None) -> dict:
     """The document stored in validation-calib.report_json (compact, rounded)."""
     rows = [{k: r.get(k) for k in ROW_KEYS} for r in calib.get("rows", [])]
     doc = {
@@ -85,6 +106,7 @@ def build_report(calib: dict, trial: dict | None) -> dict:
         "rows": rows,
         "fitted": calib.get("fitted", {}),
         "trial": trial,
+        "backtest": _round(backtest, 3) if backtest else None,
     }
     doc = _round(doc)
     text = json.dumps(doc, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
@@ -149,8 +171,8 @@ def publish_start(writer: DittoWriter, trial: dict | None) -> bool:
     return writer.patch({"state": "RUNNING", "shifts_done": 0.0, "shifts_total": trial_n(trial), "sim_time": -1.0})
 
 
-def publish_done(writer: DittoWriter, calib: dict, trial: dict | None) -> bool:
-    doc = build_report(calib, trial)
+def publish_done(writer: DittoWriter, calib: dict, trial: dict | None, backtest: dict | None = None) -> bool:
+    doc = build_report(calib, trial, backtest)
     state = "DONE" if doc["rows"] else "FAILED"
     n = trial_n(doc.get("trial"))
     ok = writer.patch({"state": state, "report_json": report_text(doc), "shifts_done": n, "shifts_total": n,

@@ -6,7 +6,7 @@
     "en": "Stand control",
     "ru": "Управление стендом"
   },
-  "description": "Written by akt-web only; each command is an object with a growing seq.",
+  "description": "Written by akt-web only; each command is an object with a growing seq. lever = {seq, feed_1, feed_2 (% of the nominal line rate), p80_um (grind target), dose_gt (collector dose), reset}: what-if levers, control of the model and not of the plant.",
   "version": {
     "model": "1.0.0"
   },
@@ -34,6 +34,12 @@
       "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "cancel"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-obj-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "lever"
     },
     {
       "rel": "tm:submodel",

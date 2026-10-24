@@ -270,14 +270,15 @@ class LossesModule:
         res.detected_at = self.detected_at[node]
         oxide = est_ascu > prm["flot_ascu_ref_pct"] + 1.0
         if oxide:
-            res.role_keys = ("shift_geologist",)
+            res.role_keys = ("shift_geologist", "shift_metallurgist")       # ore changed: the metallurgist changes the regime (T5)
             # the batch by its Russian name ("партия 13"), not the thing id; the value against the mean
             where = f" ({batch_ru('', batch)})" if batch else ""
             why = (f"окисленная руда{where}: ASCu по блочной модели {num(est_ascu, 1)} % при среднем "
                    f"{num(prm['flot_ascu_ref_pct'], 1)} %")
         else:
             res.role_keys = ("kip", "shift_metallurgist")       # the flowmeter first (crew-kip, priority.WHO)
-            why = "дозировка собирателя (расходомер) или реагентный режим"
+            why = ("дозировка собирателя (расходомер) или реагентный режим; проверить также pH-метр: ручная проба против "
+                   "онлайн-показания")
         res.roles = "; ".join(self.role(k) for k in res.role_keys)
         above = tl != NO_VALUE and tl > prm["acs_tail_sp_pct"]
         res.cause = (f"извлечение {num(r_meas, 1)} % против ожидаемых {num(r_exp, 1)} ± {num(sig, 1)} "
@@ -455,7 +456,7 @@ class LossesModule:
             feats[f"rougher-{n}_reagent_usd_h"] = g["usd_h"]
             feats[f"rougher-{n}_reagent_status"] = g["status"]
         feats["silent_text"] = self.silent_text(results)
-        self.suspect = self.suspect_sensors(results)
+        self.suspect = self.suspect_sensors(results, t)
         feats["suspect_sensors"] = ",".join(self.suspect)
         feats["suspect_text"] = "; ".join(self.suspect.values()) if self.suspect else \
             "сомнительных показаний не найдено"
@@ -482,7 +483,7 @@ class LossesModule:
         self.processed = t
         return feats
 
-    def suspect_sensors(self, results: dict[str, NodeResult]) -> dict[str, str]:
+    def suspect_sensors(self, results: dict[str, NodeResult], t: float | None = None) -> dict[str, str]:
         """Instruments whose reading the module doubts: {thing: Russian reason}.
 
         flowmeter-N: flotation recovery below the expectation (loss, or above 2 sigma) while the
@@ -494,6 +495,13 @@ class LossesModule:
             r = results.get(f"flot-{n}")
             if r is None:
                 continue
+            # pH meter: the grab sample against the online reading names the sensor, and the flowmeter is not blamed for it
+            lab, onl = self.store.f(f"ph-{n}", "lab_ph"), self.store.mean(f"ph-{n}", "ph", t if t is not None else self._t_last(), 60.0)
+            ph_gap = abs(lab - onl) if lab != NO_VALUE and onl != NO_VALUE else 0.0
+            if ph_gap >= self.prm["ph_gap_alarm"]:
+                out[f"phmeter-{n}"] = (f"pH-метр {n}: ручная проба {num(lab, 2)} против онлайн-показания {num(onl, 2)} — расхождение "
+                                       f"{num(ph_gap, 2)}, показание под подозрением, проверить электрод")
+                continue
             if r.status in ("loss", "unsure") and r.gap_cu_tph > 0.0 and "kip" in r.role_keys:
                 ratio = r.detail.get("dose_ratio", 1.0)
                 out[f"flowmeter-{n}"] = (f"расходомер собирателя {n}: извлечение ниже ожидаемого (z = {num(r.z, 1)}) "
@@ -501,11 +509,20 @@ class LossesModule:
                                          f"показание под подозрением, проверить расходомер")
             elif r.status == "no_data":
                 out[f"analyzer-{n}"] = f"анализатор {n}: нет показаний при работающей линии"
+            a = self.store.get(f"analyzer-{n}")
+            if a is not None and a.s("state") == "SUSPECT" and a.f("age_min") > self.prm["age_stale_an_cycles"] * self.prm["an_cycle_min"]                     and self.store.s(f"flot-{n}", "state") != "STOP" and f"analyzer-{n}" not in out:
+                out[f"analyzer-{n}"] = (f"анализатор {n}: последнее показание {num(a.f('age_min'), 0)} мин назад при цикле "
+                                        f"{num(self.prm['an_cycle_min'], 0)} мин — пробоотборная линия засорена? хвосты и питание "
+                                        f"на экране устарели, проверить линию")
             g = self.reagent.get(n) or {}
             if g.get("status") == "loss" and f"flowmeter-{n}" not in out:
                 out[f"flowmeter-{n}"] = (f"расходомер собирателя {n}: показывает меньше, чем ушло из бака "
                                          f"(+{num(100 * g['excess'], 0)} %) — проверить расходомер и насос-дозатор")
         return out
+
+    def _t_last(self) -> float:
+        """Model minute of the tact being computed (the windows of the store end there)."""
+        return self.processed if self.processed != NO_VALUE else self.store.max_sim_time(("site",))
 
     def silent_text(self, results: dict[str, NodeResult]) -> str:
         """Silent overspends in one line: SAG energy, collector, water; each with its money."""

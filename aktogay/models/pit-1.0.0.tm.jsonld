@@ -6,7 +6,7 @@
     "en": "Open pit",
     "ru": "Карьер"
   },
-  "description": "Queue of ore blocks dug by the excavators. States: RUN, STOP.",
+  "description": "Queue of ore blocks dug by the excavators. Haul roads: visibility_m, road_grip (friction index 0..1), haul_speed_pct and road_restrict (traffic restriction in force) show the winter road. States: RUN, STOP.",
   "version": {
     "model": "1.0.0"
   },
@@ -46,6 +46,30 @@
       "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "hard_in_plan"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-m-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "visibility_m"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-n-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "road_grip"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "haul_speed_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-flag-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "road_restrict"
     },
     {
       "rel": "tm:submodel",

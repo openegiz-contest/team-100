@@ -129,14 +129,39 @@ LIBRARY: tuple[tuple[str, tuple[str, ...], float], ...] = (
     ("reline", ("reline",), 0.1),
 )
 HIDDEN = ("dose", "cyclone")
-DECISION = ("hard", "grid", "reline")   # no crew: the call changes operation (blend, headroom, excavators)
+# Tier S of 23.10.2026 (opt-in, cfg["library"] = "tier_s"; the default library and so every draw of the N = 100 trial are
+# unchanged): cyclone roping with ball mill overload (decision of the grinding operator), pH electrode drift (I&C), uneven
+# HPGR feed on line 2 (mill crew), planned mantle change of a crusher (crew-cpd). Not added: icy and fatigue (S0, no money),
+# oil and exc_down (the effect comes 11 h after the start, beyond the 12 h shift window of this design).
+LIBRARY_TIER_S: tuple[tuple[str, tuple[str, ...], float], ...] = (
+    ("roping", ("roping",), 0.3),
+    ("ph", ("phdrift",), 0.3),
+    ("hpgr", ("hpgr",), 0.3),
+    ("mantle", ("mantle",), 0.1),
+)
+HIDDEN_TIER_S = ("roping", "phdrift", "hpgr")           # found by the module (circulating load, grab sample, skew), not by an alarm
+# Without the twin: when people see them (min after the start): operators read the circulating load / skew on the screens,
+# the grab sample of pH comes every sens_ph_lab_every_h hours, the metal detector trips after peb_hpgr_tramp_after_h (assumptions).
+ASIS_SEE_MIN = {"roping": 45.0, "mantle": 10.0}
+DECISION = ("hard", "grid", "reline", "roping")   # no crew: the call changes operation (blend, headroom, excavators, feed)
 
 DEFAULTS = {
     "n": 100, "seed0": 1001, "kip": 1, "sigma_ln": 0.4, "miss": 0.0, "detect_min": 75.0,
     "loud_react_min": 30.0, "no_twin": False, "price": None, "p_two": 0.6, "start_span_h": 10.0,
     "est_sigma": 0.2, "tact_min": TACT_MIN, "boot": 10000, "jobs": 1,
     "set": {}, "hidden_mult": 1.0, "mag": 1.0, "asis": True, "asis_notice_min": 10.0,
+    # experiment of 24.10.2026 (VALIDATION 8.6); every default keeps the 22.10 behaviour and numbers
+    "copies": None, "crews": None, "call_delay_min": 0.0, "delay_kinds": None, "compliance": 1.0,
+    "fine_tact_min": 1.0, "seeds": None,
+    # alarm flood of the shift (modules/flood.py): copies whose states are looked at every 5 model minutes
+    "alarms": None,
 }
+ALL_COPIES = ("by_value", "by_loud", "base", "no_twin", "novice", "value_nd", "nov_det", "nov_err", "nov_r", "nov_twin")
+MODE_OF = {"by_value": "value", "by_loud": "loud", "no_twin": "asis", "novice": "novice", "value_nd": "value_nd",
+           "nov_det": "novice_det", "nov_err": "novice_err", "nov_r": "novice_r", "nov_twin": "novice_twin"}
+# novice from data (VALIDATION 8.9): seeing time x nov_detect_mult / slips of diagnosis and of a step / both / the twin with a novice who executes
+NOVICE_DATA = ("novice_det", "novice_err", "novice_r")
+FINE_MODES = ("novice", "value_nd") + NOVICE_DATA + ("novice_twin",)   # these act at the minute the people see the trouble (plant steps are 1 min)
 NOTES = (
     "D = Cu(by_value) - Cu(by_loud), t Cu; positive = the money order gained [model estimate].",
     "no_twin = 'as now': operators take the hard-ore, grid and reline decisions when they see them "
@@ -186,7 +211,7 @@ def draw_shift(seed: int, cfg: dict) -> ShiftSpec:
     """Troubles and parameter overrides of one shift from (seed, 0, "trial"); deterministic."""
     rng = rng_at(seed, 0, "trial")
     n = 2 if rng.random() < cfg["p_two"] else 3
-    cats = [c for c in LIBRARY]
+    cats = [c for c in (LIBRARY + LIBRARY_TIER_S if cfg.get("library") == "tier_s" else LIBRARY)]
     weights = [c[2] for c in cats]
     troubles: list[Trouble] = []
     nodes: set[str] = set()
@@ -197,12 +222,14 @@ def draw_shift(seed: int, cfg: dict) -> ShiftSpec:
         cat = rng.choices(cats, weights)[0]
         kind = rng.choice(cat[1])
         line = 0 if kind in ev.SITE_KINDS else rng.choice((1, 2))
+        if kind == "hpgr":
+            line = 2                                   # the HPGR is in the model on line 2 only
         issue, node, crew = ev.issue_for(kind, line)
         start = t0 + rng.random() * cfg["start_span_h"] * MIN_PER_H
         if node in nodes:
             continue
         nodes.add(node)
-        hidden = kind in HIDDEN
+        hidden = kind in HIDDEN or kind in HIDDEN_TIER_S
         tr = Trouble(issue, kind, line, node, crew, float(start), hidden)
         if hidden:
             tr.missed = u01(seed, 0, "trial-miss:" + issue) < cfg["miss"]
@@ -317,6 +344,20 @@ def descriptors(plant: Plant, troubles: list[Trouble], now: float, prm: ParamSet
             hours = prm["scen_hard_lead_h"]
         elif tr.kind == "grid":
             rate = cu * 0.25 * err                      # one line halves (design section 7, C2)
+        elif tr.kind == "roping":                       # P80 up by cyc_rope_p80_um: recovery down by flot_p80_pp_10um per 10 um
+            rate = cu * prm["flot_p80_pp_10um"] * prm["cyc_rope_p80_um"] / 10.0 / rec * err
+        elif tr.kind == "phdrift":
+            rate = cu * prm["flot_ph_pp_unit"] * prm["hc_ph_drift"] / rec * err
+        elif tr.kind == "hpgr":                         # the pebble circuit of line 2 takes less: SAG t/h down
+            rate = cu * 0.07 * err
+        elif tr.kind == "mantle":                       # the crusher stands: the stockpile buys time
+            rate = cu
+            sp = snap.get(f"stockpile-{tr.line}", {})
+            h = sp.get("hours_left", NO_VALUE)
+            if not (_valid(h) and h > 0):
+                lvl, out_tph = sp.get("level_t", NO_VALUE), sp.get("out_tph", NO_VALUE)
+                h = lvl / out_tph if _valid(lvl) and _valid(out_tph) and out_tph > 0 else 0.0
+            hours = max(0.0, float(h))
         else:
             rate = cu * err                             # reline: the line stops
         median = ev.work_median_h(tr.kind, prm)
@@ -416,16 +457,122 @@ class Controller:
     """Books crews on one copy at every tact from what the twin knows."""
 
     def __init__(self, plant: Plant, troubles: list[Trouble], mode: str, cfg: dict, seed: int, rank_fn):
-        if mode not in ("value", "loud", "asis"):
-            raise ValueError("mode must be value, loud or asis")
+        if mode not in ("value", "loud", "asis", "novice", "value_nd") + NOVICE_DATA + ("novice_twin",):
+            raise ValueError("mode must be value, loud, asis, novice, value_nd, novice_det, novice_err, novice_r or novice_twin")
         self.plant, self.troubles, self.mode, self.cfg, self.seed, self.rank = plant, troubles, mode, cfg, seed, rank_fn
         self.booked: dict[str, dict] = {}
+        self._nov_ready: dict[str, float] = {}           # novice from data: minute the call is made, drawn once per trouble
+        self.period = float(cfg["tact_min"])            # run_shift lowers it to fine_tact_min when a minute-level copy is present
+
+    def delay_of(self, tr: Trouble) -> float:
+        """Call delay of the sweep (B1), min; zero for the kinds outside cfg["delay_kinds"]."""
+        d = float(self.cfg.get("call_delay_min") or 0.0)
+        kinds = self.cfg.get("delay_kinds")
+        return d if d > 0.0 and (not kinds or tr.kind in kinds) else 0.0
+
+    def followed(self, tr: Trouble) -> bool:
+        """Advice of the twin is carried out with probability cfg["compliance"]; the draw is the same in every copy."""
+        q = float(self.cfg.get("compliance", 1.0))
+        return q >= 1.0 or u01(self.seed, 0, "trial-follow:" + tr.issue) < q
+
+    def seen_at(self, tr: Trouble) -> float:
+        """Model minute the people on shift see the trouble (without the twin); inf for the quiet dose / cyclone losses."""
+        if tr.kind in HIDDEN:
+            return math.inf
+        if tr.kind in DECISION or tr.kind in HIDDEN_TIER_S or tr.kind == "mantle":
+            return self.asis_at(tr)
+        return tr.t_start_min + ev.notice_delay_min(self.seed, tr.issue, self.plant.prm)
 
     def known_at(self, tr: Trouble) -> float:
         """Model minute the twin knows the trouble: a loud one right after its start, a hidden one when found."""
+        if self.mode == "value_nd":
+            return self.seen_at(tr)                     # no early detection: only what the people have seen
+        if self.mode == "value" and not self.followed(tr):
+            return self.seen_at(tr)                     # advice not carried out: the shift handles it as it does today
         if not tr.hidden:
-            return tr.t_start_min + EPS
-        return math.inf if tr.t_found_min == NO_VALUE else tr.t_found_min
+            base = tr.t_start_min + EPS + self.delay_of(tr)
+        else:
+            base = math.inf if tr.t_found_min == NO_VALUE else tr.t_found_min + self.delay_of(tr)
+        if self.mode == "novice_twin" and base != math.inf:
+            return self._nov_ready.get(tr.issue, base)  # the twin knows at `base`; a novice who executes calls later by his slips
+        return base
+
+    # ---- novice from data (VALIDATION 8.9): seeing time x nov_detect_mult, a wrong diagnosis, a skipped step
+    def human_min(self, tr: Trouble) -> float:
+        """Minutes between the start and the call that are the people's own seeing and reacting (the part a novice is slower in);
+        the physics in between (ore reaching the SAG, a lab sample, a metal detector) is not scaled."""
+        p = self.plant.prm
+        notice = float(self.cfg.get("asis_notice_min", 10.0))
+        if tr.kind in HIDDEN:
+            return 0.0
+        if tr.kind in ASIS_SEE_MIN:
+            return ASIS_SEE_MIN[tr.kind] + notice
+        if tr.kind in DECISION or tr.kind in HIDDEN_TIER_S:
+            return notice
+        return ev.notice_delay_min(self.seed, tr.issue, p)
+
+    def nov_seen_at(self, tr: Trouble) -> float:
+        """Model minute a novice sees the trouble: the people's part x nov_detect_mult x a mean-preserving lognormal draw."""
+        p = self.plant.prm
+        s = float(p["nov_detect_sigma_ln"])
+        m = float(p["nov_detect_mult"]) * math.exp(s * normal(self.seed, 0, "nov-det:" + tr.issue) - 0.5 * s * s)
+        return self.seen_at(tr) + (m - 1.0) * self.human_min(tr)
+
+    def _open_count(self, t: float) -> int:
+        """Troubles the people know of that are not done at t (a decision counts as done once it is called)."""
+        n = 0
+        for tr in self.troubles:
+            if tr.kind in HIDDEN or tr.t_start_min > t:
+                continue
+            b = self.booked.get(tr.issue)
+            if b is None or (b["t_done_min"] != NO_VALUE and b["t_done_min"] > t + EPS):
+                n += 1
+        return n
+
+    def nov_slip_min(self, tr: Trouble, t: float, diagnosis: bool) -> float:
+        """Minutes lost to the novice's slips at the call: a wrong diagnosis (nov_p_diag) and a skipped step among nov_steps
+        (nov_p_step each); both x nov_stress_mult with nov_stress_open open troubles. A slip costs one crew travel time
+        (the wrong or incomplete crew arrives and reports; an assumption). Draws are from (seed, issue): the same in every copy."""
+        p = self.plant.prm
+        k = float(p["nov_stress_mult"]) if self._open_count(t) >= int(p["nov_stress_open"]) else 1.0
+        lost = 0.0
+        if diagnosis and u01(self.seed, 0, "nov-dx:" + tr.issue) < min(1.0, float(p["nov_p_diag"]) * k):
+            lost += ev.arrival_min(self.seed, tr.issue + ":nov-dx", p)
+        p_step = 1.0 - (1.0 - min(1.0, float(p["nov_p_step"]) * k)) ** int(p["nov_steps"])
+        if u01(self.seed, 0, "nov-st:" + tr.issue) < p_step:
+            lost += ev.arrival_min(self.seed, tr.issue + ":nov-st", p)
+        return lost
+
+    def _tact_novice_data(self, t: float) -> None:
+        """novice_det: seeing time only; novice_err: slips only; novice_r: both. Hidden dose / cyclone losses stay with the
+        laboratory and the tails alarm as for the expert. No order rule: every trouble is called when the novice is ready."""
+        self._silence_alarm(False)
+        det = self.mode in ("novice_det", "novice_r")
+        err = self.mode in ("novice_err", "novice_r")
+        for tr in sorted(self.troubles, key=lambda x: (x.t_start_min, x.issue)):
+            if tr.issue in self.booked or tr.kind in HIDDEN:
+                continue
+            seen = self.nov_seen_at(tr) if det else self.seen_at(tr)
+            if t + EPS < seen:
+                continue
+            ready = self._nov_ready.get(tr.issue)
+            if ready is None:
+                ready = seen + (self.nov_slip_min(tr, t, True) if err else 0.0)
+                self._nov_ready[tr.issue] = ready
+            if t + EPS >= ready:
+                self._book(tr, t)
+
+    def _prepare_novice_twin(self, t: float) -> None:
+        """The twin tells the novice what and whom; he still executes with the slips of a skipped step (no wrong diagnosis:
+        the card names the crew, an assumption). The delay is drawn at the first tact after the twin knows. The plant's own call at the
+        alarm is switched off: the novice acts on the card, and a step he skips is skipped on any path."""
+        self._silence_alarm(False)
+        for tr in self.troubles:
+            if tr.issue in self.booked or tr.issue in self._nov_ready:
+                continue
+            base = self.known_at(tr)
+            if base != math.inf and t + EPS >= base:
+                self._nov_ready[tr.issue] = base + self.nov_slip_min(tr, t, False)
 
     def asis_at(self, tr: Trouble) -> float:
         """Without the twin: operators take the same operating decision, but only when they see it.
@@ -438,18 +585,55 @@ class Controller:
         notice = float(self.cfg.get("asis_notice_min", 10.0))
         if tr.kind == "hard":
             return tr.t_start_min + self.plant.prm["scen_hard_lead_h"] * MIN_PER_H + notice
+        if tr.kind in ASIS_SEE_MIN:
+            return tr.t_start_min + ASIS_SEE_MIN[tr.kind] + notice
+        if tr.kind == "phdrift":                        # the next grab sample shows it
+            p = self.plant.prm
+            return tr.t_start_min + u01(self.seed, 0, "asis-ph:" + tr.issue) * p["sens_ph_lab_every_h"] * MIN_PER_H + notice
+        if tr.kind == "hpgr":                           # seen when the metal detector trips
+            return tr.t_start_min + self.plant.prm["peb_hpgr_tramp_after_h"] * MIN_PER_H + notice
         return tr.t_start_min + notice
 
+    def _silence_alarm(self, only_delayed: bool) -> None:
+        """The controller books these loud crew troubles itself: the plant's own call at the alarm is switched off."""
+        for tr in self.troubles:
+            if tr.crew and not tr.hidden and tr.issue not in self.booked and (not only_delayed or self.delay_of(tr) > 0.0):
+                self.plant._loud.pop(tr.issue, None)
+
+    def _tact_novice(self, t: float) -> None:
+        """A novice takes the troubles one at a time in order of appearance and turns to the next one when the crew
+        of the previous one has arrived (an assumption, VALIDATION 8.6)."""
+        self._silence_alarm(False)
+        busy = any(r["t_arrive_min"] != NO_VALUE and r["t_arrive_min"] > t + EPS for r in self.booked.values())
+        if busy:
+            return
+        seen = sorted((tr for tr in self.troubles if tr.issue not in self.booked and tr.kind not in HIDDEN
+                       and t + EPS >= self.seen_at(tr)), key=lambda tr: (tr.t_start_min, tr.issue))
+        if seen:
+            self._book(seen[0], t)
+
     def tact(self, t: float) -> None:
+        if self.mode == "novice":
+            self._tact_novice(t)
+            return
+        if self.mode in NOVICE_DATA:
+            self._tact_novice_data(t)
+            return
+        if self.mode == "novice_twin":
+            self._prepare_novice_twin(t)
+        if self.mode == "value_nd":
+            self._silence_alarm(False)
+        elif float(self.cfg.get("call_delay_min") or 0.0) > 0.0:
+            self._silence_alarm(True)
         if self.mode == "asis":
             for tr in self.troubles:
-                if tr.issue not in self.booked and tr.kind in DECISION and t + EPS >= self.asis_at(tr):
+                if tr.issue not in self.booked and tr.kind in DECISION + HIDDEN_TIER_S + ("mantle",)                         and t + EPS >= self.asis_at(tr):
                     self._book(tr, t)
             return
         pending = [tr for tr in self.troubles if tr.issue not in self.booked and self.known_at(tr) <= t + EPS]
         if not pending:
             return
-        if self.mode == "value":
+        if self.mode in ("value", "value_nd", "novice_twin"):
             desc = descriptors(self.plant, pending, t, self.plant.prm, self.seed, self.cfg["est_sigma"],
                                self.known_at)
             ranked = self.rank(desc, t, self.plant.prm, self.seed * 10000 + int(t))
@@ -476,7 +660,7 @@ class Controller:
             "t_call_min": float(t),
             "t_arrive_min": float(job.t_arrive_min) if job is not None else NO_VALUE,
             "t_done_min": float(job.t_done_min) if job is not None else NO_VALUE,
-            "by": "operator" if self.mode == "asis" else "twin",
+            "by": "operator" if self.mode in ("asis", "novice") + NOVICE_DATA else "twin",
         }
 
 
@@ -486,6 +670,27 @@ def _plant_jobs(plant: Plant, seen: dict[str, dict]) -> None:
         if issue not in seen:
             seen[issue] = {"t_call_min": float(job.t_call_min), "t_arrive_min": float(job.t_arrive_min),
                            "t_done_min": float(job.t_done_min), "by": "plant"}
+
+
+DOWN_NODES = ("crusher", "sag", "ball", "flot", "line_stop", "line_limited")
+
+
+def _sample_down(plant: Plant, dt: float, acc: dict[str, float]) -> None:
+    """Add dt minutes to the nodes that stand now (crusher STOP, SAG STOP / RELINE / STARVED, any ball mill STOP,
+    flotation STOP, line STOP) and to line_limited (line LIMITED); the two lines are summed."""
+    for ln in plant.state.lines:
+        if ln.crusher is not None and ln.crusher.state == "STOP":
+            acc["crusher"] += dt
+        if ln.sag is not None and ln.sag.state in ("STOP", "RELINE", "STARVED"):
+            acc["sag"] += dt
+        if any(b.state == "STOP" for b in ln.balls):
+            acc["ball"] += dt
+        if ln.flot is not None and ln.flot.state == "STOP":
+            acc["flot"] += dt
+        if ln.state == "STOP":
+            acc["line_stop"] += dt
+        elif ln.state == "LIMITED":
+            acc["line_limited"] += dt
 
 
 def run_shift(args: tuple[int, dict]) -> dict:
@@ -498,28 +703,61 @@ def run_shift(args: tuple[int, dict]) -> dict:
     fact = Plant(prm, seed, mode="scenario")
     fact.warmup()
     spec = make_spec(fact, shift, cfg)
-    copies: dict[str, Plant] = {"by_value": fact, "by_loud": fact.clone(), "base": fact.clone()}
-    if cfg["no_twin"]:
-        copies["no_twin"] = fact.clone()
+    names = list(cfg["copies"]) if cfg.get("copies") else (
+        ["by_value", "by_loud", "base"] + (["no_twin"] if cfg["no_twin"] else []))
+    bad = [n for n in names if n not in ALL_COPIES]
+    if bad:
+        raise ValueError("unknown copies: " + ",".join(bad))
+    copies: dict[str, Plant] = {}
+    for i, name in enumerate(names):
+        copies[name] = fact if i == 0 else fact.clone()
     for name, c in copies.items():
         if name != "base":
             c.apply_scenario(spec)
-    ctrl = {"by_value": Controller(copies["by_value"], shift.troubles, "value", cfg, seed, rank_fn),
-            "by_loud": Controller(copies["by_loud"], shift.troubles, "loud", cfg, seed, rank_fn)}
-    if cfg["no_twin"] and cfg.get("asis", True):
-        ctrl["no_twin"] = Controller(copies["no_twin"], shift.troubles, "asis", cfg, seed, rank_fn)
+    if cfg.get("crews"):                            # B4: the same number of free teams in every crew, every copy
+        for c in copies.values():
+            for cn in list(c.state.crews):
+                c._set_crew_count(cn, int(cfg["crews"]))
+    ctrl = {}
+    for name in names:
+        if name in MODE_OF and not (name == "no_twin" and not cfg.get("asis", True)):
+            ctrl[name] = Controller(copies[name], shift.troubles, MODE_OF[name], cfg, seed, rank_fn)
     bookings: dict[str, dict[str, dict]] = {name: {} for name in copies}
-    tact = float(cfg["tact_min"])
+    fine = any(MODE_OF.get(n) in FINE_MODES for n in names)
+    step_min = min(float(cfg["tact_min"]), float(cfg["fine_tact_min"])) if fine else float(cfg["tact_min"])
+    for k in ctrl.values():
+        k.period = step_min
+    down: dict[str, dict[str, float]] = {name: dict.fromkeys(DOWN_NODES, 0.0) for name in copies}
     t = fact.t_min
+    t_origin = t
     end1 = t + prm["cal_shift_h"] * MIN_PER_H
     end2 = t + 2.0 * prm["cal_shift_h"] * MIN_PER_H
+    from modules import flood as fl           # the counter of the stand's module: the experiment counts the same way
+    from modules.store import _type_of
+    flood_cnt = {n: fl.FloodCounter() for n in (cfg.get("alarms") or []) if n in copies}
+    flood_next = [t]
+
+    def flood_look() -> None:
+        """Every 5 model minutes: the states of the nodes of the tracked copies into the counters (as the twin looks at them)."""
+        if not flood_cnt or t + EPS < flood_next[0]:
+            return
+        flood_next[0] = t + 5.0
+        for n, fc in flood_cnt.items():
+            snap = copies[n].snapshot(measured=True)
+            fc.observe(t, 0 if t <= end1 + EPS else 1,
+                       [(nm, _type_of(nm), str(v.get("state", "")), v.get("alarm")) for nm, v in snap.items()
+                        if _type_of(nm) in fl.ABNORMAL])
 
     def advance(target: float) -> None:
         nonlocal t
         while t < target - EPS:
-            t = min(t + tact, target)
+            t_prev = t
+            t = min(t + step_min, target)
             for c in copies.values():
                 c.run_until(t)
+            for name, c in copies.items():
+                _sample_down(c, t - t_prev, down[name])
+            flood_look()
             for name, k in ctrl.items():
                 k.tact(t)
                 for issue, rec in k.booked.items():
@@ -528,7 +766,9 @@ def run_shift(args: tuple[int, dict]) -> dict:
                 _plant_jobs(c, bookings[name])
 
     advance(end1)
+    flood1 = {n: fc.summary(t, len(shift.troubles)) for n, fc in flood_cnt.items()}
     w1 = {name: c.shift_summary() for name, c in copies.items()}
+    down1 = {name: dict(d) for name, d in down.items()}
     for c in copies.values():
         if c.state.site_state == "PAUSED":          # auto pause at 20:00: go on into the night
             c.state.site_state = "RUN"
@@ -537,6 +777,10 @@ def run_shift(args: tuple[int, dict]) -> dict:
 
     def cu(w, name):
         return float(w[name]["cu_t"])
+
+    def kwh_t(w, name):
+        c = float(w[name]["cu_t"])
+        return float(w[name]["energy_mwh"]) * 1000.0 / c if c > 0 else NO_VALUE
 
     def usd(w, name):
         return float(w[name]["usd"])
@@ -549,18 +793,24 @@ def run_shift(args: tuple[int, dict]) -> dict:
         "cu_t_0800": {name: cu(w2, name) for name in copies},
         "usd_2000": {name: usd(w1, name) for name in copies},
         "usd_0800": {name: usd(w2, name) for name in copies},
-        "loss_cu_t_2000": {name: cu(w1, "base") - cu(w1, name) for name in copies if name != "base"},
-        "d_cu_t": cu(w1, "by_value") - cu(w1, "by_loud"),
-        "d_cu_t_0800": cu(w2, "by_value") - cu(w2, "by_loud"),
-        "d_usd": usd(w1, "by_value") - usd(w1, "by_loud"),
+        "loss_cu_t_2000": {name: cu(w1, "base") - cu(w1, name) for name in copies if name != "base"} if "base" in copies else {},
+        "d_cu_t": cu(w1, "by_value") - cu(w1, "by_loud") if "by_loud" in copies and "by_value" in copies else NO_VALUE,
+        "d_cu_t_0800": cu(w2, "by_value") - cu(w2, "by_loud") if "by_loud" in copies and "by_value" in copies else NO_VALUE,
+        "d_usd": usd(w1, "by_value") - usd(w1, "by_loud") if "by_loud" in copies and "by_value" in copies else NO_VALUE,
         "bookings": bookings,
         "seconds": round(time.perf_counter() - wall0, 2),
         # extras for the sensitivity report
         "rec_pct_2000": {name: float(w1[name].get("recovery_pct", NO_VALUE)) for name in copies},
         "cu_feed_t_2000": {name: float(w1[name].get("cu_feed_t", NO_VALUE)) for name in copies},
         "n_hidden": sum(1 for tr in shift.troubles if tr.hidden),
+        # extra metrics of the experiment of 24.10.2026: kWh per t Cu and minutes of standstill by node
+        "kwh_per_t_cu_2000": {name: kwh_t(w1, name) for name in copies},
+        "kwh_per_t_cu_0800": {name: kwh_t(w2, name) for name in copies},
+        "down_min_2000": down1, "down_min_0800": down,
     }
-    if "no_twin" in copies:
+    if flood1:
+        row["alarm_flood_2000"] = flood1
+    if "no_twin" in copies and "by_loud" in copies and "by_value" in copies:
         row["detection_cu_t"] = cu(w1, "by_loud") - cu(w1, "no_twin")
         row["twin_cu_t"] = cu(w1, "by_value") - cu(w1, "no_twin")
     return row
@@ -694,7 +944,7 @@ def run_trial(cfg: dict, progress=None) -> dict:
     """All shifts (parallel with cfg["jobs"] > 1) and the summary; returns the JSON document."""
     cfg = dict(DEFAULTS, **cfg)
     wall0 = time.perf_counter()
-    seeds = list(range(int(cfg["seed0"]), int(cfg["seed0"]) + int(cfg["n"])))
+    seeds = [int(x) for x in cfg["seeds"]] if cfg.get("seeds") else list(range(int(cfg["seed0"]), int(cfg["seed0"]) + int(cfg["n"])))
     jobs = max(1, int(cfg["jobs"]))
     rows: list[dict] = []
     if jobs == 1:
@@ -710,25 +960,29 @@ def run_trial(cfg: dict, progress=None) -> dict:
                     progress(i + 1, len(seeds))
     rng = random.Random(f"trial-boot:{cfg['seed0']}:{cfg['n']}")
     boot = int(cfg["boot"])
-    summary = {
-        "d_cu_t_2000": summarize([r["d_cu_t"] for r in rows], boot, rng),
-        "d_cu_t_0800": summarize([r["d_cu_t_0800"] for r in rows], boot, rng),
-        "d_usd_2000": summarize([r["d_usd"] for r in rows], boot, rng, zero=ZERO_T * 14539 * 0.955),
-    }
-    if cfg["no_twin"]:
+    both = bool(rows) and rows[0]["d_cu_t"] != NO_VALUE
+    summary = {}
+    if both:
+        summary = {
+            "d_cu_t_2000": summarize([r["d_cu_t"] for r in rows], boot, rng),
+            "d_cu_t_0800": summarize([r["d_cu_t_0800"] for r in rows], boot, rng),
+            "d_usd_2000": summarize([r["d_usd"] for r in rows], boot, rng, zero=ZERO_T * 14539 * 0.955),
+        }
+    if cfg["no_twin"] and both and "detection_cu_t" in rows[0]:
         summary["detection_cu_t_2000"] = summarize([r["detection_cu_t"] for r in rows], boot, rng)
         summary["twin_cu_t_2000"] = summarize([r["twin_cu_t"] for r in rows], boot, rng)
     small = max(1000, boot // 5)
     cuts: dict[str, dict] = {}
-    for key, label in (("n_troubles", "troubles"), ("shared_crew", "shared_crew")):
-        for val in sorted({r[key] for r in rows}, key=str):
-            sel = [r["d_cu_t"] for r in rows if r[key] == val]
-            cuts[f"{label}={val}"] = summarize(sel, small, rng)
-    kinds_cut: dict[str, dict] = {}
-    for r in rows:
-        for tr in r["troubles"]:
-            kinds_cut.setdefault(tr["kind"], []).append(r["d_cu_t"])
-    cuts.update({f"has_{k}": summarize(v, small, rng) for k, v in sorted(kinds_cut.items())})
+    if both:
+        for key, label in (("n_troubles", "troubles"), ("shared_crew", "shared_crew")):
+            for val in sorted({r[key] for r in rows}, key=str):
+                sel = [r["d_cu_t"] for r in rows if r[key] == val]
+                cuts[f"{label}={val}"] = summarize(sel, small, rng)
+        kinds_cut: dict[str, list] = {}
+        for r in rows:
+            for tr in r["troubles"]:
+                kinds_cut.setdefault(tr["kind"], []).append(r["d_cu_t"])
+        cuts.update({f"has_{k}": summarize(v, small, rng) for k, v in sorted(kinds_cut.items())})
     losses = {}
     for name in rows[0]["loss_cu_t_2000"] if rows else ():
         xs = [r["loss_cu_t_2000"][name] for r in rows]
@@ -766,11 +1020,14 @@ def format_report(doc: dict) -> str:
         f"policy: {doc['policy']}",
         "D = Cu(by value) - Cu(by loudness) at 20:00, t Cu [model estimate]",
     ]
-    out += _fmt_stats(doc["summary"]["d_cu_t_2000"], "t")
-    out.append("D at 08:00 next day, t Cu")
-    out += _fmt_stats(doc["summary"]["d_cu_t_0800"], "t")
-    out.append("D at 20:00, USD (payable Cu - energy - water)")
-    out += _fmt_stats(doc["summary"]["d_usd_2000"], "USD")
+    if "d_cu_t_2000" in doc["summary"]:
+        out += _fmt_stats(doc["summary"]["d_cu_t_2000"], "t")
+        out.append("D at 08:00 next day, t Cu")
+        out += _fmt_stats(doc["summary"]["d_cu_t_0800"], "t")
+        out.append("D at 20:00, USD (payable Cu - energy - water)")
+        out += _fmt_stats(doc["summary"]["d_usd_2000"], "USD")
+    else:
+        out.append("  (no by_value / by_loud pair in this run: see the rows; sim.trial.aggregate reads them)")
     if "detection_cu_t_2000" in doc["summary"]:
         out.append("detection contribution Cu(by loudness) - Cu(no twin) at 20:00, t Cu")
         out += _fmt_stats(doc["summary"]["detection_cu_t_2000"], "t")
@@ -786,6 +1043,454 @@ def format_report(doc: dict) -> str:
         f"{k} {v['mean']:.2f} / {v['median']:.2f}" for k, v in doc["loss_vs_base_cu_t_2000"].items()))
     out.append(f"{doc['seconds']:.0f} s")
     return "\n".join(out)
+
+
+# ---------------------------------------------------------------------------
+# Aggregation of the experiment of 24.10.2026 (VALIDATION 8.6): reads the runs of one directory, writes one document
+# ---------------------------------------------------------------------------
+LEVELS_DELAY = (0, 15, 30, 60, 120)                 # B1, minutes
+LEVELS_LAB = (2, 4, 6, 12, 24)                       # B2, hours until the result (mean wait 2 h + analysis)
+KINDS_B1_PLAN = ("crusher", "trip", "dose", "cyclone", "hard", "grid", "reline")      # the kinds of the plan 8.6
+KINDS_B1 = KINDS_B1_PLAN + ("roping", "phdrift", "hpgr", "mantle")                    # + tier S, run 24.10.2026 after the first results
+POLICY_COPY = {"novice": "novice", "expert": "no_twin", "twin": "by_value"}
+METRICS = ("cu", "usd", "kwh_per_t_cu", "recovery_pp", "down_min")
+DOWN_STAND = ("crusher", "sag", "ball", "flot", "line_stop")
+
+
+def _val(row: dict, copy: str, metric: str) -> float:
+    """One metric of one copy of one shift row, at 20:00."""
+    if metric == "cu":
+        return float(row["cu_t_2000"][copy])
+    if metric == "usd":
+        return float(row["usd_2000"][copy])
+    if metric == "kwh_per_t_cu":
+        return float(row["kwh_per_t_cu_2000"][copy])
+    if metric == "recovery_pp":
+        return float(row["rec_pct_2000"][copy])
+    if metric == "down_min":
+        return sum(float(row["down_min_2000"][copy][n]) for n in DOWN_STAND)
+    if metric.startswith("down_"):
+        return float(row["down_min_2000"][copy][metric[5:]])
+    raise KeyError(metric)
+
+
+def _lin(rows: list[dict], weights: dict[str, float], metric: str) -> list[float]:
+    """Per-shift linear combination of copies (a contrast); shifts with a missing value are dropped."""
+    out = []
+    for r in rows:
+        try:
+            raw = [_val(r, c, metric) for c in weights]
+        except (KeyError, TypeError):
+            continue
+        if all(_valid(v) for v in raw):                # NO_VALUE is -1: test the raw values, not the weighted ones
+            out.append(sum(w * v for w, v in zip(weights.values(), raw)))
+    return out
+
+
+def _brief(xs: list[float], boot: int, rng: random.Random, zero: float = ZERO_T) -> dict:
+    """Mean with BCa CI, median, shares worse / better than the threshold, Wilcoxon p, and the rule of VALIDATION 8.6."""
+    s = summarize(xs, boot, rng, zero=zero)
+    if s.get("n", 0) == 0:
+        return {"n": 0}
+    lo, hi = s["ci95_mean_bca"]
+    w = s["wilcoxon"]
+    return {"n": s["n"], "mean": s["mean"], "ci95": [lo, hi], "median": s["median"], "sd": s["sd"],
+            "share_worse": s["p_minus"], "share_worse_ci95": s["p_minus_ci95_wilson"],
+            "share_better": s["p_plus"], "share_none": s["p0"], "wilcoxon_p": w["p"], "wilcoxon_method": w["method"],
+            "effect": bool(lo > 0 or hi < 0) and abs(s["mean"]) > zero}
+
+
+def _holm(ps: list[float]) -> list[float]:
+    order = sorted(range(len(ps)), key=lambda i: ps[i])
+    out = [0.0] * len(ps)
+    run = 0.0
+    for rank, i in enumerate(order):
+        run = max(run, min(1.0, (len(ps) - rank) * ps[i]))
+        out[i] = run
+    return out
+
+
+def _slopes(rows_by_level: list[list[dict]], xs: list[float], val) -> list[float]:
+    """Per-shift OLS slope of val(row) on the level; only seeds present at every level."""
+    maps = [{r["seed"]: r for r in rows} for rows in rows_by_level]
+    seeds = sorted(set.intersection(*(set(m) for m in maps)))
+    xm = sum(xs) / len(xs)
+    sxx = sum((x - xm) ** 2 for x in xs)
+    out = []
+    for sd in seeds:
+        ys = [val(m[sd]) for m in maps]
+        if not all(math.isfinite(y) for y in ys):
+            continue
+        ym = sum(ys) / len(ys)
+        out.append(sum((x - xm) * (y - ym) for x, y in zip(xs, ys)) / sxx)
+    return out
+
+
+def _load(dirpath: str, name: str):
+    path = os.path.join(dirpath, name + ".json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def aggregate(dirpath: str) -> dict:
+    """The analysis plan of VALIDATION 8.6 over the run files of `dirpath` (names in the code); no simulation."""
+    boot = 10000
+    rng = random.Random("exp23-aggregate")
+    out: dict = {"plan": "VALIDATION.md 8.6", "dir": os.path.basename(os.path.abspath(dirpath)), "boot": boot}
+    files = {}
+
+    def get(name):
+        if name not in files:
+            files[name] = _load(dirpath, name)
+        return files[name]
+
+    # ---- B3 / D1: three policies, all metrics
+    b3: dict = {}
+    for tag in ("main_full", "main_base", "rep_full"):
+        d = get(tag)
+        if d is None:
+            continue
+        rows = d["shifts"]
+        blk: dict = {"n": len(rows), "seeds": d["seeds"], "library": d["config"].get("library", "base"),
+                     "troubles_per_shift": sum(r["n_troubles"] for r in rows) / len(rows), "means": {}, "pairs": {}}
+        for pol, cp in POLICY_COPY.items():
+            blk["means"][pol] = {m: (lambda v: sum(v) / len(v) if v else NO_VALUE)(_lin(rows, {cp: 1.0}, m)) for m in METRICS}
+            blk["means"][pol]["down_by_node"] = {n: sum(float(r["down_min_2000"][cp][n]) for r in rows) / len(rows)
+                                                for n in DOWN_NODES}
+        if rows and "base" in rows[0]["cu_t_2000"]:
+            blk["means"]["base_no_troubles"] = {m: (lambda v: sum(v) / len(v))(_lin(rows, {"base": 1.0}, m)) for m in METRICS}
+        for a, b in (("twin", "expert"), ("twin", "novice"), ("expert", "novice")):
+            wts = {POLICY_COPY[a]: 1.0, POLICY_COPY[b]: -1.0}
+            cell = {}
+            for m in METRICS:
+                cell[m] = _brief(_lin(rows, wts, m), boot, rng, zero=ZERO_T if m == "cu" else 1e-9)
+            cell["down_by_node"] = {n: _brief(_lin(rows, wts, "down_" + n), boot, rng, zero=1e-9) for n in DOWN_NODES}
+            cell["cu_0800"] = _brief([float(r["cu_t_0800"][POLICY_COPY[a]]) - float(r["cu_t_0800"][POLICY_COPY[b]])
+                                      for r in rows], boot, rng)
+            blk["pairs"][f"{a}-{b}"] = cell
+        holm = _holm([blk["pairs"][k]["cu"]["wilcoxon_p"] for k in blk["pairs"]])
+        for k, h in zip(blk["pairs"], holm):
+            blk["pairs"][k]["cu"]["wilcoxon_p_holm"] = h
+        # ordering of the three policies, in the sense of E3
+        p = blk["pairs"]
+        blk["order_twin_gt_expert_gt_novice"] = bool(p["twin-expert"]["cu"]["effect"] and p["twin-expert"]["cu"]["mean"] > 0
+                                                      and p["expert-novice"]["cu"]["mean"] > 0)
+        kinds: dict = {}
+        for r in rows:
+            for tr in r["troubles"]:
+                kinds.setdefault(tr["kind"], []).append(r)
+        blk["twin_minus_expert_by_kind_cu"] = {k: _brief(_lin(v, {"by_value": 1.0, "no_twin": -1.0}, "cu"), 3000, rng)
+                                               for k, v in sorted(kinds.items())}
+        b3[tag] = blk
+    out["b3_d1"] = b3
+
+    # ---- B4: 2 x 2 x crews
+    b4: dict = {}
+    for k in (1, 2, 3):
+        d = get(f"crews{k}")
+        if d is None:
+            continue
+        rows = d["shifts"]
+        A, B, C, D = "no_twin", "value_nd", "by_loud", "by_value"       # (det off, order off), (off, on), (on, off), (on, on)
+        cells = {nm: (lambda v: sum(v) / len(v))(_lin(rows, {c: 1.0}, "cu")) for nm, c in
+                 (("off_off", A), ("off_on", B), ("on_off", C), ("on_on", D))}
+        contrasts = {
+            "detection": {C: 0.5, D: 0.5, A: -0.5, B: -0.5},
+            "order": {B: 0.5, D: 0.5, A: -0.5, C: -0.5},
+            "interaction": {D: 1.0, C: -1.0, B: -1.0, A: 1.0},
+            "all": {D: 1.0, A: -1.0},
+        }
+        b4[str(k)] = {"n": len(rows), "cells_cu_t": cells,
+                      "contrasts_cu": {nm: _brief(_lin(rows, w, "cu"), boot, rng) for nm, w in contrasts.items()},
+                      "contrasts_usd": {nm: _brief(_lin(rows, w, "usd"), 4000, rng, zero=1e-9) for nm, w in contrasts.items()},
+                      "shared_crew_share": sum(1 for r in rows if r["shared_crew"]) / len(rows),
+                      "order_effect_shared_crew": _brief(_lin([r for r in rows if r["shared_crew"]], contrasts["order"], "cu"),
+                                                         4000, rng)}
+    out["b4"] = b4
+
+    # ---- B1: call delay
+    docs = [get(f"delay_{d}") for d in LEVELS_DELAY]
+    b1: dict = {}
+    if all(x is not None for x in docs):
+        rows_by = [x["shifts"] for x in docs]
+        loss = lambda r: float(r["loss_cu_t_2000"]["by_value"])          # noqa: E731
+        b1["levels"] = {}
+        for d, rows in zip(LEVELS_DELAY, rows_by):
+            b1["levels"][str(d)] = _brief([loss(r) for r in rows], boot, rng)
+            b1["levels"][str(d)]["usd_loss"] = _brief([float(r["usd_2000"]["base"]) - float(r["usd_2000"]["by_value"])
+                                                       for r in rows], 4000, rng, zero=1e-9)
+        hours = [d / 60.0 for d in LEVELS_DELAY]
+        sl = _slopes(rows_by, hours, loss)
+        b1["slope_t_cu_per_h_all_troubles"] = _brief(sl, boot, rng)
+        sl_usd = _slopes(rows_by, hours, lambda r: float(r["usd_2000"]["base"]) - float(r["usd_2000"]["by_value"]))
+        b1["slope_usd_per_h_all_troubles"] = _brief(sl_usd, 4000, rng, zero=1e-9)
+        by0 = {r["seed"]: r for r in rows_by[0]}
+        b1["by_kind_60min"] = {}
+        for kd in KINDS_B1:
+            dk = get(f"delaykind_{kd}")
+            if dk is None:
+                continue
+            per_h = [(loss(r) - loss(by0[r["seed"]])) / 1.0 for r in dk["shifts"] if r["seed"] in by0]
+            # 60 min = 1 h, so the difference is t Cu per hour; the tier S kinds draw from their own stream (the numbers of the plan kinds stay)
+            b1["by_kind_60min"][kd] = _brief(per_h, 4000, rng if kd in KINDS_B1_PLAN else random.Random("exp23-b1-" + kd))
+    out["b1"] = b1
+
+    # ---- B2: laboratory
+    docs = {h: get(f"lab_{h}") for h in LEVELS_LAB}
+    b2: dict = {}
+    if all(v is not None for v in docs.values()):
+        rows_by = [docs[h]["shifts"] for h in LEVELS_LAB]
+        ben = lambda r: float(r["cu_t_2000"]["by_value"]) - float(r["cu_t_2000"]["no_twin"])          # noqa: E731
+        b2["levels"] = {str(h): _brief([ben(r) for r in docs[h]["shifts"]], boot, rng) for h in LEVELS_LAB}
+        b2["slope_t_cu_per_h"] = _brief(_slopes(rows_by, [float(h) for h in LEVELS_LAB], ben), boot, rng)
+        hid = lambda r: r["n_hidden"] > 0          # noqa: E731
+        for tag, sel in (("with_hidden", hid), ("without_hidden", lambda r: not hid(r))):
+            sub = [[r for r in rows if sel(r)] for rows in rows_by]
+            b2["slope_" + tag] = _brief(_slopes(sub, [float(h) for h in LEVELS_LAB], ben), 4000, rng)
+            b2["n_" + tag] = len(sub[0])
+        b2["levels_usd"] = {str(h): _brief(_lin(docs[h]["shifts"], {"by_value": 1.0, "no_twin": -1.0}, "usd"), 4000, rng, zero=1e-9)
+                            for h in LEVELS_LAB}
+    out["b2"] = b2
+
+    # ---- D2 tornado: benefit twin - expert under one changed assumption at a time
+    tor: list[dict] = []
+    base = get("lab_4")                      # same copies and the same 5-minute cadence as the other tornado runs
+    if base is not None:
+        b0 = _brief(_lin(base["shifts"], {"by_value": 1.0, "no_twin": -1.0}, "cu"), boot, rng)
+        tor.append({"factor": "base", "value": "lab_4", "benefit": b0})
+        for h in (2, 6, 12, 24):
+            d = get(f"lab_{h}")
+            if d is not None:
+                tor.append({"factor": "lab_h", "value": h,
+                            "benefit": _brief(_lin(d["shifts"], {"by_value": 1.0, "no_twin": -1.0}, "cu"), 4000, rng)})
+        for tag, factor, value in (("tor_comp50", "compliance", 0.5), ("tor_comp75", "compliance", 0.75),
+                                   ("tor_err2", "model_error_x2", 0.4), ("tor_det150", "detect_min", 150)):
+            d = get(tag)
+            if d is not None:
+                tor.append({"factor": factor, "value": value,
+                            "benefit": _brief(_lin(d["shifts"], {"by_value": 1.0, "no_twin": -1.0}, "cu"), 4000, rng)})
+    out["tornado"] = tor
+
+    # ---- bridge to 22.10 and the cadence of the twin's call queue (1 min against 5 min)
+    bridge: dict = {}
+    leg = get("legacy_check")
+    if leg is not None:
+        bridge["legacy_check_22_10_settings"] = {k: leg["summary"][k] for k in
+                                                 ("twin_cu_t_2000", "detection_cu_t_2000", "d_cu_t_2000") if k in leg["summary"]}
+    m1, m5 = get("main_full"), get("lab_4")
+    if m1 is not None and m5 is not None:
+        r1, r5 = {r["seed"]: r for r in m1["shifts"]}, {r["seed"]: r for r in m5["shifts"]}
+        seeds = sorted(set(r1) & set(r5))
+        diff = {c: [(sd, float(r5[sd]["cu_t_2000"][c]) - float(r1[sd]["cu_t_2000"][c])) for sd in seeds]
+                for c in ("by_value", "no_twin")}
+        bridge["cadence_5min_minus_1min_cu"] = {c: _brief([x for _, x in v], 4000, rng) for c, v in diff.items()}
+        top = sorted(diff["by_value"], key=lambda kv: -abs(kv[1]))[:3]
+        bridge["cadence_largest_by_value_shifts"] = [{"seed": sd, "d_cu_t": x, "text": r1[sd]["text"]} for sd, x in top]
+        ben5 = [float(r5[sd]["cu_t_2000"]["by_value"]) - float(r5[sd]["cu_t_2000"]["no_twin"]) for sd in seeds]
+        bridge["benefit_5min_without_largest_shift"] = _brief(sorted(ben5)[:-1], 4000, rng)
+        bridge["benefit_5min"] = _brief(ben5, 4000, rng)
+    out["bridge"] = bridge
+    out["worse_shifts"] = _worse_shifts(get)
+    out["novice_data"] = _novice_block(get)
+    out["energy_co2"] = _energy_block(get)
+    out["alarm_flood"] = _flood_block(get)
+    out["p80_slope"] = _p80_block(get)
+    out["files_missing"] = [k for k, v in files.items() if v is None]
+    return out
+
+
+
+# ---------------------------------------------------------------------------
+# Shifts where the twin is worse than the expert (P2) and the novice from data (VALIDATION 8.9, 8.10)
+# ---------------------------------------------------------------------------
+NOV_PAIRS = {                                        # name -> (copy a, copy b); the contrast is a - b
+    "expert-nov_r": ("no_twin", "nov_r"),            # the single main comparison of 8.9
+    "twin-nov_r": ("by_value", "nov_r"),
+    "twin-expert": ("by_value", "no_twin"),          # code control: equals main_full of 8.8
+    "nov_twin-nov_r": ("nov_twin", "nov_r"),
+    "nov_twin-expert": ("nov_twin", "no_twin"),
+    "twin-nov_twin": ("by_value", "nov_twin"),
+    "expert-nov_det": ("no_twin", "nov_det"),        # seeing time only
+    "expert-nov_err": ("no_twin", "nov_err"),        # slips only
+    "nov_det-nov_r": ("nov_det", "nov_r"),           # what the slips add on top of the seeing time
+    "nov_err-nov_r": ("nov_err", "nov_r"),           # what the seeing time adds on top of the slips
+    "expert-novice_v1": ("no_twin", "novice"),       # the "one at a time" novice of 8.8
+}
+NOV_MAIN3 = ("twin-expert", "twin-nov_r", "expert-nov_r")      # Holm over these three (8.9)
+
+
+def _pair_cell(rows: list[dict], a: str, b: str, boot: int, rng: random.Random) -> dict:
+    """The five metrics of 8.6 for the contrast copy a - copy b over the shifts, plus the time by node and the copper at 08:00."""
+    wts = {a: 1.0, b: -1.0}
+    cell = {m: _brief(_lin(rows, wts, m), boot, rng, zero=ZERO_T if m == "cu" else 1e-9) for m in METRICS}
+    cell["down_by_node"] = {n: _brief(_lin(rows, wts, "down_" + n), boot, rng, zero=1e-9) for n in DOWN_NODES}
+    cell["cu_0800"] = _brief([float(r["cu_t_0800"][a]) - float(r["cu_t_0800"][b]) for r in rows], boot, rng)
+    return cell
+
+
+def _worse_shifts(get) -> dict:
+    """Shifts with twin - expert below -ZERO_T t Cu: seed, size, troubles, calls of the two copies (no simulation)."""
+    out: dict = {}
+    for tag in ("main_full", "rep_full", "main_base"):
+        d = get(tag)
+        if d is None:
+            continue
+        rows = []
+        for r in d["shifts"]:
+            dd = float(r["cu_t_2000"]["by_value"]) - float(r["cu_t_2000"]["no_twin"])
+            if dd >= -ZERO_T:
+                continue
+            calls = {}
+            for tr in r["troubles"]:
+                tw, ex = r["bookings"]["by_value"].get(tr["issue"]), r["bookings"]["no_twin"].get(tr["issue"])
+                calls[tr["issue"]] = {"start": round(tr["t_start_min"], 1), "found_by_twin": (None if tr["t_found_min"] < 0 else round(tr["t_found_min"], 1)),
+                                      "call_twin": None if tw is None else round(tw["t_call_min"], 1),
+                                      "call_expert": None if ex is None else round(ex["t_call_min"], 1),
+                                      "by_expert": None if ex is None else ex["by"]}
+            rows.append({"seed": r["seed"], "d_cu": dd, "text": r["text"], "shared_crew": r["shared_crew"],
+                         "kinds": sorted({tr["kind"] for tr in r["troubles"]}), "calls": calls})
+        diffs = [float(r["cu_t_2000"]["by_value"]) - float(r["cu_t_2000"]["no_twin"]) for r in d["shifts"]]
+        out[tag] = {"n": len(diffs), "n_worse": len(rows), "n_below_zero": sum(1 for x in diffs if x < 0.0),
+                    "worst": min(diffs), "rows": sorted(rows, key=lambda x: x["d_cu"])}
+    return out
+
+
+def _energy_block(get) -> dict:
+    """Energy and CO2 of the twin against the expert (main_full of 8.8), from the kWh per t Cu and the copper of each shift.
+    The CO2 factor is the stand's own row econ_co2_t_mwh (group Scope 2 / group electricity, a calculation)."""
+    d = get("main_full")
+    if d is None:
+        return {}
+    rows = d["shifts"]
+    f = float(default()["econ_co2_t_mwh"])
+    rng = random.Random("exp23-energy")
+
+    def en(r, c):                                           # MWh of the shift to 20:00
+        return float(r["kwh_per_t_cu_2000"][c]) * float(r["cu_t_2000"][c]) / 1000.0
+
+    mean = lambda xs: sum(xs) / len(xs)                      # noqa: E731
+    out = {"co2_t_per_mwh": f, "n": len(rows), "mwh_per_shift": {c: mean([en(r, c) for r in rows]) for c in ("base", "no_twin", "by_value")},
+           "kwh_per_t_cu": {c: mean([float(r["kwh_per_t_cu_2000"][c]) for r in rows]) for c in ("base", "no_twin", "by_value")},
+           "cu_t_per_shift": {c: mean([float(r["cu_t_2000"][c]) for r in rows]) for c in ("base", "no_twin", "by_value")}}
+    out["co2_t_per_t_cu"] = {c: v * f / 1000.0 for c, v in out["kwh_per_t_cu"].items()}
+    d_mwh = _brief([en(r, "by_value") - en(r, "no_twin") for r in rows], 10000, rng, zero=1e-9)
+    d_int = _brief([float(r["kwh_per_t_cu_2000"]["by_value"]) - float(r["kwh_per_t_cu_2000"]["no_twin"]) for r in rows], 10000, rng, zero=1e-9)
+    out["twin_minus_expert"] = {"mwh_per_shift": d_mwh, "kwh_per_t_cu": d_int,
+                                "co2_kg_per_t_cu": {"mean": d_int["mean"] * f, "ci95": [x * f for x in d_int["ci95"]]},
+                                "co2_t_per_shift_absolute": {"mean": d_mwh["mean"] * f, "ci95": [x * f for x in d_mwh["ci95"]]},
+                                "co2_t_per_shift_same_output": {"mean": d_int["mean"] * out["cu_t_per_shift"]["by_value"] / 1000.0 * f,
+                                                                "ci95": [x * out["cu_t_per_shift"]["by_value"] / 1000.0 * f for x in d_int["ci95"]]}}
+    return out
+
+
+def _p80_block(get) -> dict:
+    """Twin - expert under the slope of recovery on P80 of the Bozshakol analog (laboratory 1.2, plant regression 1.95 pp per 10 um)
+    against the stand's 0.3 (assumption); same copies and 5-minute cycle (runs lab_4, sens_p80_12, sens_p80_195). Descriptive, not pre-registered."""
+    rng = random.Random("exp23-p80")
+    out: dict = {}
+    for tag, slope in (("lab_4", 0.3), ("sens_p80_12", 1.2), ("sens_p80_195", 1.95)):
+        d = get(tag)
+        if d is None:
+            continue
+        rows = d["shifts"]
+        out[str(slope)] = {"run": tag, "n": len(rows),
+                           "twin_minus_expert": _brief(_lin(rows, {"by_value": 1.0, "no_twin": -1.0}, "cu"), 10000, rng),
+                           "expert_cu_t": sum(float(r["cu_t_2000"]["no_twin"]) for r in rows) / len(rows),
+                           "twin_cu_t": sum(float(r["cu_t_2000"]["by_value"]) for r in rows) / len(rows)}
+    return out
+
+
+def _flood_block(get) -> dict:
+    """Alarm-like events per shift (modules/flood.py) against the troubles injected and the one on the main screen (run `flood`)."""
+    d = get("flood")
+    if d is None:
+        return {}
+    rows = [r for r in d["shifts"] if "alarm_flood_2000" in r]
+    tps = sum(r["n_troubles"] for r in rows) / len(rows) if rows else 0.0
+    out: dict = {"n": len(rows), "isa_per_shift": 150.0 * 12.0 / 24.0, "troubles_per_shift": tps}
+    for c in ("no_twin", "by_value"):
+        ev = sorted(float(r["alarm_flood_2000"][c]["events"]) for r in rows if c in r["alarm_flood_2000"])
+        nodes = [float(r["alarm_flood_2000"][c]["nodes"]) for r in rows if c in r["alarm_flood_2000"]]
+        if not ev:
+            continue
+        out[c] = {"events_mean": sum(ev) / len(ev), "events_median": percentile(ev, 0.5), "events_p10": percentile(ev, 0.1),
+                  "events_p90": percentile(ev, 0.9), "events_max": ev[-1], "nodes_mean": sum(nodes) / len(nodes),
+                  "events_per_trouble": sum(ev) / len(ev) / out["troubles_per_shift"] if out["troubles_per_shift"] else None,
+                  "per_10min_mean": sum(ev) / len(ev) / 72.0}
+    return out
+
+
+def _novice_block(get) -> dict:
+    """Pre-registered analysis of 8.9 over the runs nov_main, nov_rep, nov_lo, nov_hi (names in run_exp23.py)."""
+    rng = random.Random("exp23-novice")
+    boot = 10000
+    out: dict = {"plan": "VALIDATION.md 8.9", "runs": {}}
+    for tag in ("nov_main", "nov_rep", "nov_lo", "nov_hi"):
+        d = get(tag)
+        if d is None:
+            continue
+        rows = d["shifts"]
+        have = set(rows[0]["cu_t_2000"]) if rows else set()
+        blk: dict = {"n": len(rows), "seeds": d["seeds"], "library": d["config"].get("library", "base"),
+                     "troubles_per_shift": sum(r["n_troubles"] for r in rows) / len(rows),
+                     "set": d["config"].get("set") or {}, "means": {}, "pairs": {}}
+        pol = {"expert": "no_twin", "twin": "by_value", "nov_r": "nov_r", "nov_twin": "nov_twin", "nov_det": "nov_det",
+               "nov_err": "nov_err", "novice_v1": "novice", "base_no_troubles": "base"}
+        for name, cp in pol.items():
+            if cp in have:
+                blk["means"][name] = {m: (lambda v: sum(v) / len(v) if v else NO_VALUE)(_lin(rows, {cp: 1.0}, m)) for m in METRICS}
+                blk["means"][name]["down_by_node"] = {n: sum(float(r["down_min_2000"][cp][n]) for r in rows) / len(rows)
+                                                      for n in DOWN_NODES}
+        for name, (a, b) in NOV_PAIRS.items():
+            if a in have and b in have:
+                blk["pairs"][name] = _pair_cell(rows, a, b, boot if tag in ("nov_main", "nov_rep") else 4000, rng)
+        main3 = [k for k in NOV_MAIN3 if k in blk["pairs"]]
+        if len(main3) == 3:
+            for k, h in zip(main3, _holm([blk["pairs"][k]["cu"]["wilcoxon_p"] for k in main3])):
+                blk["pairs"][k]["cu"]["wilcoxon_p_holm"] = h
+        if "expert-nov_r" in blk["pairs"]:
+            kinds: dict = {}
+            for r in rows:
+                for tr in r["troubles"]:
+                    kinds.setdefault(tr["kind"], []).append(r)
+            blk["expert_minus_nov_r_by_kind_cu"] = {k: _brief(_lin(v, {"no_twin": 1.0, "nov_r": -1.0}, "cu"), 3000, rng)
+                                                    for k, v in sorted(kinds.items())}
+            blk["expert_minus_nov_r_by_shared_crew_cu"] = {
+                str(flag): _brief(_lin([r for r in rows if r["shared_crew"] == flag], {"no_twin": 1.0, "nov_r": -1.0}, "cu"), 3000, rng)
+                for flag in (False, True) if any(r["shared_crew"] == flag for r in rows)}
+            slips = {"seeing_min_extra": [], "n_calls": 0}
+            for r in rows:
+                for tr in r["troubles"]:
+                    ex, nv = r["bookings"]["no_twin"].get(tr["issue"]), r["bookings"]["nov_r"].get(tr["issue"])
+                    if ex is not None and nv is not None and tr["kind"] not in HIDDEN:
+                        slips["n_calls"] += 1
+                        slips["seeing_min_extra"].append(nv["t_call_min"] - ex["t_call_min"])
+            xs = slips["seeing_min_extra"]
+            slips["mean_call_later_min"] = sum(xs) / len(xs) if xs else NO_VALUE
+            slips["n_calls_later_than_30_min"] = sum(1 for x in xs if x > 30.0)
+            slips.pop("seeing_min_extra")
+            blk["call_later_than_expert"] = slips
+        out["runs"][tag] = blk
+    m = out["runs"].get("nov_main")
+    if m and {"expert-nov_r", "twin-nov_r", "twin-expert", "nov_twin-nov_r", "nov_twin-expert"} <= set(m["pairs"]):
+        P = m["pairs"]
+        en = lambda k: P[k]["cu"]                                        # noqa: E731
+        out["expectations"] = {
+            "EN1_expert_better_than_nov_r": bool(en("expert-nov_r")["effect"] and en("expert-nov_r")["mean"] > 0),
+            "EN2_twin_lifts_novice_at_least_as_much": bool(en("twin-nov_r")["mean"] >= en("twin-expert")["mean"]),
+            "EN3_nov_twin_better_than_nov_r": bool(en("nov_twin-nov_r")["effect"] and en("nov_twin-nov_r")["mean"] > 0),
+            "EN3_nov_twin_not_below_expert": bool(en("nov_twin-expert")["ci95"][0] >= -ZERO_T),
+            "EN4_slips_less_than_seeing": bool("nov_det-nov_r" in P and "nov_err-nov_r" in P
+                                               and abs(P["nov_det-nov_r"]["cu"]["mean"]) < abs(P["nov_err-nov_r"]["cu"]["mean"])),
+            "twin_expert_equals_main_full_8_8": None,
+        }
+        mf = get("main_full")
+        if mf is not None:
+            ref = _brief(_lin(mf["shifts"], {"by_value": 1.0, "no_twin": -1.0}, "cu"), 3000, rng)
+            out["expectations"]["twin_expert_equals_main_full_8_8"] = bool(abs(ref["mean"] - en("twin-expert")["mean"]) < 1e-9)
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -810,7 +1515,25 @@ def main(argv: list[str] | None = None) -> int:
                     help="old baseline: without the twin nobody takes the hard/grid/reline decisions")
     ap.add_argument("--asis-notice", type=float, default=10.0,
                     help="minutes from seeing a decision trouble to the call, without the twin")
+    ap.add_argument("--library", choices=("base", "tier_s"), default="base",
+                    help="trouble library: base (the N = 100 trial) or tier_s (+ roping, pH drift, HPGR, mantle change)")
+    ap.add_argument("--copies", default=None, help="comma list of copies: " + ",".join(ALL_COPIES))
+    ap.add_argument("--crews", type=int, default=None, help="teams in every crew (B4: 1 / 2 / 3)")
+    ap.add_argument("--call-delay", type=float, default=0.0, help="minutes from the twin knowing a trouble to the call (B1)")
+    ap.add_argument("--delay-kinds", default=None, help="comma list of kinds the delay applies to (all when omitted)")
+    ap.add_argument("--compliance", type=float, default=1.0, help="share of the twin's calls the shift carries out")
+    ap.add_argument("--est-sigma", type=float, default=DEFAULTS["est_sigma"], help="log-sd of the module's loss estimate")
+    ap.add_argument("--seeds", default=None, help="comma list of seeds (instead of --seed0 / --n)")
+    ap.add_argument("--alarms", default=None, help="comma list of copies whose node states are counted as alarm-like events")
+    ap.add_argument("--aggregate", default=None, metavar="DIR",
+                    help="read the runs of the experiment from DIR (see aggregate) and write --out; no simulation")
     a = ap.parse_args(argv)
+    if a.aggregate:
+        doc = aggregate(a.aggregate)
+        with open(a.out, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(doc, f, ensure_ascii=False, indent=1)
+        print("wrote", a.out)
+        return 0
     sets: dict[str, float] = {}
     for item in a.set:
         key, _, val = item.partition("=")
@@ -820,7 +1543,23 @@ def main(argv: list[str] | None = None) -> int:
     cfg = {"n": a.n, "seed0": a.seed0, "kip": a.kip, "sigma_ln": a.sigma_ln, "miss": a.miss,
            "detect_min": a.detect_min, "loud_react_min": a.loud_react, "price": a.price, "no_twin": a.no_twin,
            "boot": a.boot, "jobs": a.jobs, "set": sets, "hidden_mult": a.hidden_mult, "mag": a.mag,
-           "asis": not a.no_asis, "asis_notice_min": a.asis_notice}
+           "asis": not a.no_asis, "asis_notice_min": a.asis_notice, "est_sigma": a.est_sigma}
+    if a.copies:
+        cfg["copies"] = [x.strip() for x in a.copies.split(",") if x.strip()]
+    if a.crews:
+        cfg["crews"] = a.crews
+    if a.call_delay:
+        cfg["call_delay_min"] = a.call_delay
+    if a.delay_kinds:
+        cfg["delay_kinds"] = [x.strip() for x in a.delay_kinds.split(",") if x.strip()]
+    if a.compliance != 1.0:
+        cfg["compliance"] = a.compliance
+    if a.seeds:
+        cfg["seeds"] = [int(x) for x in a.seeds.split(",") if x.strip()]
+    if a.alarms:
+        cfg["alarms"] = [x.strip() for x in a.alarms.split(",") if x.strip()]
+    if a.library != "base":
+        cfg["library"] = a.library              # absent in the default config, so the stored N = 100 summary stays comparable
 
     def progress(i, n):
         if i == n or i % 10 == 0:

@@ -59,6 +59,11 @@ SOURCES = {
         "doc_ru": "Caterpillar, паспортная грузоподъёмность 777 и 785 (данные производителя; в этой работе не открыты)",
         "doc": "Caterpillar rated payload of the 777 and 785 (vendor data; not opened in this work)",
         "page": "", "label": "vendor", "url": ""},
+    "abb_ph": {
+        "doc_ru": "ABB, применение «pH/ORP во флотации медной руды», с. 3: абразив пульпы и накипь от извести (требование вендора к датчику)",
+        "doc": "ABB application note, pH/ORP in copper flotation, p. 3: slurry abrasion and lime scale (vendor requirement)",
+        "page": "3", "label": "vendor",
+        "url": "https://library.e.abb.com/public/ce5cb93e495f4eafb1b60f98308a7203/AD_ANAINST_001-EN%20Rev%20A.pdf"},
     "roster": {
         "doc_ru": "Состав смены по ролям: допущение стенда (открытых данных нет); в карьере за смену "
                   "больше 500 человек и больше 100 машин (Вести Семей, 06.06.2024)",
@@ -81,6 +86,12 @@ PEOPLE = (
     ("person-water", "tailings_engineer", "Технолог хвостов и оборотной воды", "crew-water", "water"),
     ("person-dispatcher", "mine_dispatcher", "Горный диспетчер", "", "pit"),
     ("person-shift-head", "plant_shift_manager", "Начальник смены фабрики", "", "line-1"),
+    # added 23.10.2026 (tier S): roles of the pit and the grinding control room. Names of the roles are common to mines;
+    # that they stand on the Aktogay shift is an assumption (the roster by role is not published)
+    ("person-mine-head", "mine_shift_head", "Начальник смены карьера", "", "pit"),
+    ("person-road", "road_service", "Дорожная служба карьера", "", "ramp-1"),
+    ("person-pit-mech", "shift_mechanic", "Сменный механик карьера", "", "exc-1"),
+    ("person-grind-op", "grinding_operator", "Оператор пульта измельчения", "", "sag-1"),
 )
 # Chain of responsibility (main -> deputy -> shift head): the deputy is a colleague of a neighbouring trade on the
 # same shift; the last link is the shift head. Roster and links are an assumption of the stand (no public data).
@@ -89,8 +100,23 @@ DEPUTY = {
     "person-kip": "person-power", "person-power": "person-kip",
     "person-metallurgist": "person-geologist", "person-geologist": "person-metallurgist",
     "person-water": "person-metallurgist", "person-dispatcher": "person-geologist",
+    "person-mine-head": "person-dispatcher", "person-road": "person-mine-head",
+    "person-pit-mech": "person-crusher-mech", "person-grind-op": "person-metallurgist",
 }
 SHIFT_HEAD = "person-shift-head"
+# Chain of a trouble kind when it differs from main -> deputy -> shift head of the plant (the pit has its own head).
+# The winter road: mine dispatcher -> head of the pit shift -> road service (T-K4: KAZ Minerals names the risk, not the roster).
+CHAIN_BY_KIND = {
+    "road_winter": ("person-dispatcher", "person-mine-head", "person-road"),
+    "driver_fatigue": ("person-dispatcher", "person-mine-head"),
+    "oil_contam": ("person-pit-mech", "person-dispatcher", "person-mine-head"),
+    "exc_down": ("person-pit-mech", "person-dispatcher", "person-mine-head"),
+}
+# Excavators with a confirmed on-machine oil contamination sensor: the EX3600-6 brochure (p. 11); the other models' lists are not
+# confirmed in the sources, so the twin publishes -1 for them (S1 of facts_round2).
+OIL_SENSOR = ("exc-1",)
+# Truck of the fatigue alert (scenario fatigue): bort number of the equipment list of 29.02.2024 (CAT 793D).
+FATIGUE_BORT = "HT141"
 # Who goes when a decision without a crew is called (issue kind -> person).
 DECISION_PERSON = {
     "grid": "person-power", "hard": "person-geologist", "pit": "person-dispatcher",
@@ -101,6 +127,15 @@ DECISION_PERSON = {
     # grinding media overuse and a concentrate grade below the norm: the metallurgist checks the charge and the cleaner
     "balls": "person-metallurgist", "conc": "person-metallurgist",
     "startup": "person-shift-head",           # cancels the start command given while people are inside a mill
+    "icy": "person-dispatcher",               # restricts the traffic on the haul roads
+    "leachcold": "person-metallurgist",       # the metallurgist of the oxide complex looks at the pad (no procedure published)
+    "fatigue": "person-dispatcher",           # takes the driver off the trip / separates the machines
+    "oil": "person-pit-mech",                 # filters and flushes the hydraulic oil of the excavator
+    "roping": "person-grind-op",              # the grinding operator reduces the feed / opens the cyclones
+    # tier T of 24.10.2026: who goes to the unit (the roles are an assumption of the stand)
+    "gmd": "person-kip", "froth": "person-kip", "idler": "person-crusher-mech",
+    "rake": "person-mill-mech", "cloth": "person-mill-mech", "slurry": "person-mill-mech",
+    "brake": "person-pit-mech", "track": "person-pit-mech",
 }
 # Person who answers for a node, by thing type (attribute responsible.person).
 TYPE_PERSON = {
@@ -114,6 +149,7 @@ TYPE_PERSON = {
     "analyzer": "person-metallurgist", "sag": "person-mill-mech", "pebble": "person-mill-mech",
     "ball": "person-mill-mech", "cyclones": "person-mill-mech", "filter": "person-mill-mech",
     "flowmeter": "person-kip", "water": "person-water", "piezometer": "person-water", "power": "person-power",
+    "phmeter": "person-kip", "leach": "person-metallurgist", "sxew": "person-metallurgist",
 }
 CREW_PERSON = {"crew-kip": "person-kip", "crew-cpd": "person-crusher-mech", "crew-mill": "person-mill-mech",
                "crew-water": "person-water"}
@@ -204,6 +240,8 @@ INSTRUMENTS = tuple(
     ("piezo-1", "piezometer", "water", "Пьезометр дамбы П-1"),
     ("piezo-2", "piezometer", "water", "Пьезометр дамбы П-2"),
     ("piezo-3", "piezometer", "water", "Пьезометр дамбы П-3"),
+    ("ph-1", "phmeter", "rougher-1", "pH-метр флотации 1"),
+    ("ph-2", "phmeter", "rougher-2", "pH-метр флотации 2"),
 )
 # piezometer -> parameter row of its offset from the dam reading of the model (assumption)
 PIEZO_OFFSET = {"piezo-1": "pond_piezo_off1_kpa", "piezo-2": "pond_piezo_off2_kpa", "piezo-3": "pond_piezo_off3_kpa"}
@@ -246,3 +284,14 @@ def truck_borts(prm=None) -> dict[str, tuple[str, str, str]]:
         else:
             out[tid] = (f"HT2{tid[-2:]}", model, "номер условный")
     return out
+
+
+def fatigue_truck(prm=None) -> tuple[str, str, str]:
+    """(thing id, bort number, model) of the truck in the fatigue alert: HT141 CAT 793D of the equipment list, else the first
+    ore truck of the roster."""
+    borts = truck_borts(prm)
+    for tid, (bort, model, _label) in borts.items():
+        if bort == FATIGUE_BORT:
+            return tid, bort, model
+    tid = next(iter(borts))
+    return tid, borts[tid][0], borts[tid][1]

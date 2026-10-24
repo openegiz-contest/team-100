@@ -256,7 +256,8 @@ def is_winter(doy: float, prm: ParamSet) -> bool:
     return d >= prm["season_winter_from_doy"] or d <= prm["season_winter_to_doy"]
 
 
-def weather(t_min: float, seed: int, winter: bool, dust: bool, prm: ParamSet) -> tuple[float, float, float]:
+def weather(t_min: float, seed: int, winter: bool, dust: bool, prm: ParamSet,
+            icy: bool = False) -> tuple[float, float, float]:
     """(air temperature degC, wind m/s, dry beach %) at model minute t_min: season mean and daily swing,
     hourly wind draw, dry beach by season; a dust spell sets wind and dry beach to the scenario values."""
     hour = (t_min % 1440.0) / 60.0
@@ -268,6 +269,9 @@ def weather(t_min: float, seed: int, winter: bool, dust: bool, prm: ParamSet) ->
     if dust:
         wind = max(wind, prm["scen_dust_wind_ms"])
         dry = max(dry, prm["scen_dust_dry_pct"])
+    if icy:                       # scenario icy: snowstorm spell on the haul roads (frost, strong wind)
+        wind = max(wind, prm["scen_icy_wind_ms"])
+        temp = min(temp, prm["scen_icy_temp_c"])
     return temp, wind, dry
 
 

@@ -145,7 +145,7 @@ S_KEGOC = ("KEGOC via Zakon.kz, line outage 14.08.2026 (event only): "
 S_ME58 = ("Order of the Ministry of Energy of Kazakhstan No. 58 (emergency control in the grid), items 21-23, 34, 40: "
           "https://zakon.uchet.kz/rus/docs/V1500010552")
 S_OSM = ("OpenStreetMap way/773805065, main conveyor crushing -> plant, 2.45 km (Overpass 18.10.2026, "
-         "stage/osm/core.geojson), (c) OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/way/773805065")
+         "osm/core.geojson, not in the repository), (c) OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/way/773805065")
 S_STOCK = ("911metallurgist, calculating stockpile capacity (live share of a conical pile with bottom reclaim): "
            "https://www.911metallurgist.com/blog/calculating-stockpile-capacity/; Ferreira 2022, table 2 (live share 17-21 % "
            "with one draw point, 26.5 % with three; residence about 40 h): "
@@ -153,6 +153,16 @@ S_STOCK = ("911metallurgist, calculating stockpile capacity (live share of a con
 S_FLS_GYR = "FLSmidth gyratory crushers (TS 60x113 drive up to 1 000 kW): https://fls.com/equipment/crushing/gyratory-crushers"
 S_RAPTOR = ("FLSmidth Raptor cone crusher brochure, p. 9 (Raptor 1100: 549-798 t/h): "
             "https://prod.flsmidth.com/globalassets/frontify/2024/9/raptorconecrusher-miningaggregates_brochure_en.pdf")
+S_PEK = ("Production environmental control programme (PEK) of KAZ Minerals Aktogay 2023-2024 (ECO AIR, 2023), "
+         "114 pp., read 22.10.2026: https://ecoportal.kz/Public/PubHearings/LoadFile/111450")
+S_NOAA = ("NOAA/WMO 1991-2020 monthly normals of Aqtogay (station 36619) and Ayagoz via Wikipedia (secondary source; "
+          "mean of the window 15 Nov - 15 Mar: Aktogay -9.05, Ayagoz -11.8 degC; January -13.7 / -15.8): "
+          "https://en.wikipedia.org/wiki/Aktogay,_East_Kazakhstan_Region")
+S_CHILE_BALLS = ("Perez, Villaseca (CODELCO), Opportunities for ferrous alloys used in copper mining, p. 9 (Chile, 2014: "
+                 "SAG about 390 g/t, ball mills about 535 g/t, ball price typically 1 250 USD/t); Cyprus Pima 754 g/t "
+                 "(911metallurgist, after Bassarear 1980): "
+                 "https://assets.niobium.tech/-/media/niobiumtech/attachments-biblioteca-tecnica/"
+                 "nt_opportunities-for-ferrous-alloys-used-in-copper-mining.pdf")
 S_BULK = ("bulk-online, overland conveyor belt speeds 3.4-6.0 m/s: "
           "https://www.bulk-online.com/sites/default/files/public/old_images/forum/42300.pdf")
 S_RME = ("RME mill relining benchmarking scorecard (2-5 % of the year on relines): "
@@ -207,6 +217,40 @@ S_SCSE = ("SMC Testing, SCSE note p. 2 (blend by specific energy, not by A*b): "
 S_JK = ("Kojovic et al., SAG 2019 p. 3; SAGDesign ore hardness comparison p. 5 (JK classes: A*b 38-43 moderately hard): "
         "https://sagdesign.com/wp-content/uploads/2021/01/14.-Comparison-of-Ore-Hardness-Measurements.pdf")
 S_TAILS = "settled copper tailings, dry density 1.4-1.5 t/m3 (literature range; no Aktogay figure)"
+S_KAZ_WINTER = ("KAZ Minerals ESG, Enhancing winter safety at Aktogay (opened 23.10.2026, page undated): winter conditions "
+                "increase the risk of road accidents, snowstorms and strong winds; no thresholds or lengths: "
+                "https://kazminerals.com/esg/enhancing-winter-safety-at-aktogay/")
+S_HITACHI36 = ("Hitachi EX3600-6 brochure KS-EN056T, p. 11 (contamination sensor alerts the operator; Global e-Service needs the "
+               "optional DTU and a contract, p. 11): https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf")
+S_ABDU = ("Abduazizov et al., Mining of Mineral Deposits 20(2), 2026, p. 31 and 33 (working fluid contamination is about 70 % of "
+          "hydraulic failures; MTTR 57.45 h belongs to the PC3000, not to the EX3600): "
+          "https://pdfs.semanticscholar.org/e654/bd7b9089010efdfa4ebdfd2990cd4ab289c0.pdf")
+S_CIDRA_KEN = ("CiDRA with Rio Tinto Kennecott, Comminution 2014, p. 12: closed-loop grinding control prevents ball mill overload "
+               "and hydrocyclone roping: https://cidra.com/wp-content/uploads/2024/02/BI0614.pdf")
+S_CIDRA_CEN = ("CiDRA, Centinela (97 000 t/day), p. 3: heavy roping of battery 3 stopped one rougher flotation line for about 6 h "
+               "(May 2014): https://cidra.com/wp-content/uploads/2024/02/BI0566.pdf")
+S_ABB_PH = ("ABB application note, pH/ORP measurement in copper flotation, p. 3: abrasion by slurry particles and build-up of lime "
+            "scale are the hazards of the sensor (vendor requirement, no failure statistics): "
+            "https://library.e.abb.com/public/ce5cb93e495f4eafb1b60f98308a7203/AD_ANAINST_001-EN%20Rev%20A.pdf")
+S_METSO_HPGR = ("Metso blog, Why skewing is not beneficial for your HPGR, 31.01.2022 (read through WebFetch, not checked against "
+                "the HTML): feed size segregation gives an uneven pressure profile and skew; tramp metal is not 'seen' by the HPGR "
+                "pressure; the HPGR of line 2 is a thyssenkrupp POLYCOM, so this is an analog (another maker): "
+                "https://metso.com/insights/blog/mining-and-metals/why-skewing-is-not-beneficial-for-your-hpgr")
+S_METSO_MANTLE = ("Metso, La Caridad mine increases availability of primary crushers (10.03.2023): a mantle change takes about 60 h, "
+                  "75 000-100 000 t of ore are not crushed in that time (another mine, a smaller crusher): "
+                  "https://www.metso.com/insights/case-studies/mining-and-metals/la-caridad-mine-increases-availability-of-primary-crushers/")
+S_NOV1 = ("Human-in-the-loop experiment on a laboratory mock-up plant (arXiv 2509.06657v1, p. 23 expert = more than one year at "
+          "the plant; p. 29 detection 261.798 s experts vs 433.982 s novices; p. 30 SD 56.155 vs 105.556 s; recovery time "
+          "the same, 30.716 vs 30.612 s; analog, not a mine): https://arxiv.org/pdf/2509.06657v1")
+S_NOV2 = ("NRC SHEEP / HuREX data, CNS simulator, 36 licensed operators of Korean NPPs against 36 student operators "
+          "(ML24151A634, table 7 p. 14, table 8 p. 15, sample p. 10): SI-diagnosis EOC students 1/20, operators 0/17; "
+          "RP-step omission students 14/2958, operators 3/3038; IG-indicator EOC 19/1754 against 10/1786; "
+          "https://www.nrc.gov/docs/ML2415/ML24151A634.pdf (analog, a different industry, tiny samples)")
+S_NOV3 = ("THERP table 20-16 as in EPRI 'Task 12: Fire HRA' slides (NRC ML19212A732, slide 47): stress modifier skilled / "
+          "novice optimum 1/1, moderately high 2/4, extremely high 5/10 (the slides, not NUREG/CR-1278 itself): "
+          "https://www.nrc.gov/docs/ML1921/ML19212A732.pdf")
+S_OX = ("KAZ Minerals Q4 2024 production report, p. 3: cathode -25 % against Q3 2024 'due to lower volumes of ore placed on the leach pads and colder conditions' (https://minedocs.com/28/Kaz_Minerals-QR-Q42024.pdf); Q4 2025 report p. 3: the cathode line 'continued to leach at a seasonally lower efficiency', cathode 15.3 kt of the 225.7 kt of Aktogay in 2025 ("
+          "https://www.kazminerals.com/app/uploads/2026/02/Q4-2025-Production-report_FINAL_ENG.pdf); quarterly cathode of all reports: sim/data/kaz_quarterly.csv")
 S_D2 = "design section 2"
 S_D3 = "design section 3"
 S_D4 = "design section 4"
@@ -248,7 +292,7 @@ _BALL_DENS = 0.6 * 7.8 / ((12 * (0.6 * 7.8 + 0.4 * 1.8) + 13 * (0.6 * 2.66 + 0.4
 # Ore stockpile: OVOS working volume 163 kt; the live part over the bottom reclaim is a share of it.
 _STOCK_TOTAL_T = 163000.0
 _STOCK_LIVE_FRAC = 40000.0 / _STOCK_TOTAL_T          # 0.245: the 40 kt live stock of design sections 3 and 7
-_CONV_KM = 2.45                                      # main conveyor length by OSM
+_CONV_KM = 2.504                                     # main conveyor of concentrator 2, PEK p. 18 (OSM: 2.45 km)
 _CO2_T_MWH = 2308e3 / (13.06e9 / 3.6e3)              # Scope 2 kt CO2 / group electricity PJ -> MWh, 2024
 _FRESH_HI = 73512.92 / (25.0e6 / 8059.0 * 24.0)      # OVOS-18 fresh water m3/d over the design t/d
 
@@ -256,7 +300,9 @@ _ROWS = [
     # ---------------- economics ----------------
     _p("econ_cu_price_usd_t", 14539, 10000, 15000, "USD/t", S_LME + "; range: " + S_WB, "fact",
        "LME cash 15.10.2026; range 10 000-15 000 USD/t spans WB CMO 2025-2026 and design section 5"),
-    _p("econ_payable_frac", 0.955, 0.90, 0.97, "-", S_KAZ25, "calc", "210.4 / 220.3 kt payable in concentrate"),
+    _p("econ_payable_frac", 0.955, 0.95, 0.96, "-", S_KAZ25 + "; Q4 2024 p. 3", "calc",
+       "calculated from the reports: payable / contained copper 0.9549 (2023), 0.9552 (2024), 0.9551 (2025); matches the rule "
+       "'grade less 1 unit' at 22.2 % Cu (hypothesis, the contracts are not published)"),
     _p("econ_power_kzt_kwh", 16, 16, 27, "KZT/kWh", S_TARIFF, "fact",
        "single purchaser price by press (Zakon.kz 22.07.2026: 13 -> 16 from 15.07.2026, VAT not stated); "
        "range up to the July 2026 hourly mean 26.95 on rfc.kz"),
@@ -369,11 +415,18 @@ _ROWS = [
     _p("pit_road_detour", 1.4, 1.1, 2.0, "-", S_D4, "assumption",
        "truck cycle multiplier while the ramp of a line is closed (detour); haul length is not published"),
     _p("pit_road_close_h", 2, 0.5, 8, "h", S_D4, "assumption", "scenario road:N, ramp of line N closed"),
+    _p("scen_pitstop_h", 8, 2, 24, "h", S_D4 + "; " + S_PEK + ", p. 10 (ore stockpile 163 kt = 2 days of grinding)",
+       "assumption",
+       "scenario pitstop: every ore excavator stands this long (blast clearance, weather or a fault; the cause and the "
+       "length are not published); the stockpile then carries the plant"),
+    _p("conv_repair_h", 2.0, 1.0, 4.0, "h", S_D5, "assumption",
+       "median repair of a stopped main conveyor after the crew arrives (scenario conveyor:N); no published figure"),
     _p("pit_drill_holes_shift", 8, 4, 20, "1/shift", S_D4 + "; " + S_KAZEQ, "assumption",
        "blast holes per rig and shift; 6 rigs x 8 x pit_drill_t_hole about equals the dig of a shift "
        "(ore 7 706 + waste about 3 000 t/h); rigs and models are fact, the rate is ours"),
-    _p("pit_drill_t_hole", 8 * 9 * 15 * 2.66, 1500, 4000, "t", S_D4, "calc",
-       "rock per hole: burden 8 m x spacing 9 m x bench 15 m x 2.66 t/m3 (pattern and bench height assumed)"),
+    _p("pit_drill_t_hole", 8 * 9 * 10 * 2.66, 1000, 3000, "t", S_PEK + ", p. 40 (bench height 10 m)", "calc",
+       "rock per hole: burden 8 m x spacing 9 m x bench 10 m x 2.66 t/m3 = 1 915 t (bench height is a project fact, "
+       "pattern is assumed); only the blasted stock depends on it"),
     _p("pit_drill_move_min", 10, 5, 20, "min", S_D4, "assumption", "rig moves to the next hole"),
     _p("pit_drill_kio", 0.85, 0.7, 0.95, "-", S_D4, "assumption", "drill rig and dozer ready share, drawn hourly"),
     _p("pit_face_blasted_t0", 100000, 20000, 300000, "t", S_D4, "assumption",
@@ -430,8 +483,9 @@ _ROWS = [
     _p("crush_lube_trip_kpa", 150, 120, 180, "kPa", S_D4, "assumption", "protection trip below"),
     _p("crush_repair_h", 3, 2, 6, "h", S_D7 + "; " + S_IPB, "assumption",
        "median after arrival; P90 5 h; analog MTTR about 5.5 h (weak source), range 3-6 h"),
-    _p("conv_length_km", _CONV_KM, _CONV_KM, _CONV_KM, "km", S_OSM, "fact",
-       "main conveyor crushing -> plant by OSM geometry (the 3.8 km of the design file was the Bozshakol belt)"),
+    _p("conv_length_km", _CONV_KM, _CONV_KM, _CONV_KM, "km", S_PEK + ", p. 18 (concentrator 2: 2 504 m; concentrator 1 "
+       "about 2.5 km, p. 10); cross-check " + S_OSM, "project",
+       "main conveyor crushing -> plant (the 3.8 km of the design file was the Bozshakol belt)"),
     _p("conv_belt_m", 1.6, 1.6, 1.6, "m", S_BOZ14, "analog", "Bozshakol overland belt; not verified"),
     _p("conv_cap_tph", 4880, 4880, 4880, "t/h", S_BOZ14, "analog", "Bozshakol overland belt; not verified"),
     _p("conv_power_mw", 3.64, 3.64, 3.64, "MW", S_BOZ14, "analog",
@@ -439,7 +493,7 @@ _ROWS = [
        "estimate for the 2.45 km belt"),
     _p("conv_speed_ms", 4.5, 3.4, 6.0, "m/s", S_D3 + "; " + S_BULK, "assumption", "overland belts run 3.4-6.0 m/s"),
     _p("conv_transit_min", _CONV_KM * 1000 / 4.5 / 60, _CONV_KM * 1000 / 6.0 / 60, _CONV_KM * 1000 / 3.4 / 60,
-       "min", S_OSM, "calc", "2.45 km / 4.5 m/s = 9.1 min (the 14 min of the design file was 3.8 km)"),
+       "min", S_PEK + ", p. 18", "calc", "2.504 km / 4.5 m/s = 9.3 min (the 14 min of the design file was 3.8 km)"),
 
     # ---------------- ore stockpile ----------------
     _p("stock_total_t", _STOCK_TOTAL_T, _STOCK_TOTAL_T, _STOCK_TOTAL_T, "t", S_OVOS_RK + ", p. 58", "project",
@@ -467,8 +521,10 @@ _ROWS = [
        "live stock at the moment of the event (08:00 snapshot), not a capacity; gives 7 h 47 min"),
 
     # ---------------- SAG mill ----------------
-    _p("sag_diam_ft", 40, 40, 40, "ft", S_BRAD, "vendor"),
-    _p("sag_len_ft", 26, 26, 26, "ft", S_BRAD, "vendor"),
+    _p("sag_diam_ft", 40, 40, 40, "ft", S_BRAD + "; " + S_PEK + ", p. 10 (drum 12.2 m = 40 ft)", "vendor",
+       "drum diameter; the PEK gives 12.2 m for concentrator 1, which is the same 40 ft"),
+    _p("sag_len_ft", 26, 26, 26, "ft", S_BRAD + "; " + S_PEK + ", p. 10 (drum length 7.6 m = 24.9 ft)", "vendor",
+       "drum length of the vendor sheet; the PEK says 7.6 m (4 % shorter, not refitted: sag_k absorbs it, passports show the PEK figure)"),
     _p("sag_rated_mw", 28, 28, 28, "MW", S_BRAD, "vendor", "gearless drive"),
     _p("sag_power_sp_mw", 26.0, 24.0, 27.5, "MW", S_D4 + "; " + S_911EXP, "assumption",
        "shaft setpoint, 93 % of 28 MW (90-95 % of installed is usual); Aktogay drew about 22 MW in 2017-2019 "
@@ -528,12 +584,14 @@ _ROWS = [
     _p("peb_frac_hard", 0.25, 0.20, 0.40, "-", S_D4 + "; " + S_LI24, "assumption",
        "at A*b 27, linear in A*b; analog 22-40 % for hard ore"),
     _p("peb_limit_tph", 740, 682, 792, "t/h", S_OVOS + ", p. 26; " + S_RAPTOR, "assumption",
-       "node 682-792 t/h (OVOS); one Raptor 1100 does 549-798 t/h (FLSmidth p. 9)"),
+       "node 682-792 t/h (OVOS); for scale: a cone crusher of the Raptor 1100 class does 549-798 t/h (FLSmidth p. 9); "
+       "the cone crusher type of Aktogay is not confirmed by any source"),
     _p("peb_hpgr_l2_tph", 1061, 1061, 1061, "t/h", S_IM21, "vendor",
-       "thyssenkrupp POLYCOM HPGR of line 2: the pebble circuit of line 2 takes min(peb_limit_tph, this); "
-       "above the cones, so the cones stay the limit"),
+       "thyssenkrupp POLYCOM HPGR of line 2: the pebble circuit of line 2 takes min(peb_limit_tph, this) "
+       "(Plant.peb_limit_tph); above the cones, so the cones stay the limit and the HPGR load is feed / this"),
     _p("peb_hpgr_l2_kw", 3500, 3500, 3500, "kW", S_IM21, "vendor",
-       "2 x 1 750 kW drives of the line 2 HPGR; inside pow_line_aux_mw (line part), passport"),
+       "2 x 1 750 kW drives of the line 2 HPGR; shown as pebble-2 hpgr_kw = this x HPGR load, a part of "
+       "pow_line_aux_mw (not added to the site load twice)"),
     _p("peb_warn_frac", 0.95, 0.90, 0.98, "-", S_D4, "assumption", "LIMIT state"),
     _p("peb_stop_e_med", 1.06, 1.06, 1.06, "-", S_LIHIR, "analog", "E_SAG x when pebble crusher stops; not verified"),
     _p("peb_stop_e_hard", 1.10, 1.10, 1.10, "-", S_LIHIR, "analog", "not verified"),
@@ -581,7 +639,8 @@ _ROWS = [
     _p("flot_tau0_min", 30, 20, 40, "min", S_D4 + "; " + S_VINNETT, "assumption",
        "residence at cal_line_tph; literature 25-38 min"),
     _p("flot_p80_ref_um", 180, 180, 180, "um", S_BRAD, "vendor"),
-    _p("flot_p80_pp_10um", 0.3, 0.1, 0.5, "pp", S_D4, "assumption", "per 10 um above 180; no source for the slope"),
+    _p("flot_p80_pp_10um", 0.3, 0.1, 1.95, "pp", S_D4, "assumption",
+       "per 10 um above 180; the value is an assumption (no source for the slope at Aktogay); the analog Bozshakol gives 0.79-1.95 (laboratory 0.79-1.22, plant regression 1.95), see modules grind_pp_10um; the range reaches the analog"),
     _p("flot_dose_sp_gt", 25, 20, 30, "g/t", S_OVOS, "project", "xanthate 0.025 kg/t"),
     _p("flot_dose_ref_deficit", 0.40, 0.40, 0.40, "-", S_D4, "assumption", "under-dose share for flot_dose_pp"),
     _p("flot_dose_pp", 3.5, 2.0, 4.0, "pp", S_D4 + "; " + S_SARCH + "; " + S_AKHM, "assumption",
@@ -716,6 +775,28 @@ _ROWS = [
        "arrival after a reminder ('not arrived - remind'); the next person of the trade: crew_arrive_lo..hi"),
     _p("crew_person_decision_h", 0.5, 0.25, 1.0, "h", S_D5, "assumption",
        "a person called for a decision without a crew (grid, blend, water, fire) is busy at the node"),
+    # ---- novice parameterised from data (experiment of 24.10.2026, VALIDATION 8.9); used by sim/trial.py only
+    _p("nov_detect_mult", 1.658, 1.0, 2.6, "-", S_NOV1, "analog",
+       "time to see a trouble: novice / expert = 433.982 / 261.798 s = 1.658; range 1.03-2.62 from the group means "
+       "+-1 SD (the number of participants is not in the pages read); a mock-up of an oil and gas facility, not a mine; "
+       "multiplies only the people's own seeing and reacting, never the physics (ore arriving at the SAG, a lab sample)"),
+    _p("nov_detect_sigma_ln", 0.112, 0.0, 0.25, "-", S_NOV1, "calc",
+       "extra log-spread of the novice's seeing time (mean kept): sqrt(ln((1 + cv_n^2) / (1 + cv_e^2))), "
+       "cv = SD / mean = 0.243 novices, 0.214 experts"),
+    _p("nov_p_diag", 0.05, 0.009, 0.236, "-", S_NOV2, "analog",
+       "a wrong diagnosis (the wrong crew or node is called first): students 1/20 = 0.05, Wilson 95 % 0.009-0.236; "
+       "licensed operators 0/17 (upper bound 0.18); tiny samples, a nuclear simulator; the expert copy keeps 0"),
+    _p("nov_p_step", 0.00473, 0.00099, 0.0079, "-", S_NOV2, "analog",
+       "omission of one procedure step: students 14/2958 = 0.00473 (Wilson 0.0028-0.0079), licensed operators "
+       "3/3038 = 0.00099; the low end of the range is the operators' rate"),
+    _p("nov_steps", 10, 5, 20, "-", S_D5, "assumption",
+       "steps of one call (find the trouble, name the crew, state the place, hand over, check the answer ...) "
+       "that can be skipped; no source for the count"),
+    _p("nov_stress_mult", 2.0, 1.0, 4.0, "-", S_NOV3, "analog",
+       "both error probabilities x this at moderately high stress; THERP novice / skilled = 4 / 2 = 2, novice against "
+       "optimum 4 (the upper end)"),
+    _p("nov_stress_open", 2, 2, 3, "-", S_NOV3, "assumption",
+       "moderately high stress = at least this many open troubles (this one included) when the call is made"),
     _p("issue_notice_lo_min", 5, 5, 5, "min", S_D5, "assumption", "loud issue noticed by alarm"),
     _p("issue_notice_hi_min", 15, 15, 15, "min", S_D5, "assumption"),
     _p("issue_horizon_h", 12, 12, 12, "h", S_OVOS + ", p. 26", "project", "to shift end, at most 12 h"),
@@ -753,10 +834,13 @@ _ROWS = [
        "winter starts on this day of the year (15 Nov); the run takes the date of the model clock (AKT_SEASON=auto)"),
     _p("season_winter_to_doy", 74, 60, 90, "day", "same", "assumption", "winter ends on this day of the year (15 Mar)"),
     _p("winter_return_frac", 0.03, 0.01, 0.15, "-", "Bozshakol TSF (analog): winter return of decant water is "
-       "difficult; the share is ours", "assumption",
-       "winter: share of the pond return that does not reach the process (ice, frozen sections); the water stays in the pond"),
-    _p("wx_temp_winter_c", -15, -25, -5, "degC", "climate of East Kazakhstan, our rounding", "assumption",
-       "mean air temperature in winter"),
+       "difficult; the share is ours, no source gives it (Caijiaying, Mount Wright: ice in the ponds, no percentage)", "assumption",
+       "winter: share of the pond return that does not reach the process (ice, frozen sections); the water stays in the pond. "
+       "The winter touches the water balance only, not throughput or recovery (KAZ Minerals Q1 2019 p. 1: both sulphide "
+       "plants at design throughput in winter)"),
+    _p("wx_temp_winter_c", -10, -12, -9, "degC", S_NOAA, "analog",
+       "mean air temperature of the winter window 15 Nov - 15 Mar (NOAA normals 1991-2020, Aktogay -9.05, Ayagoz "
+       "-11.8; the former -15 was the January mean of Ayagoz)"),
     _p("wx_temp_summer_c", 18, 10, 25, "degC", "climate of East Kazakhstan, our rounding", "assumption",
        "mean air temperature outside winter"),
     _p("wx_temp_amp_c", 6, 2, 10, "degC", "our rounding", "assumption", "daily half-swing of the air temperature"),
@@ -766,11 +850,14 @@ _ROWS = [
        "share of the tailings beach that is dry outside winter"),
     _p("beach_dry_winter_pct", 5, 0, 20, "%", "our rounding", "assumption", "dry beach in winter (snow, ice)"),
     _p("scen_dust_h", 6, 2, 12, "h", "our rounding", "assumption", "scenario dust: length of the windy dry spell"),
+    _p("scen_leach_h", 8, 2, 12, "h", "our rounding", "assumption", "scenario leachcold: length of the cold spell on the leach pad"),
+    _p("ox_cold_frac", 0.25, 0.10, 0.40, "-", S_OX, "analog",
+       "share by which the cathode output falls below the level of the quarter during the scenario leachcold; the size is the fall of Q4 2024 against Q3 2024 (-25 %, a fact for that year, from fewer ore on the pads and colder conditions); applying it to a spell of hours is our choice"),
     _p("scen_dust_wind_ms", 14, 10, 20, "m/s", "our rounding", "assumption", "scenario dust: wind in the spell"),
     _p("scen_dust_dry_pct", 85, 60, 100, "%", "our rounding", "assumption", "scenario dust: dry beach in the spell"),
-    _p("ball_media_gt", 600, 300, 1000, "g/t", "no Aktogay figure published; order of magnitude of grinding steel "
-       "use of a ball-mill circuit (0.3-1 kg/t, analog, not opened)", "assumption",
-       "grinding media consumption per tonne of ore at the line"),
+    _p("ball_media_gt", 800, 600, 1000, "g/t", S_CHILE_BALLS, "analog",
+       "grinding media consumption per tonne of ore at the line; no Aktogay figure: analogs 754 g/t (Cyprus Pima, SAG + balls) "
+       "and 925 g/t (Chile 2014, 390 + 535); HPGR of line 2 may lower it, unknown"),
     _p("hc_balls_frac", 0.25, 0.10, 0.50, "-", S_D4, "assumption",
        "silent overuse of grinding media above the norm (wrong charge, wear of the lifters); scenario balls:N"),
     _p("sens_balls_sigma", 0.03, 0.01, 0.06, "-", S_D4, "assumption",
@@ -784,6 +871,97 @@ _ROWS = [
        "scenario startup: length of the repair inside the ball mill (as rep_ball_h of the modules)"),
     _p("scen_startup_h", 1.0, 0.25, 2.0, "h", S_D5, "assumption",
        "scenario startup: how long the start command stays on unless the shift head cancels it by a call"),
+
+    # ---------------- tier S of 23.10.2026: winter road, driver, cyclone roping, pH sensor, HPGR, mantle, oil ----------------
+    # T1: the winter now touches the pit (haul speed), not the throughput of the plant (KAZ Minerals Q1 2019 p. 1)
+    _p("scen_icy_h", 6, 2, 12, "h", S_KAZ_WINTER, "assumption",
+       "scenario icy: length of the ice and snowstorm spell on the haul roads (KAZ Minerals names the risk, not its length)"),
+    _p("scen_icy_wind_ms", 16, 10, 25, "m/s", S_KAZ_WINTER, "assumption",
+       "scenario icy: wind in the spell ('snowstorms and strong winds' - KAZ Minerals, Enhancing winter safety at Aktogay)"),
+    _p("scen_icy_temp_c", -14, -25, -5, "degC", S_NOAA, "analog",
+       "scenario icy: air temperature in the spell (January mean of Aktogay -13.7, NOAA 1991-2020)"),
+    _p("pit_vis_clear_m", 10000, 5000, 20000, "m", "our rounding", "assumption", "visibility on the haul roads in clear weather"),
+    _p("pit_vis_icy_m", 120, 40, 300, "m", S_KAZ_WINTER, "assumption", "visibility in the snowstorm spell (no figure in the source)"),
+    _p("pit_grip_clear", 0.80, 0.60, 0.90, "-", "our rounding", "assumption",
+       "tyre-road friction index of a dry haul road (index 0..1, not a measured coefficient)"),
+    _p("pit_grip_winter", 0.55, 0.30, 0.75, "-", S_KAZ_WINTER, "assumption",
+       "friction index of a haul road in the winter season with patches of ice"),
+    _p("pit_grip_icy", 0.30, 0.10, 0.50, "-", S_KAZ_WINTER, "assumption", "friction index in the ice and snowstorm spell"),
+    _p("pit_winter_cycle_mult", 1.0, 1.0, 1.15, "-", S_KAZ_WINTER, "assumption",
+       "truck cycle multiplier in the winter season alone: 1 (no slowdown), because the sulphide plants ran at design throughput "
+       "in winter (KAZ Minerals Q1 2019 p. 1); the season changes the road state (friction, visibility), the slowdown comes with "
+       "the snowstorm spell (scenario icy)"),
+    _p("pit_icy_cycle_mult", 1.20, 1.0, 1.60, "-", S_KAZ_WINTER, "assumption",
+       "truck cycle multiplier in the ice and snowstorm spell (drivers slow down by themselves)"),
+    _p("pit_restrict_cycle_mult", 1.12, 1.0, 1.50, "-", S_KAZ_WINTER, "assumption",
+       "extra truck cycle multiplier while the traffic restriction is in force (speed limit): the price of the safety decision"),
+    _p("pit_vis_min_m", 150, 50, 400, "m", S_KAZ_WINTER, "assumption",
+       "threshold of the module: visibility at or below this on the haul roads is a hazard (set per site from its road rules)"),
+    _p("pit_grip_min", 0.40, 0.20, 0.60, "-", S_KAZ_WINTER, "assumption",
+       "threshold of the module: friction index at or below this is a hazard (set per site)"),
+    _p("scen_fatigue_h", 1.0, 0.25, 4.0, "h", "our rounding", "assumption",
+       "scenario fatigue: how long the alert of a tired driver / close approach stays on unless the dispatcher acts"),
+    # excavator hydraulic oil contamination (EX01 Hitachi EX3600-6 has a contamination sensor, brochure p. 11)
+    _p("pit_oil_start_pct", 40, 10, 70, "%", S_HITACHI36, "assumption",
+       "contamination of the hydraulic oil as % of the alert level of the on-machine sensor, normal state"),
+    _p("pit_oil_alert_pct", 100, 100, 100, "%", S_HITACHI36, "vendor", "the sensor alerts the operator at this level (by definition)"),
+    _p("pit_oil_rise_h", 3.0, 1.0, 8.0, "h", S_ABDU, "assumption",
+       "scenario oil: hours from the normal state to the alert level (the rate of contamination is not published)"),
+    _p("pit_oil_fail_h", 8.0, 2.0, 24.0, "h", S_ABDU, "assumption",
+       "scenario oil: hours from the alert to the failure of a hydraulic pump when nobody acts (about 70 % of hydraulic failures are "
+       "contamination - Abduazizov 2026; the time is ours)"),
+    _p("pit_oil_repair_h", 57.45, 20.0, 100.0, "h", S_ABDU, "analog",
+       "repair of the hydraulic system after the failure: 57.45 h is the mean time to repair of the PC3000 (Komatsu) in the source, "
+       "another model than the EX3600"),
+    _p("pit_oil_fix_h", 2.0, 0.5, 6.0, "h", "our rounding", "assumption",
+       "service of the oil (filtration, flushing) by the shift mechanic after the call; no OEM figure"),
+    # T2: cyclone roping and ball mill overload (Kennecott, CiDRA; Centinela)
+    _p("cyc_circ_base_pct", 250, 150, 400, "%", "our rounding", "assumption",
+       "circulating load of a closed SAG-ball circuit in normal operation (typical range; Aktogay figure not published)"),
+    _p("hc_rope_sev", 1.0, 0.3, 1.0, "-", S_CIDRA_KEN, "assumption", "scenario roping:N: severity at full development, 0..1"),
+    _p("cyc_rope_ramp_min", 40, 10, 120, "min", S_CIDRA_KEN, "assumption", "roping develops over this time after the start"),
+    _p("cyc_rope_p80_um", 45, 20, 100, "um", S_CIDRA_KEN, "assumption", "extra P80 of the cyclone overflow at full roping"),
+    _p("cyc_rope_dp_frac", 0.25, 0.05, 0.60, "-", S_CIDRA_KEN, "assumption", "extra cyclone feed pressure at full roping, share"),
+    _p("cyc_rope_circ_frac", 0.45, 0.10, 1.00, "-", S_CIDRA_KEN, "assumption", "extra circulating load at full roping, share"),
+    _p("ball_rope_over_pct", 12, 3, 25, "%", S_CIDRA_KEN, "assumption", "ball mill draw above its rating at full roping (overload), %"),
+    _p("cyc_rope_escalate_h", 1.5, 0.5, 4.0, "h", S_CIDRA_CEN, "assumption",
+       "hours of roping without a decision after which the flotation feels it (heavy roping of one battery stopped a rougher line)"),
+    _p("cyc_rope_flot_pp", 3.0, 1.0, 6.0, "pp", S_CIDRA_CEN, "assumption",
+       "recovery loss of the line while a rougher line stands after heavy roping (one stopped line of several; the share is ours)"),
+    _p("cyc_rope_flot_h", 6.0, 3.0, 8.0, "h", S_CIDRA_CEN, "analog",
+       "length of the rougher line stop after heavy roping: about 6 h at Centinela (CiDRA, May 2014)"),
+    # T3: pH sensor of the rougher flotation (ABB: abrasion and lime scale are the failure causes)
+    _p("sens_an_clean_h", 0.5, 0.25, 2.0, "h", S_METSO_AN, "assumption",
+       "scenario sample:N: cleaning of a blocked sample line of the on-stream analyser by the I&C technician (Metso Metrics names "
+       "sample line blockage as a typical problem, no frequency, no repair time)"),
+    _p("flot_ph_sp", 10.8, 9.5, 11.5, "pH", S_ABB_PH, "assumption",
+       "pH setpoint of the rougher (lime control); the Aktogay value is not published"),
+    _p("flot_ph_pp_unit", 2.0, 0.5, 4.0, "pp/pH", S_ABB_PH, "assumption",
+       "total recovery lost per pH unit the real pH is above the setpoint (slurry over-limed while the sensor reads the setpoint)"),
+    _p("hc_ph_drift", 0.6, 0.3, 1.2, "pH", S_ABB_PH, "assumption",
+       "scenario phdrift: how far the real pH is above the reading when the electrode is scaled or worn"),
+    _p("sens_ph_sigma", 0.05, 0.02, 0.15, "pH", S_ABB_PH, "assumption", "noise of the pH reading"),
+    _p("sens_ph_lab_every_h", 4, 2, 8, "h", S_ABB_PH, "assumption", "grab sample with a hand-held pH meter (check of the online sensor)"),
+    _p("sens_ph_lab_sigma", 0.08, 0.03, 0.20, "pH", S_ABB_PH, "assumption", "error of the hand-held pH meter"),
+    _p("sens_ph_suspect_gap", 0.30, 0.15, 0.60, "pH", S_ABB_PH, "assumption",
+       "the pH meter is published as SUSPECT when the grab sample differs from its reading by this much (the accuracy of a "
+       "hand-held meter is about 0.1)"),
+    # T4: HPGR of line 2, uneven feed (segregation), tramp metal
+    _p("peb_hpgr_uneven_eff", 0.50, 0.30, 0.90, "-", S_METSO_HPGR, "assumption",
+       "share of the HPGR throughput kept at full skew (the controller lowers the pressure and the feed); the real value is unknown"),
+    _p("peb_hpgr_skew_pct", 12, 4, 25, "%", S_METSO_HPGR, "assumption",
+       "roll gap skew at full uneven feed, % of the mean gap (the controller of the source intervenes at a few millimetres)"),
+    _p("peb_hpgr_kwdiff_pct", 18, 5, 40, "%", S_METSO_HPGR, "assumption", "difference of the two drives' power at full skew, %"),
+    _p("peb_hpgr_ramp_min", 20, 5, 60, "min", S_METSO_HPGR, "assumption", "uneven feed develops over this time"),
+    _p("peb_hpgr_tramp_after_h", 2.0, 0.5, 6.0, "h", S_METSO_HPGR, "assumption",
+       "hours of uneven feed without a repair after which tramp metal reaches the rolls and the metal detector stops the HPGR"),
+    _p("peb_hpgr_stop_h", 4.0, 1.0, 12.0, "h", S_METSO_HPGR, "assumption", "HPGR stop after the metal detector trips (inspection of the studs)"),
+    _p("peb_hpgr_fix_h", 1.5, 0.5, 4.0, "h", S_METSO_HPGR, "assumption", "median repair after the crew arrives (feed chute, cheek plates)"),
+    _p("peb_hpgr_skew_alarm_pct", 6, 2, 12, "%", S_METSO_HPGR, "assumption", "threshold of the module: skew at or above this"),
+    # C11: change of the mantle of the primary gyratory crusher
+    _p("crush_mantle_h", 60, 24, 100, "h", S_METSO_MANTLE, "analog",
+       "stop of the primary crusher for a mantle change: about 60 h at La Caridad (Metso case, 75-100 kt of ore not crushed); "
+       "Aktogay figure not published"),
 
     # ---------------- sensors and control rule ----------------
     _p("sens_an_cycle_min", 15, 12, 16, "min", S_D4 + "; " + S_METSO_AN, "assumption", "on-stream analyser; vendor 12-16 min"),
@@ -875,6 +1053,12 @@ _ROWS = [
        "half of the last digit of a report grade (0.01 % Cu): model feed grade rows"),
 ]
 
+from . import params_t  # noqa: E402  (tier T rows, 24.10.2026)
+_ROWS.extend(_p(*_r) for _r in params_t.ROWS)
+
+from . import params_lev as _params_lev  # noqa: E402  - rows of the what-if levers (after Param and _p exist)
+_ROWS.extend(_params_lev.ROWS)
+
 TABLE: dict[str, Param] = {}
 for _row in _ROWS:
     if _row.key in TABLE:
@@ -939,13 +1123,25 @@ FEATURE_RULES: dict[str, dict[str, str]] = {
         "seed": "run seed", "tph": "sum of line t/h", "cu_tph": "sum of line Cu in concentrate t/h",
         "power_mw": "power.site_mw", "water_m3h": "water.intake_m3h", "scenario": "active scenario text",
         "heartbeat": "service: wall clock tick in pause", "degraded": "service: barrier timeout flag",
+        "lever_on": "1 while a what-if lever (control of the model, not of the plant) is in force on the fact copy",
+        "lever_feed_1": "lever: feed rate of SAG line 1, % of the nominal line rate (100 = neutral)",
+        "lever_feed_2": "lever: feed rate of SAG line 2, % of the nominal line rate (100 = neutral)",
+        "lever_p80_um": "lever: grind P80 target, um (-1 = off)", "lever_dose_gt": "lever: collector dose, g/t (-1 = off)",
     },
     "pit": {
         "state": "RUN/STOP",
         "mining_tph": "fleet.mining_tph", "next_block": "next block number in plan",
         "plan_text": "12 h plan of blocks per line", "hard_in_plan": "1 if est A*b < ui_axb_hard in plan",
+        "visibility_m": "visibility on the haul roads (pit_vis_clear_m; a snowstorm spell lowers it to pit_vis_icy_m)",
+        "road_grip": "friction index of the haul roads 0..1 (dry, winter season with ice, snowstorm spell)",
+        "haul_speed_pct": "haul speed against the dry road, % (100 / truck cycle multiplier of weather and restriction)",
+        "road_restrict": "1 while the traffic restriction (speed limit) is in force after the decision of the mine dispatcher",
     },
-    "exc": {"state": "DIG/MOVE/IDLE/DOWN", "tph": "dig rate", "block": "batch being dug", "bench": "bench number"},
+    "exc": {"state": "DIG/MOVE/IDLE/DOWN", "tph": "dig rate", "block": "batch being dug", "bench": "bench number",
+            "oil_pct": "hydraulic oil contamination, % of the alert level of the on-machine sensor (EX3600-6 has one); -1 where "
+                       "no source confirms a sensor",
+            "oil_alert": "1 from the alert level of the sensor (the operator sees it; transmitted only with the optional "
+                         "Global e-Service), -1 without a sensor"},
     "batch": {
         "state": "PLANNED/DIG/BELT/IN_STOCK/DONE by the last tonne: DIG while any is in the pit, BELT while any "
                  "is in transit, IN_STOCK when all is on the stockpile",
@@ -955,8 +1151,11 @@ FEATURE_RULES: dict[str, dict[str, str]] = {
         "axb_soft": "soft sensor A*b from SAG P and Q",
     },
     "crusher": {"state": "RUN/STOP/SLOW", "tph": "min(pocket, capacity, stock room)",
-                "power_kw": "crush_power_mw when RUN", "lube_kpa": "norm + noise; trip below setpoint"},
-    "conveyor": {"state": "RUN/STOP", "tph": "= crusher t/h", "power_kw": "conv_power_mw when RUN"},
+                "power_kw": "crush_power_mw when RUN", "lube_kpa": "norm + noise; trip below setpoint",
+                "service": "1 while the planned change of the mantle stops the crusher (scenario mantle:N)",
+                "service_left_h": "hours to the end of the mantle change (plan), -1 when none"},
+    "conveyor": {"state": "RUN/STOP", "tph": "= crusher t/h", "power_kw": "conv_power_mw when RUN",
+                 "fault": "1 while the belt is tripped (scenario conveyor:N, crew-cpd repairs); 0 when it stands only because no ore comes"},
     "stockpile": {"state": "NORMAL/LOW/EMPTY/FULL: LOW below stock_low_frac, EMPTY below stock_empty_t, FULL at "
                            "stock_full_frac of stock_live_t",
                   "level_t": "column + sides", "in_tph": "belt delivery", "out_tph": "SAG draw",
@@ -976,14 +1175,20 @@ FEATURE_RULES: dict[str, dict[str, str]] = {
             "load_pct": "mass balance, tau 5 min; not below the ball charge; kept in STOP",
             "e_kwh_t": "power / Q",
             "axb_soft": "A*b back-solved from E",
-            "liner_wear_mm": "feed-end counter by norm 20.41 mm/Mt; restarts at feed-end changes and relines"},
+            "liner_wear_mm": "feed-end counter by norm 20.41 mm/Mt; restarts at feed-end changes and relines",
+            "liner_ground_t": "ore ground since the last reline, t (tonnage counter by norm, restarts at a reline); "
+                              "the module forecasts the liner campaign from it"},
     "ball": {"state": "RUN/STOP", "power_kw": "ball_power_mw when RUN",
              "start_cmd": "1 while a start command is on although people may be inside (scenario startup)",
-             "e_kwh_t": "power x running mills / Q (each running mill grinds Q / n)"},
+             "e_kwh_t": "power x running mills / Q (each running mill grinds Q / n)",
+             "power_pct": "motor draw as % of the rating: 100 in normal grinding, up by ball_rope_over_pct at full cyclone "
+                          "roping (overload), 0 while the mill stands"},
     "cyclones": {"state": "NORMAL/UPSET: UPSET if |dp/p0| above cyc_upset_frac",
                  "p80_um": "Bond grind (not finer than ball_p80_min_um) + 12 um per clogged unit",
                  "pressure_kpa": "p0 (Q/open)^2 x clog rise",
-                 "open_count": "open units (clog not visible)"},
+                 "open_count": "open units (clog not visible)",
+                 "circ_load_pct": "circulating load of the ball mill circuit (underflow / fresh feed), cyc_circ_base_pct, "
+                                  "up by cyc_rope_circ_frac at full roping"},
     "flot": {"state": "RUN/UPSET/STOP",
              "feed_cu": "analyser", "tail_cu": "analyser", "conc_cu": "analyser", "recovery": "R_r x R_c",
              "cu_tph": "Cu in concentrate", "conc_tph": "concentrate solids"},
@@ -1026,9 +1231,18 @@ FEATURE_RULES: dict[str, dict[str, str]] = {
               "exc_total": "count (ore and stripping)", "exc_ready": "not DOWN", "trucks_total": "37 by model",
               "trucks_ready": "each truck ready with fleet_kio, drawn hourly", "truck_kio_shift": "shift mean ready share",
               "haul_tph": "ready ore trucks x payload x 60 / cycle", "mining_tph": "min(excavators, haul, regulator)",
-              "trucks_ore": "ready trucks on ore", "waste_tph": "stripping rate (waste trucks and excavators)"},
-    "pebble": {"state": "RUN/LIMIT/STOP", "feed_tph": "p(A*b) x Q", "limit_tph": "740 (line 2: also below its HPGR)",
-               "load_pct": "feed / limit", "fire": "1 while a fire at the HPGR of the circuit is not out"},
+              "trucks_ore": "ready trucks on ore", "waste_tph": "stripping rate (waste trucks and excavators)",
+              "fatigue": "1 while the alert of a tired driver / close approach of a truck is on (scenario fatigue; "
+                         "assumption: no confirmed source for the sensor)",
+              "fatigue_truck": "bort number and model of the truck in the alert, empty when none"},
+    "pebble": {"state": "RUN/LIMIT/STOP", "feed_tph": "p(A*b) x Q", "limit_tph": "740 (line 2: min with its HPGR 1 061)",
+               "load_pct": "feed / limit", "fire": "1 while a fire at the HPGR of the circuit is not out",
+               "hpgr_tph": "rated HPGR throughput (line 2: peb_hpgr_l2_tph; line 1: no published rating, -1)",
+               "hpgr_load_pct": "feed / hpgr_tph (line 2), -1 on line 1",
+               "hpgr_kw": "peb_hpgr_l2_kw x min(1, feed / hpgr_tph), 0 while the circuit stands, -1 on line 1",
+               "hpgr_skew_pct": "roll gap skew of the HPGR, % of the mean gap (line 2), 0 in normal feed, -1 on line 1",
+               "hpgr_kw_diff_pct": "difference of the power of the two HPGR drives, % (line 2), -1 on line 1",
+               "metal_alarm": "1 when the metal detector in front of the HPGR tripped (line 2), -1 on line 1"},
     "person": {"state": "FREE/TRAVEL/WORK/OFF: OFF while evacuated or off shift",
                "location": "thing where the person is (home node when free)", "task": "node of the job or decision",
                "free_at": "model minute when free",
@@ -1047,6 +1261,11 @@ FEATURE_RULES: dict[str, dict[str, str]] = {
     "analyzer": {"state": "OK/DRIFT/SUSPECT: SUSPECT when the reading is stale or the section stands",
                  "feed_cu": "reading", "tail_cu": "reading", "conc_cu": "reading", "age_min": "minutes since reading"},
     "weigher": {"state": "OK/DRIFT/SUSPECT", "tph": "belt weigher", "total_t": "totalizer since the start"},
+    "phmeter": {"state": "OK/DRIFT/SUSPECT: SUSPECT when the grab sample differs from the reading by sens_ph_suspect_gap; DRIFT once "
+                         "a pH drift is confirmed (the electrode is scaled by lime or worn)",
+                "ph": "online reading; the control holds it at the setpoint, so a scaled electrode still reads the setpoint",
+                "sp_ph": "setpoint (flot_ph_sp)", "lab_ph": "last grab sample with a hand-held meter (check value)",
+                "age_min": "minutes since the grab sample (the online reading is continuous)"},
     "flowmeter": {"state": "OK/DRIFT/SUSPECT: DRIFT once a collector dose drift is confirmed, SUSPECT while the "
                            "tails alarm is on and the meter reads the setpoint",
                   "dose_gt": "reading", "sp_gt": "setpoint"},
@@ -1061,11 +1280,21 @@ FEATURE_RULES: dict[str, dict[str, str]] = {
     "filter": {"state": "RUN/ONE/STOP: ONE while one press changes cloth",
                "presses_on": "2, or 1 during cloth change", "cake_tph": "dry cake", "moisture_pct": "8 % + noise",
                "limit_tph": "presses_on x 35"},
+    "leach": {"state": "NORMAL/COLD: COLD while the scenario leachcold lasts (cold spell on the heap leach pad)",
+              "quarter_cathode_kt": "cathode of the model quarter, kt, from the reports (kaz_quarterly.csv); a date after 2025 takes the same quarter of 2025",
+              "level_tph": "quarter cathode / hours of the quarter; the reported quarters already hold the season",
+              "cold_frac": "0 in NORMAL, ox_cold_frac in COLD"},
+    "sxew": {"state": "NORMAL/LOW: LOW while the leach pad is COLD",
+             "cathode_tph": "level_tph x (1 - cold_frac); a quarterly figure of the reports, not a measurement",
+             "cathode_level_tph": "level_tph of the quarter", "cathode_t_total": "integrated since the start of the run",
+             "year": "year of the quarter used", "quarter": "quarter 1..4"},
     "conc-stock": {"state": "NORMAL/HIGH/FULL: HIGH at cstock_high_frac of cstock_cap_t, FULL at the capacity",
                    "stock_t": "integrated, wet", "in_tph": "cake / (1 - moisture)",
                    "shipped_t_shift": "trains at 06:00 and 18:00", "wagons_shift": "wagons loaded",
                    "hours_to_full": "(cap - stock) / net in"},
 }
+for _t, _fe in params_t.FEATURES.items():
+    FEATURE_RULES[_t].update(_fe)
 # Every type also carries its state as a Russian word for display (the machine code stays in "state").
 for _rules in FEATURE_RULES.values():
     _rules["state_ru"] = "state in Russian words (display)"
@@ -1119,14 +1348,16 @@ def value(key: str) -> float:
 
 
 _PREFIX_USE = (
+    ("w_", "wear (tier T), modules"),
     ("econ_", "economics (utilities)"), ("cal_", "plant, calib"), ("tgt_", "calib"), ("tol_", "calib"),
     ("pit_", "ore"), ("fleet_", "ore"), ("blk_", "ore"), ("ore_", "ore, comminution"), ("ui_", "web"),
     ("crush_", "comminution, ore"), ("conv_", "ore"), ("stock", "ore"), ("sag_", "comminution"),
     ("liner_", "comminution"), ("peb_", "comminution, events"), ("ball_", "comminution"),
     ("cyc_", "comminution"), ("flot_", "flotation"), ("clean_", "flotation"), ("thick_", "flotation"),
     ("filt_", "flotation"), ("cstock_", "flotation"), ("water_", "utilities"), ("pond_", "utilities"),
-    ("pow_", "utilities"), ("crew_", "events"), ("issue_", "events, modules"), ("hc_", "events"),
+    ("pow_", "utilities"), ("crew_", "events"), ("nov_", "trial (novice policy)"), ("ox_", "oxide line (sim/oxide.py)"), ("issue_", "events, modules"), ("hc_", "events"),
     ("sens_", "sensors"), ("acs_", "sensors"), ("scen_", "events, plant"),
+    ("lev_", "levers (plant, service)"),
     ("season_", "utilities, plant"), ("winter_", "utilities"), ("wx_", "utilities"), ("beach_", "utilities"),
 )
 

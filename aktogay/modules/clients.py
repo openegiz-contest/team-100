@@ -65,9 +65,11 @@ class Ditto:
         return status, payload
 
     # -- reads ---------------------------------------------------------------
-    def search(self, ns: str, fields: str = "thingId,attributes,features", size: int = 200) -> list[dict]:
-        """All things of a namespace (search index; eventually consistent)."""
-        flt = 'like(thingId,"' + ns + ':*")'
+    def search(self, ns: str, fields: str = "thingId,attributes,features", size: int = 200,
+               flt: str | None = None) -> list[dict]:
+        """Things of a namespace (search index; eventually consistent). flt: an RQL filter instead of
+        the whole namespace. Every returned thing costs Ditto one retrieval, so ask for what is read."""
+        flt = flt or 'like(thingId,"' + ns + ':*")'
 
         def path_for(cursor: str | None) -> str:
             option = f"size({size})" + (f",cursor({cursor})" if cursor else "")

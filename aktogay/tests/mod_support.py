@@ -60,7 +60,8 @@ ROLES = {"shift_supervisor": "Сменный руководитель ЦУП", "
          "plant_shift_manager": "Начальник смены фабрики", "grinding_operator": "Оператор пульта измельчения",
          "plant_mech": "Механик фабрики", "control_operator": "Оператор пульта", "shift_metallurgist": "Металлург смены",
          "tailings_engineer": "Технолог хвостов и оборотной воды", "power_engineer": "Дежурный энергетик",
-         "shift_mechanic": "Сменный механик"}
+         "shift_mechanic": "Сменный механик", "mine_shift_head": "Начальник смены карьера",
+         "road_service": "Дорожная служба карьера"}
 
 
 def type_of(name):

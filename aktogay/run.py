@@ -5,6 +5,10 @@
   python -I aktogay/run.py params [--md PARAMETERS.md] [--check]
   python -I aktogay/run.py service [...]     simulator service akt-sim (sim/service.py)
   python -I aktogay/run.py trial [--n 100]   on/off trial of the issue queue (sim/trial.py)
+  python -I aktogay/run.py backtest [--quick] quarterly back-test on the KAZ Minerals reports (sim/backtest.py)
+  python -I aktogay/run.py replay --write PATH  replay file «с двойником / без» from the stored trial rows (sim/replay.py)
+  python -I aktogay/run.py exp23 --write PATH  compact file of the experiment of 24.10.2026 for the pages (sim/exp23_view.py)
+  python -I aktogay/run.py paramstat [--write PATH]  labels of the parameter tables: fact / vendor / analog / project / calc / assumption
 """
 import os
 import sys
@@ -36,6 +40,18 @@ def main(argv: list[str]) -> int:
     if cmd == "trial":
         from sim import trial
         return trial.main(rest)
+    if cmd == "backtest":
+        from sim import backtest
+        return backtest.main(rest)
+    if cmd == "paramstat":
+        from sim import paramstat
+        return paramstat.main(rest)
+    if cmd == "replay":
+        from sim import replay
+        return replay.main(rest)
+    if cmd == "exp23":
+        from sim import exp23_view
+        return exp23_view.main(rest)
     print(__doc__)
     return 2
 

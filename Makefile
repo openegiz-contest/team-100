@@ -25,7 +25,7 @@ up:
 	@# as up. Wait for it to exit, then check how.
 	@test "$$(docker wait $$($(COMPOSE) ps -a -q init))" = 0 || { \
 	  echo "ERROR: the init job (policy + Ditto connections) failed:"; $(COMPOSE) logs init; exit 1; }
-	@# Same for akt-setup (Aktogay policy, Thing Models, 127 things): without
+	@# Same for akt-setup (Aktogay policy, Thing Models, 136 things): without
 	@# this check the stand would be "up" with no things in it.
 	@test "$$(docker wait $$($(COMPOSE) ps -a -q akt-setup))" = 0 || { \
 	  echo "ERROR: the akt-setup job (Aktogay policy + things) failed:"; $(COMPOSE) logs akt-setup; exit 1; }

@@ -69,3 +69,11 @@ python -I -B -X utf8 aktogay\run.py trial --n 100 --seed0 1001 --no-twin --jobs 
 
 Сводку `trial_n100.json` сервис `akt-calib` публикует в вещь `validation-calib` (в интерфейсе —
 `?view=calib`).
+
+## Опыт как исследование, 24.10.2026
+
+План записан до прогона в `VALIDATION.md`, 8.6; отклонения — 8.7; результаты — 8.8 [оценка на модели]. Прогоны `trial_n100.json`,
+`sens_lab_*.json` и `trial_n100_hidden0.json` выше не менялись (их читают страницы «Калибровка» и повтор смены). Новые прогоны лежат в
+`exp23/*.json` (строки по сменам), свод — `experiment_23.json`. Новые флаги `trial`: `--copies`, `--crews`, `--call-delay`, `--delay-kinds`,
+`--compliance`, `--est-sigma`, `--seeds`, `--aggregate`; новые копии `novice` и `value_nd`. Все прогоны и их порядок — `exp23/run_exp23.py`
+(≈ 51 мин на 4 процессах); свод: `python -I aktogay\run.py trial --aggregate aktogay\sim\data\exp23 --out aktogay\sim\data\experiment_23.json`.

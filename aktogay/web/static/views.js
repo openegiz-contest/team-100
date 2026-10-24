@@ -31,16 +31,16 @@
         const shift = AKT.num(n, 'loss_shift_usd');
         const why = [AKT.issueWhy(n), AKT.issueAdvice(n) ? 'Совет модуля: ' + AKT.issueAdvice(n) : '', String(AKT.val(n, 'choice_text') || '').replace(/\s*\[оценка на модели\]/g, ' (≈)'), String(AKT.val(n, 'chain_text') || ''), shift > 0 ? `Если никого не звать, за 12 ч ${AKT.approx(shift)}.` : ''].filter(Boolean).join(' ');
         return `<tr class="row-lv-${lv}"><td class="n">${AKT.rankNo(n) != null ? `<span class="rk">${fmt(AKT.rankNo(n))}</span>` : '—'}</td>
-<td>${AKT.glyph(lv)} <b>${esc(AKT.issueTitle(n))}</b><br>${AKT.issueNode(n) ? link(AKT.issueNode(n)) : ''}${why ? `<details><summary>Почему так решено</summary>${esc(why)}</details>` : ''}</td>
+<td>${AKT.glyph(lv)} <b>${esc(AKT.issueTitle(n))}</b><br>${AKT.issueNode(n) ? link(AKT.issueNode(n)) : ''}${why ? `<details><summary>Почему так решено</summary>${esc(why)}</details>` : ''}${AKT.evidenceItems(n).length || AKT.val(n, 'notify_text') ? `<details><summary>Измерения и возраст данных</summary>${AKT.evidenceHtml(n)}</details>` : ''}</td>
 <td>${esc(m.text)}${m.small ? ' <span class="p-sub">' + esc(m.small) + '</span>' : ''}</td>
 <td class="n">${String(AKT.val(n, 'safety_class') || '') === 'S0' ? 'опасно' : d != null && d > 0 ? '≈ ' + esc(AKT.usd(d)) : 'пока ничего'}</td>
 <td>${cb != null ? esc(AKT.clockDay(cb)) : 'сейчас'}</td>
 <td>${esc(AKT.roleAcc(AKT.issueRole(n)))}${per ? `<br><span class="p-sub">${esc(AKT.personAvail(per))}</span>` : ''}</td>
-<td>${esc(AKT.stRu(AKT.st(n), n))}${AKT.num(n, 'eta') != null && AKT.st(n) === 'CALLED' ? `<br><span class="p-sub">ждём к ${esc(AKT.clockDay(AKT.num(n, 'eta')))}</span>` : ''}${AKT.val(n, 'escalation') ? `<br><b class="esc">${esc(String(AKT.val(n, 'escalation')))}</b>` : ''}</td>
+<td>${esc(AKT.stRu(AKT.st(n), n))}${AKT.life(n) && AKT.life(n).steps.length ? `<br><span class="p-sub">${esc(AKT.life(n).text)}</span>` : ''}${AKT.num(n, 'eta') != null && AKT.st(n) === 'CALLED' ? `<br><span class="p-sub">ждём к ${esc(AKT.clockDay(AKT.num(n, 'eta')))}</span>` : ''}${AKT.val(n, 'escalation') ? `<br><b class="esc">${esc(String(AKT.val(n, 'escalation')))}</b>` : ''}</td>
 <td>${AKT.val(n, 'escalation') ? `<button type="button" class="primary" data-i="${esc(n)}" data-a="remind">Напомнить</button> <button type="button" data-i="${esc(n)}" data-a="next">Позвать следующего</button>` : called ? '—' : `<button type="button" class="primary" data-i="${esc(n)}" data-a="call">Позвать ${esc(AKT.roleAcc(AKT.roleFirst(AKT.issueRole(n))))}</button> <button type="button" data-i="${esc(n)}" data-a="snooze">Не сейчас…</button>`}</td></tr>`;
       }).join('');
       const html = issues.length ? `<table class="kv"><tr><th>№</th><th>Где и что</th><th>Сейчас</th><th>Час промедления</th><th>Позвать до</th><th>Кого звать</th><th>Статус</th><th>Действие</th></tr>${rows}</table>`
-        : `<p class="empty">${AKT.warming() ? 'Модель прогревается: беда, если есть, появится через ~1 мин.' : 'Бед нет. Все участки в норме.'}</p>`;
+        : `<p class="empty">${AKT.warming() ? 'Модель прогревается: беда, если есть, появится через ~1 мин.' : (/отклонени/.test(AKT.nowLine().text) ? 'Бед в очереди нет. Отклонения — в строке сверху и на карте.' : 'Бед нет. Все участки в норме.')}</p>`;
       const q = document.getElementById('q-list');
       if (q._raw !== html) {
         q._raw = html; q.innerHTML = html; AKT.glossify(q);
@@ -64,8 +64,8 @@
       const devT = String(AKT.val('mod-priority', 'deviations_text') || '').split('\n').filter(Boolean);
       setHtml('q-dev', devT.length ? `<h3>Отклонения (хроника, в очередь не идут)</h3><ul>${devT.map(x => `<li>${esc(x.replace(/\s*\[оценка на модели\]/g, ' (≈)').replace(/\s*\[допущение\]/g, ' (д)'))}</li>`).join('')}</ul><p class="p-sub">${esc(String(AKT.val('mod-priority', 'tariff_text') || '').replace(/\s*\[допущение\]/g, ' (д)'))}</p>` : '');
       setHtml('q-handover', AKT.views.handover.html());
-      const JR_RU = { call: 'позвали', snooze: 'отложили', auto_call: 'автовызов', remind: 'напомнили', next: 'позвали следующего', late: 'двойник: не прибыл', arrived: 'двойник: прибыли' };
-      const esc_rows = ((AKT.val('mod-priority', 'escalations') || {}).log || []).filter(e => e && (e.action === 'late' || e.action === 'arrived'))
+      const JR_RU = { call: 'позвали', snooze: 'отложили', auto_call: 'автовызов', remind: 'напомнили', next: 'позвали следующего', late: 'двойник: не прибыл', arrived: 'двойник: прибыли', resolved: 'беда устранена' };
+      const esc_rows = ((AKT.val('mod-priority', 'escalations') || {}).log || []).filter(e => e && (e.action === 'late' || e.action === 'arrived' || e.action === 'resolved'))
         .map(e => ({ sim_time: e.t, action: e.action, issue: e.issue, role: '', text: e.text, run: AKT.run }));
       const jr = r => `<tr><td>${AKT.clock(r.sim_time)}</td><td>${esc(JR_RU[r.action] || r.action)}</td><td>${esc(AKT.things[r.issue] && (!r.run || r.run === AKT.run) ? AKT.nameRu(AKT.issueNode(r.issue) || r.issue) : (/^issue-(\d+)$/.test(r.issue || '') ? 'беда ' + r.issue.slice(6) : (r.issue || '')))}</td><td>${esc(r.role ? AKT.roleAcc(r.role) : '')}</td><td>${esc(r.text || '')}</td></tr>`;
       const head = '<tr><th>время модели</th><th>действие</th><th>беда</th><th>кто</th><th>комментарий</th></tr>';
@@ -99,7 +99,7 @@
       const block = (title, s) => { const L = lines(s); return L.length ? `<div class="ho"><b>${esc(title)}</b><ul>${L.slice(1).map(x => `<li>${esc(x.replace(/\s*\[оценка на модели\]/g, ' (≈)'))}</li>`).join('')}</ul></div>` : ''; };
       const at = typeof ho.at === 'number' && ho.at >= 0 ? ho.at : null;
       return (at != null ? block(/записан/.test(ho.title || '') ? ho.title : `${ho.title || 'Сдача смены'} (лист записан в ${AKT.clockDay(at)} модели)`, ho.text) : '<p class="empty dash">Лист ещё не составлен: он появится в 07:30 или 19:30 времени модели.</p>')
-        + (draft ? block(`Если сдавать сейчас (${AKT.clockDay(AKT.num('mod-priority', 'processed_sim_time'))} модели)`, draft) : '')
+        + (draft ? block(AKT.draftTitle(AKT.num('mod-priority', 'processed_sim_time'), AKT.simTime, AKT.clockDay), draft) : '')
         + '<p class="p-sub">Зачем лист по разделам: на тренажёре НПЗ (Honeywell, ENGEN, 10 пар операторов) с таким листом в журнал попадало 76 % нужных сведений против 57 % (Plocher и др., 2011; литература, другая отрасль).</p>';
     },
   };
@@ -155,15 +155,29 @@
       const d = doc(stage, 'calib');
       d.innerHTML = `<h2>Калибровка и проверка модели</h2>
 <p class="lead" id="cb-lead">Загружаю итог проверки…</p>
-<div id="cb-chart"></div>
-<h3>Проверка: очередь «по деньгам» против очереди «кто громче»</h3><div id="cb-trial"></div>
+<h3>Опыт «вкл/выкл» от 24.10.2026 — главный результат</h3><div id="cb-exp"><p class="empty dash">Загружаю итог опыта…</p></div>
+<h3>Прежний опыт 22.10.2026 (для истории): очередь «по деньгам» против очереди «кто громче»</h3>
+<div id="cb-chart"></div><div id="cb-trial"></div>
 <h3>Калибровка по годовым отчётам</h3><div id="cb-report"></div>
+<h3>Сверка с фактом KAZ Minerals: вода, энергия, CO₂</h3><div id="cb-facts"></div>
+<h3>Проверка по кварталам</h3><div id="cb-bt"></div>
+<h3>На чём стоят числа модели</h3><div id="cb-params"><p class="empty dash">Загружаю сводку меток…</p></div>
+<h3>Чего модель не умеет</h3><div id="cb-limits"></div>
 <h3>Балансы сейчас</h3><div id="cb-bal"></div>
 <h3>Сравнение с ходом без сценария</h3><div id="cb-base"></div>
 <p class="note" id="cb-state"></p>`;
+      AKT.exp23.load(() => this.update());
+      fetch('/params_summary.json', { cache: 'no-store' }).then(r => r.json()).then(j => { this.params = j; this.update(); }).catch(() => { /* optional */ });
     },
     update() {
       const st = AKT.st('validation-calib');
+      if (this.params) {
+        const j = this.params;
+        setHtml('cb-params', `<p>Таблицы модели и модулей: <b>${fmt(j.rows)}</b> чисел (${fmt(j.sim_rows)} в модели, ${fmt(j.modules_rows)} в модулях). Допущений среди них <b>${fmt(j.assumption_pct, 1)} %</b>; настоящие данные (факт, вендор, проект) — ${fmt(j.labels.filter(x => ['fact', 'vendor', 'project'].includes(x.key)).reduce((a, x) => a + x.pct, 0), 1)} %.</p>
+<table class="kv"><tr><th>Метка</th><th>Что значит</th><th>Модель</th><th>Модули</th><th>Всего</th><th>Доля</th></tr>${j.labels.map(x => `<tr><td><b>${esc(x.ru)}</b></td><td>${esc(x.meaning)}</td><td class="n">${fmt(x.sim)}</td><td class="n">${fmt(x.modules)}</td><td class="n">${fmt(x.total)}</td><td class="n"><span class="meter" style="display:inline-block;width:5em"><i style="width:${x.pct}%"></i></span> ${fmt(x.pct, 1)} %</td></tr>`).join('')}</table>
+<p class="note">Подгоняют по отчётам ${fmt(j.fitted_rows)} чисел; остальные взяты из источника или заданы нами с диапазоном правдоподобия. Полная таблица с источником у каждой строки — <code>${esc(j.files.table)}</code>. Уровень S (зимняя дорога, канатирование, pH-метр, ВВД, броня, масло): ${fmt(j.tier_s.assumptions)} из ${fmt(j.tier_s.rows)} новых строк — допущения (${esc(j.tier_s.source)}).</p>`, false);
+        setHtml('cb-limits', `<ul class="cav">${j.limits.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="note">Подробно — раздел «Чего модель не умеет» в <code>VALIDATION.md</code>.</p>`, false);
+      }
       const raw = AKT.val('validation-calib', 'report_json');
       let rep = null, bad = '';
       if (typeof raw === 'string' && raw.trim()) { try { rep = JSON.parse(raw); } catch (e) { bad = raw; } }
@@ -171,13 +185,10 @@
       setHtml('cb-state', `Расчёт: ${esc(AKT.stRu(st, 'validation-calib'))}${st === 'DONE' ? `, записан ${esc(when ? new Date(when).toLocaleString('ru-RU') : '—')}${rep && rep.seconds ? `, счёт ${fmt(rep.seconds)} с` : ''}` : st === 'RUNNING' ? ' (≈ 2 мин), таблицы появятся сами' : ''}.`, false);
       const tr = rep && rep.trial, s = tr && tr.summary || {};
       const d = s.d_cu_t_2000, tw = s.twin_cu_t_2000;
-      let lead = 'Итог проверки ещё не записан: расчёт калибровки не закончил или не запускался.';
-      if (d) {
-        const pm = d.p_minus || 0;
-        lead = `Проверено на ${fmt(d.n || tr.n)} сменах модели. Очередь «по деньгам» в среднем сохраняет ≈ ${AKT.fmt(d.mean, 2)} т меди за смену против очереди «кто громче» и ${pm === 0 ? 'ни в одной смене не хуже' : `хуже в ${fmt(100 * pm)} % смен`}.`
-          + (tw ? ` Двойник целиком даёт ≈ +${AKT.fmt(tw.mean, 2)} т меди за смену против работы без двойника.` : '');
-      }
+      let lead = 'Итог опыта не загружен (файл exp23.json).';
+      if (AKT.exp23.data) lead = AKT.exp23.sentence();
       setHtml('cb-lead', esc(lead));
+      setHtml('cb-exp', AKT.exp23.data ? `${AKT.exp23.mainTable()}<h4>От чего зависит (торнадо)</h4>${AKT.exp23.tornado()}<h4>Цена задержки вызова</h4>${AKT.exp23.delay()}` : '<p class="empty dash">Итог опыта не загружен.</p>', false);
       setHtml('cb-chart', d ? ciChart(s) : '', false);
       setHtml('cb-trial', tr ? renderTrial(tr) : `<p class="empty dash">${st === 'RUNNING' ? 'Считается.' : 'Итог проверки ещё не записан.'}</p>`);
       let body = '<p class="empty dash">Отчёт ещё не записан.</p>';
@@ -185,6 +196,8 @@
       else if (rep) body = renderReport(rep);
       else if (bad) body = `<pre>${esc(bad)}</pre>`;
       setHtml('cb-report', body, false);
+      setHtml('cb-facts', factsHtml(rep), false);
+      setHtml('cb-bt', AKT.backtest ? AKT.backtest.render(rep && rep.backtest) : '<p class="empty dash">Проверка по кварталам недоступна.</p>', false);
       const ml = k => AKT.num('mod-losses', k);
       const resid = v => v == null ? '<span class="note">мало точек</span>' : `<span class="${Math.abs(v) < 0.5 ? 'ok' : 'bad'}">${f2(v)} %</span>`;
       setHtml('cb-bal', `<p class="note">Невязка — насколько не сходятся счётчики весов и расходомеров за последние 2 ч модели. Первый час после запуска — «мало точек». Медь сводится по формуле двух продуктов, её невязка близка к нулю по построению.</p><table class="kv"><tr><th>баланс</th><th>невязка</th><th>допуск</th></tr>
@@ -193,7 +206,7 @@
 <tr><td>концентрат: питание сгустителя = разгрузка на фильтр + изменение запаса</td><td class="n">${resid(ml('conc_residual_pct'))}</td><td>&lt; 0,5 %</td></tr>
 <tr><td>мощность по частям</td><td colspan="2">${esc(AKT.val('mod-losses', 'power_parts_text') || `мельницы ${f1(AKT.num('power', 'grinding_mw'))} · прочее ${f1(AKT.num('power', 'other_mw'))} · итого ${f1(AKT.num('power', 'site_mw'))} из ${fmt(AKT.num('power', 'grid_limit_mw'))} МВт`)} · запас ${f1(ml('power_headroom_mw') ?? AKT.num('power', 'headroom_mw'))} МВт</td></tr></table>`);
       const res = AKT.shiftResult();
-      setHtml('cb-base', res ? AKT.shiftTable(res) : `<p class="note">${AKT.check ? 'Сравнения нет: ход без сценария считается только во время сценария; в свободном ходе итог появляется в конце смены.' : 'Сравнение с ходом без сценария видно только в «Режиме проверки модели» (в «Пульте модели»): диспетчеру на смене оно недоступно.'}</p>`);
+      setHtml('cb-base', res ? AKT.shiftTable(res) : `<p class="note">${AKT.noCompareText()}</p>`);
     },
   };
   /* interval chart: mean (dot) and 95 % interval (line) per comparison, one axis — t of copper per shift */
@@ -350,6 +363,20 @@ ${cuts ? `<details><summary>Срезы: разница к 20:00 по типам 
   const UNIT_RU = { Mt: 'млн т', kt: 'тыс. т', 'kWh/t': 'кВт·ч/т', GWh: 'ГВт·ч', Mm3: 'млн м³', 'm3/t': 'м³/т', 'm3/h': 'м³/ч', MW: 'МВт', mm: 'мм', h: 'ч', '-': '' };
   const ru = (s, table) => { for (const [re, to] of table) if (re.test(s)) return s.replace(re, to); return s; };
   const num4 = v => v == null ? '—' : fmt(v, Math.abs(v) >= 1000 ? 1 : Math.abs(v) >= 100 ? 2 : Math.abs(v) >= 1 ? 3 : 4);
+  /* the water and energy checks against the company's own figures, and the CO2 of the twin (VALIDATION.md, section 4) */
+  function factsHtml(rep) {
+    const row = nm => rep && Array.isArray(rep.rows) ? rep.rows.find(x => x.name === nm) : null;
+    const e = row('electricity per t ore'), w = row('water intake per t ore');
+    const mv = (x, d) => x && x.model != null ? fmt(x.model, d) : '—';
+    const en = AKT.exp23 && AKT.exp23.data && AKT.exp23.data.energy;
+    const sc2 = 2308 / 379.9;
+    return `<table class="kv"><tr><th>Величина</th><th class="n">Модель</th><th class="n">Факт</th><th>Как получен факт</th><th>Оговорка</th></tr>
+<tr><td>Электроэнергия на т сульфидной руды, кВт·ч/т</td><td class="n">${mv(e, 1)}</td><td class="n">34,9</td><td>7,32 ПДж ÷ 3,6 ÷ 58,306 Мт [расчёт; отчёт KAZ Minerals по устойчивому развитию 2024, с. 37; отчёт IV кв. 2024, с. 3]</td><td>в числителе вся электроэнергия площадки (карьер, окисленная линия, фабрика), в знаменателе только сульфидная руда: оценка на тонну руды, не удельная энергоёмкость обогащения. «Прочая нагрузка» модели подогнана на электроэнергию 2024 г., поэтому совпадение — проверка согласованности, не независимое предсказание</td></tr>
+<tr><td>Забор воды на т руды, м³/т</td><td class="n">${mv(w, 3)}</td><td class="n">0,60</td><td>34 852 Мл ÷ 58,306 Мт = 0,598 [расчёт; страница Water на kazminerals.com, 2024]</td><td>интенсивность забора по группе; испарение модели подогнано на воду 2024 г.</td></tr>
+<tr><td>CO₂ по электроэнергии на т Cu, т</td><td class="n">${en ? fmt(en.co2_t_per_t_cu.by_value, 1) : '—'}</td><td class="n">${fmt(sc2, 1)}</td><td>Scope 2 группы 2 308 тыс. т ÷ 379,9 тыс. т Cu [расчёт; отчёт по устойчивому развитию 2024, с. 40]. Полные выбросы группы (Scope 1 + 2) — 7,8 т CO₂-экв. на т Cu [факт]</td><td>группа, не один Актогай; модель — смена с бедами, электроэнергия площадки на т Cu</td></tr>
+<tr><td>Коэффициент выброса, т CO₂ на МВт·ч</td><td class="n">${en ? fmt(en.co2_t_per_mwh, 2) : '—'}</td><td class="n">0,64</td><td>Scope 2 группы 2 308 тыс. т ÷ электроэнергия группы 13,06 ПДж ÷ 3,6 [расчёт]</td><td>подразумеваемый коэффициент всей группы, не сети Казахстана; коэффициент модели взят из этой же строки, поэтому это не сверка, а источник</td></tr></table>
+${en ? `<p class="note">Двойник в опыте: ${fmt(Math.abs(en.d_kwh_per_t_cu.mean))} кВт·ч на т Cu меньше ≈ ${fmt(Math.abs(en.d_co2_kg_per_t_cu.mean))} кг CO₂ на т Cu [оценка на модели]; подробнее — страница «Экономика».</p>` : ''}`;
+  }
   function renderCalib(r) {
     let nOk = 0, nNo = 0, nInfo = 0;
     const rows = r.rows.map(x => {

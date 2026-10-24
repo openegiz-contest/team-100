@@ -411,7 +411,7 @@ export function build(ctx) {
       let T = trucks.get(id);
       if (!T) {
         T = { id, frac: hash01(id), pos: new V3(), prevT: new V3(), off: new V3(), q: new THREE.Quaternion(), has: false, prevD: 0, tilt: 0, load: 0,
-          top: new V3(), bed: new V3(), st: '', tpub: null, cycle: 0, x0: 0, face: '', d: 0, phase: '', p: 0, slot: 0, dumped: false };
+          top: new V3(), bed: new V3(), st: '', tpub: null, dpub: null, cycle: 0, x0: 0, face: '', d: 0, phase: '', p: 0, slot: 0, dumped: false };
         trucks.set(id, T);
       }
       T.i = i; truckIds[i] = id;
@@ -436,10 +436,21 @@ export function build(ctx) {
       T.info = T.face && roads[T.road] ? haulOf(T.face, T.road) : null;
       T.down = st === 'DOWN' || !T.info || !PHASES.includes(st);
       T.shopSlot = T.down ? down++ : -1;
-      if (st !== T.st || tpub !== T.tpub || cycle !== T.cycle) {
-        T.st = st; T.tpub = tpub; T.cycle = cycle;
-        const k = PHASES.indexOf(st);
-        if (k >= 0) { const lens = phaseLens(cycle); let x = 0; for (let j = 0; j < k; j++) x += lens[j]; T.x0 = x + (0.12 + 0.76 * T.frac) * lens[k]; }
+      if (st !== T.st || tpub !== T.dpub || cycle !== T.cycle) {
+        const k = PHASES.indexOf(st), lens = phaseLens(cycle);
+        /* a new reading from Ditto: when the truck, by the model clock, is already in the phase the reading names,
+           it goes on from where it is (no restart of the cycle, no jump); otherwise it is put into that phase */
+        let kept = false;
+        if (k >= 0 && T.cycle === cycle && T.dpub != null && clock != null && T.tpub != null) {
+          let x = (((T.x0 + (clock - T.tpub)) % cycle) + cycle) % cycle, j = 0;
+          while (j < 4 && x >= lens[j]) { x -= lens[j]; j++; }
+          if (j === k) { let s0 = 0; for (let m = 0; m < k; m++) s0 += lens[m]; T.x0 = s0 + x; T.tpub = clock; kept = true; }
+        }
+        T.st = st; T.dpub = tpub; T.cycle = cycle;
+        if (!kept) {
+          T.tpub = tpub;
+          if (k >= 0) { let x = 0; for (let j = 0; j < k; j++) x += lens[j]; T.x0 = x + (0.12 + 0.76 * T.frac) * lens[k]; }
+        }
       }
       T.loadC = T.waste ? WASTE_C : ORE_C;
       truckLoadM.setColorAt(i, T.loadC);

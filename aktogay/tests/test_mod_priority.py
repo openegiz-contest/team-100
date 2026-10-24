@@ -569,6 +569,31 @@ class WhoTest(unittest.TestCase):
         ({"piezo-2": {"state": "ALARM", "kpa": 195.0, "alarm": 1.0}}, ("dam_alarm",)),   # one dam piezometer
         ({"water": {"state": "SHORT", "leak_m3h": 600.0, "cut_tph": 300.0, "short_m3h": 120.0,
                     "intake_cap_m3h": 6126.0}}, ("water_short",)),
+        ({"pit": {"state": "STOP", "mining_tph": 0.0}, "exc-1": {"state": "DOWN", "tph": 0.0},
+          "exc-2": {"state": "DOWN", "tph": 0.0}, "exc-3": {"state": "DOWN", "tph": 0.0},
+          "crusher-1": {"tph": 0.0}, "crusher-2": {"tph": 0.0}}, ("pit_stop",)),
+        # tier S of 23.10.2026
+        ({"pit": {"visibility_m": 120.0, "road_grip": 0.30, "road_restrict": 0.0}}, ("road_winter",)),
+        ({"fleet": {"fatigue": 1.0, "fatigue_truck": "HT141 (CAT 793D)"}}, ("driver_fatigue",)),
+        ({"cyclones-1": {"circ_load_pct": 365.0, "p80_um": 215.0}, "ball-1a": {"power_pct": 112.0}}, ("roping",)),
+        ({"ph-1": {"ph": 10.8, "sp_ph": 10.8, "lab_ph": 11.5, "age_min": 60.0}}, ("sensor_ph",)),
+        ({"pebble-2": {"hpgr_tph": 1061.0, "hpgr_skew_pct": 12.0, "hpgr_kw_diff_pct": 18.0, "limit_tph": 530.0,
+                       "metal_alarm": 0.0}}, ("hpgr_uneven",)),
+        ({"crusher-1": {"state": "STOP", "tph": 0.0, "lube_kpa": 250.0, "service": 1.0, "service_left_h": 60.0},
+          "stockpile-1": {"hours_left": 7.0}}, ("crusher_mantle",)),
+        ({"exc-1": {"oil_pct": 120.0, "oil_alert": 1.0}}, ("oil_contam",)),
+        ({"exc-2": {"state": "DOWN", "tph": 0.0}}, ("exc_down",)),
+        ({"leach-1": {"state": "COLD", "cold_frac": 0.25, "level_tph": 1.6}}, ("leach_cold",)),
+        # tier T of 24.10.2026
+        ({"sag-1": {"gmd_gap_mm": 11.0}}, ("gmd_gap",)),
+        ({"conveyor-1": {"idler_temp_c": 95.0}}, ("idler_hot",)),
+        ({"flot-1": {"level_swing_pct": 9.0}}, ("froth_swing",)),
+        ({"thick-1": {"rake_torque_pct": 55.0}}, ("rake_torque",)),
+        ({"filter-1": {"cycle_pct": 140.0}}, ("cloth_blind",)),
+        ({"cyclones-1": {"pump_head_pct": 82.0}}, ("pump_cavit",)),
+        ({"fleet": {"brake_oil_c": 125.0}}, ("brake_hot",)),
+        ({"exc-1": {"track_press_pct": 95.0}, "exc-2": {"state": "DOWN", "tph": 0.0}, "exc-3": {"state": "DOWN", "tph": 0.0}},
+         ("track_tension",)),
     ]
     # the stand's own rule of who goes, for every kind: kind -> (crew, person, words in the role)
     EXPECT = {
@@ -580,11 +605,11 @@ class WhoTest(unittest.TestCase):
         "conveyor_stop": ("crew-cpd", "person-crusher-mech", ("Механик ЦПД",)),
         "lube_trip": ("crew-kip", "person-kip", ("Дежурный КИПиА",)),          # protection sensor (КИПиА)
         "loss_flot": ("crew-kip", "person-kip", ("Дежурный КИПиА", "металлург смены")),   # dose, flowmeter
-        "loss_flot_oxide": ("", "person-geologist", ("Геолог смены",)),
+        "loss_flot_oxide": ("", "person-geologist", ("Геолог смены", "металлург смены")),
         "loss_cyclones": ("crew-mill", "person-mill-mech", ("Механик фабрики", "металлург смены")),
         "loss_sag": ("", "person-metallurgist", ("Металлург смены", "механик фабрики")),   # kWh/t above the ore
         "reagent_over": ("crew-kip", "person-kip", ("Дежурный КИПиА", "металлург смены")),  # collector overdose
-        "hard_ore": ("", "person-geologist", ("Геолог смены", "горный диспетчер")),
+        "hard_ore": ("", "person-geologist", ("Геолог смены", "горный диспетчер", "металлург смены")),
         "reline": ("", "person-dispatcher", ("Горный диспетчер", "начальник смены фабрики")),
         "sag_stop": ("crew-mill", "person-mill-mech", ("Механик фабрики",)),
         "pebble_stop": ("crew-mill", "person-mill-mech", ("Механик фабрики",)),
@@ -597,10 +622,28 @@ class WhoTest(unittest.TestCase):
         "cstock_high": ("", "person-metallurgist", ("Металлург смены", "начальник смены фабрики")),
         "cstock_full": ("", "person-metallurgist", ("Металлург смены", "начальник смены фабрики")),
         "fleet_short": ("", "person-dispatcher", ("Горный диспетчер",)),
+        "pit_stop": ("", "person-dispatcher", ("Горный диспетчер", "геолог смены")),
         "startup_zone": ("", "person-shift-head", ("Начальник смены фабрики", "механик фабрики")),
         "tailings_dust": ("", "person-water", ("Технолог хвостов и оборотной воды",)),
         "grind_coarse": ("", "person-metallurgist", ("Металлург смены", "механик фабрики")),
         "conc_low": ("", "person-metallurgist", ("Металлург смены", "дежурный КИПиА")),
+        "road_winter": ("", "person-dispatcher", ("Горный диспетчер", "начальник смены карьера", "дорожная служба карьера")),
+        "driver_fatigue": ("", "person-dispatcher", ("Горный диспетчер", "начальник смены карьера")),
+        "roping": ("", "person-grind-op", ("Оператор пульта измельчения", "металлург смены")),
+        "sensor_ph": ("crew-kip", "person-kip", ("Дежурный КИПиА", "металлург смены")),
+        "hpgr_uneven": ("crew-mill", "person-mill-mech", ("Механик фабрики", "оператор пульта измельчения")),
+        "crusher_mantle": ("crew-cpd", "person-crusher-mech", ("Механик ЦПД", "начальник смены фабрики")),
+        "oil_contam": ("", "person-pit-mech", ("Сменный механик", "горный диспетчер")),
+        "exc_down": ("", "person-pit-mech", ("Сменный механик", "горный диспетчер")),
+        "leach_cold": ("", "person-metallurgist", ("Металлург смены", "начальник смены фабрики")),
+        "gmd_gap": ("", "person-kip", ("Дежурный КИПиА", "дежурный энергетик")),
+        "idler_hot": ("", "person-crusher-mech", ("Механик ЦПД", "механик фабрики")),
+        "froth_swing": ("", "person-kip", ("Дежурный КИПиА", "металлург смены")),
+        "rake_torque": ("", "person-mill-mech", ("Механик фабрики", "начальник смены фабрики")),
+        "cloth_blind": ("", "person-mill-mech", ("Механик фабрики", "начальник смены фабрики")),
+        "pump_cavit": ("", "person-mill-mech", ("Механик фабрики", "оператор пульта измельчения")),
+        "brake_hot": ("", "person-pit-mech", ("Сменный механик", "горный диспетчер")),
+        "track_tension": ("", "person-pit-mech", ("Сменный механик", "горный диспетчер")),
     }
 
     def collect(self):

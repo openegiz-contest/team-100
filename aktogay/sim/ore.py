@@ -259,9 +259,10 @@ def fleet_step(st: PlantState, prm: ParamSet) -> None:
     if trucks:
         trip = prm["fleet_trip_min"]
         haul = 0.0
+        rm = {n: route_mult(st, n, prm) for n in set(tr.line for tr in trucks if tr.duty == "ore")}
         for tr in trucks:
             if tr.ready and tr.duty == "ore":
-                haul += tr.payload_t * MIN_PER_H / (trip * route_mult(st, tr.line, prm))
+                haul += tr.payload_t * MIN_PER_H / (trip * rm[tr.line])
         fl.haul_tph = haul
     else:
         fl.haul_tph = fl.trucks_ready * prm["fleet_payload_t"] * MIN_PER_H / prm["fleet_trip_min"]
@@ -270,11 +271,11 @@ def fleet_step(st: PlantState, prm: ParamSet) -> None:
 
 def route_mult(st: PlantState, line: int, prm: ParamSet) -> float:
     """Cycle multiplier of the route to the crusher of `line` (0: waste dump): pit_road_detour while
-    a road of that route is CLOSED, else 1."""
+    a road of that route is CLOSED, else 1; times the weather / restriction multiplier of the haul roads (st.pit.cycle_mult)."""
     for rd in st.roads.values():
         if rd.line == line and rd.state == "CLOSED":
-            return prm["pit_road_detour"]
-    return 1.0
+            return prm["pit_road_detour"] * st.pit.cycle_mult
+    return st.pit.cycle_mult
 
 
 def mining_targets(st: PlantState, prm: ParamSet) -> dict[int, float]:
@@ -297,7 +298,7 @@ def mining_targets(st: PlantState, prm: ParamSet) -> dict[int, float]:
     out: dict[int, float] = {}
     for ln in st.lines:
         cr = ln.crusher
-        if cr is not None and (cr.state == "STOP" or cr.fault):
+        if cr is not None and (cr.state == "STOP" or cr.fault or ln.conveyor.fault):
             t = 0.0
         else:
             frac = ln.stockpile.level_t / live if live > 0 else 1.0

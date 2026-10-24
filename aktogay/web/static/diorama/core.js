@@ -13,10 +13,12 @@ import { makeLayout, PLINTH, PIT, ZONES, NODES, LINES, PolyCurve, pitPolar, pitR
 import { buildPit, STRATA } from './pit.js';
 
 /* модули-строители: файл и подпись для сообщений */
-const MODULES = [['mining', 'горные работы'], ['plant', 'фабрика'], ['infra', 'инфраструктура']];
+const MODULES = [['mining', 'горные работы'], ['plant', 'фабрика'], ['infra', 'инфраструктура'], ['inspect', 'разбор машин']];
 const NB = ' ';
 const BG = 0xeef1f4;
 const FRAME_MS = 32;                       // не чаще ≈ 30 кадров/с
+let FRAME_MS_LITE = 66;                    // лёгкий режим: ≈ 15 кадров/с; на программном WebGL ≈ 8 (ниже, когда это известно)
+const LITE_FPS = 20;                       // ниже этого числа кадров в секунду лёгкий режим включается сам
 const FOV = 30;
 
 /* Цвета макета: реальные цвета техники и материалов (sRGB). */
@@ -30,7 +32,7 @@ export const PALETTE = {
   road: 0xa69680, steppe: 0xc7b48c,
 };
 /* свечение: беда (пульсирует), остановка, путь беды до меди, выбранный узел, «работает», внимание */
-export const GLOW = { issue: 0xe8a000, alarm: 0xc62828, chain: 0xf0c060, focus: 0xffffff, run: 0x48c8ff, warn: 0xffb020 };   // синий — только для учебного сценария
+export const GLOW = { issue: 0xe8a000, alarm: 0xc62828, chain: 0xf0c060, focus: 0xffffff, run: 0x48c8ff, warn: 0xffb020, scen: 0x48a0ff };   // синий — только для учебного сценария
 /* цвета состояний ISA-101 (как на плане): серый — норма, жёлтый — отклонение, красный — стоит */
 export const ST_COLORS = { 'st-grey': 0xc3c8cf, 'st-yellow': 0xe8a000, 'st-red': 0xc62828, 'st-soon': 0xf1dca0 };
 
@@ -68,6 +70,13 @@ export async function create(AKT, stage, opts, onFail) {
     apply();
     more.addEventListener('click', () => { open = !open; apply(); try { localStorage.setItem('dio-notes-open', open ? '1' : '0'); } catch (e) { /* необязательно */ } });
   }
+  /* лёгкий режим (В5): ниже разрешение, ≈ 15 кадров/с, без пульсации, подписи реже; сам включается при fps < 20,
+     кнопкой — в любой момент (выбор помнит браузер, ?lite=1 / ?lite=0 — на один раз). Внешний вид иначе прежний. */
+  const liteBtn = document.createElement('button'); liteBtn.type = 'button'; liteBtn.className = 'dio-lite-btn';
+  liteBtn.textContent = 'Лёгкий режим'; liteBtn.setAttribute('aria-pressed', 'false');
+  liteBtn.title = 'Меньше нагрузка на слабом компьютере: ниже разрешение, реже обновление, без пульсации';
+  const liteNote = document.createElement('span'); liteNote.className = 'dio-lite'; liteNote.hidden = true;
+  { const more = bar.querySelector('.dio-more'); more.after(liteBtn); liteBtn.after(liteNote); }
   const wrap = document.createElement('div'); wrap.id = 'dio-wrap'; stage.appendChild(wrap);
   const canvas = document.createElement('canvas'); canvas.id = 'dio-canvas';
   canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', 'Диорама: рудник и фабрика Актогай, схема на подиуме');
@@ -96,6 +105,7 @@ export async function create(AKT, stage, opts, onFail) {
       const ext = gl.getExtension('WEBGL_debug_renderer_info');
       gpuName = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
       soft = /swiftshader|llvmpipe|software|basic render/i.test(gpuName);
+      if (soft) FRAME_MS_LITE = 120;
       const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
     }
   } catch (e) { /* проба необязательна */ }
@@ -106,6 +116,10 @@ export async function create(AKT, stage, opts, onFail) {
   const softRatio = () => Math.max(0.6, Math.min(1, Math.sqrt(SOFT_PX / Math.max(1, wrap.clientWidth * wrap.clientHeight))));
   let pixelRatio = qParam > 0.2 && qParam <= 2 ? qParam : (soft ? Math.round(softRatio() * 100) / 100 : Math.min(1.5, window.devicePixelRatio || 1));
   const pixelRatio0 = pixelRatio;
+  let lite = false, liteChoice = null;            // liteChoice: null = само по fps, '1' = включён, '0' = выключен руками
+  try { liteChoice = localStorage.getItem('dio-lite'); } catch (e) { /* хранилище необязательно */ }
+  if (AKT.params.get('lite') === '1' || AKT.params.get('lite') === '0') liteChoice = AKT.params.get('lite');
+  let setLite = () => { /* ниже, когда есть холст */ };
   /* холст нужного размера до создания контекста: смена размера буфера на SwiftShader стоит ≈ 0,5 с */
   canvas.width = Math.floor(Math.max(200, wrap.clientWidth) * pixelRatio); canvas.height = Math.floor(Math.max(200, wrap.clientHeight) * pixelRatio);
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !soft, powerPreference: 'high-performance', preserveDrawingBuffer: false });
@@ -385,7 +399,7 @@ export async function create(AKT, stage, opts, onFail) {
   /* --------------------------------------------- labels (HTML layer) */
   const labels = [], labelsByKey = new Map();
   let labelOrder = null, labelsDirty = true, textsDirty = true;
-  const GLOW_CLS = { issue: 'g-issue', alarm: 'g-alarm', chain: 'g-chain', focus: 'g-focus' };
+  const GLOW_CLS = { issue: 'g-issue', alarm: 'g-alarm', chain: 'g-chain', focus: 'g-focus', scen: 'g-scen' };
   const textOf = L => { try { return typeof L.text === 'function' ? (L.text() ?? '') : (L.text ?? ''); } catch (e) { console.error(e); return ''; } };
   const titleOf = L => { try { return typeof L.title === 'function' ? (L.title() ?? '') : (L.title ?? ''); } catch (e) { return ''; } };
   /* Подпись: key — уникальный ключ; text — строка или функция (вызывается после каждого опроса;
@@ -426,11 +440,14 @@ export async function create(AKT, stage, opts, onFail) {
     return handle;
   }
   function refreshLabel(L) {
-    const full0 = String(textOf(L));
+    let full0 = String(textOf(L));
+    /* a scenario is running: under the name of a node that differs from the run without it, «было → стало» */
+    const chg = full0 && L.thing && !['zone', 'plate'].includes(L.kind) && AKT.prop ? AKT.prop.short(L.thing) : '';
+    if (chg) full0 = full0.split('\n')[0] + '\n' + chg;
     /* ISA-101: in the norm a label is one line (name and the main number); the second line only for a deviation
        or a trouble — the rest is in the tooltip */
     const lvT = L.thing && AKT.things[L.thing] && !['zone', 'plate', 'issue'].includes(L.kind) ? AKT.levelOf(L.thing) : 0;
-    const t = L.kind !== 'issue' && !lvT && full0.includes('\n') ? full0.split('\n')[0] : full0;
+    const t = L.kind !== 'issue' && !lvT && !chg && full0.includes('\n') ? full0.split('\n')[0] : full0;
     if (t !== L.last) {
       L.last = t; L.w = 0;
       const lines = t.split('\n');
@@ -448,7 +465,7 @@ export async function create(AKT, stage, opts, onFail) {
       st = AKT.levelCls(L.thing);
     }
     if (L.kind === 'issue' && L.thing && AKT.things[L.thing]) st = 'lv-' + AKT.issueLevel(L.thing);
-    const g = L.thing ? GLOW_CLS[glowOf(L.thing)] || '' : '';
+    const g = L.thing ? GLOW_CLS[glowKind(L.thing)] || '' : '';
     const cls = `dl${L.kind ? ' k-' + L.kind : ''}${st ? ' ' + st : ''}${g ? ' ' + g : ''}${L.cls ? ' ' + L.cls : ''}`;
     if (cls !== L.lastCls) { L.lastCls = cls; L.el.className = cls; L.w = 0; }
   }
@@ -526,6 +543,7 @@ export async function create(AKT, stage, opts, onFail) {
 
   /* ------------------------------------------- bindings, glow, picking */
   const pickables = [];
+  let clickHook = null;              // inspect.js: щелчок по машине открывает разбор (hook(ev) -> true, если обработан)
   const binds = new Map();           // id -> [{mesh, base, assigned}]
   const claimedSet = new Set(), claimFns = [];
   const claim = x => {
@@ -553,27 +571,30 @@ export async function create(AKT, stage, opts, onFail) {
     const k = base.uuid + '|' + kind;
     if (variants.has(k)) return variants.get(k);
     const m = keep(base.clone());
-    if (m.emissive) { m.emissive.setHex(GLOW[kind]); m.emissiveIntensity = kind === 'chain' ? 0.42 : kind === 'focus' ? 0.25 : 0.6; }
+    if (m.emissive) { m.emissive.setHex(GLOW[kind]); m.emissiveIntensity = kind === 'chain' ? 0.42 : kind === 'scen' ? 0.5 : kind === 'focus' ? 0.25 : 0.6; }
     else if (m.color) m.color.lerp(new THREE.Color(GLOW[kind]), kind === 'focus' ? 0.2 : 0.5);   // запечённый: оттенок
     if (kind === 'issue') pulsing.push({ m, base: base.color ? base.color.clone() : null });
     variants.set(k, m);
     return m;
   };
   let focusId = '';
-  const derived = { issues: [], issueNodes: new Set(), chain: new Set(), chainEdges: new Set() };
+  const derived = { issues: [], issueNodes: new Set(), chain: new Set(), chainEdges: new Set(), scen: new Set() };
   /* свечение вещи: 'issue' (беда в очереди), 'alarm' (состояние «стоит»), 'chain' (ниже по потоку от беды до меди),
      'focus' (выбрана), '' — нет */
-  function glowOf(id) {
+  function glowKind(id) {
     if (!id) return '';
     if (derived.issueNodes.has(id)) return 'issue';
     if (AKT.things[id] && AKT.stopped(AKT.st(id))) return 'alarm';
+    if (derived.scen.has(id)) return 'scen';
     if (derived.chain.has(id)) return 'chain';
     if (focusId && id === focusId) return 'focus';
     return '';
   }
+  /* the modules know «chain»: a node of a running scenario is on the way of the consequences for them too */
+  function glowOf(id) { const g = glowKind(id); return g === 'scen' ? 'chain' : g; }
   function applyGlow() {
     for (const [id, list] of binds) {
-      const kind = glowOf(id);
+      const kind = glowKind(id);
       for (const b of list) {
         if (b.mesh.material !== b.assigned) b.base = b.mesh.material;     // модуль сменил материал сам
         const m = Array.isArray(b.base) ? b.base.map(x => variant(x, kind)) : variant(b.base, kind);
@@ -597,7 +618,9 @@ export async function create(AKT, stage, opts, onFail) {
         }
       }
     }
-    Object.assign(derived, { issues, issueNodes, chain, chainEdges });
+    /* a running scenario: the nodes that differ from the run without it (Ditto: baseline) glow blue */
+    const scen = AKT.prop && AKT.cmpOpen && AKT.cmpOpen() ? AKT.prop.affected() : new Set();
+    Object.assign(derived, { issues, issueNodes, chain, chainEdges, scen });
   }
 
   /* ----------------------------------------------------------- paths */
@@ -668,6 +691,7 @@ export async function create(AKT, stage, opts, onFail) {
     THREE, AKT, scene, camera, layout, PLINTH, PIT, ZONES, NODES, LINES, PolyCurve,
     heightAt, materials, colors: PALETTE, glowColors: GLOW, stColors: ST_COLORS, mat, merge, bake, bakeMesh, litColor, blob, blobGeometry, blobMaterial,
     beltTexture, keep, label, pathFor, route, onClick, claim, claimed, glowOf, note, soft,
+    wrap, flyTo: (p, d) => flyTo(p, d), fitDist: r => fitDist(r), rayAt: ev => { setNdc(ev); return ray; }, pickId: ev => pickId(ev), setClickHook: f => { clickHook = f; },
     stateColor: id => ST_COLORS[AKT.levelCls(id)] || ST_COLORS['st-grey'],
     get camDist() { return cur.dist; },
   };
@@ -801,8 +825,8 @@ export async function create(AKT, stage, opts, onFail) {
       ghost.setMatrixAt(i, gm);
       const c = AKT.cat(id);
       gc.setHex(c === 'person' ? PALETTE.person : (ST_COLORS[AKT.levelCls(id)] || ST_COLORS['st-grey']));
-      const gl = glowOf(id);
-      if (gl === 'issue' || gl === 'alarm') gc.lerp(new THREE.Color(GLOW.issue), 0.5); else if (gl === 'chain') gc.lerp(new THREE.Color(GLOW.chain), 0.45);
+      const gl = glowKind(id);
+      if (gl === 'scen') gc.lerp(new THREE.Color(GLOW.scen), 0.5); else if (gl === 'issue' || gl === 'alarm') gc.lerp(new THREE.Color(GLOW.issue), 0.5); else if (gl === 'chain') gc.lerp(new THREE.Color(GLOW.chain), 0.45);
       ghost.setColorAt(i, gc);
       ghostIds[i] = id;
       ghostPos.set(id, new THREE.Vector3(p.x, y + h, p.z));
@@ -927,6 +951,7 @@ export async function create(AKT, stage, opts, onFail) {
     const click = !drag.moved && !drag.pan && ev.button === 0;
     drag = null;
     if (click) {
+      if (clickHook) { let used = false; try { used = !!clickHook(ev); } catch (e) { console.error(e); } if (used) return; }
       const id = pickId(ev);
       if (!id) return;
       const cat = AKT.cat(id);
@@ -1006,7 +1031,7 @@ export async function create(AKT, stage, opts, onFail) {
 
   /* --------------------------------------------------------------- loop */
   let raf = 0, last = 0, alive = true, lastPlace = 0, coreErr = 0, firstFrame = 0;
-  const perf = { frames: 0, cost: 0, at: performance.now(), slow: 0, fast: 0, hist: [], sample: false, full: 0, px: new Uint8Array(4) };
+  const perf = { frames: 0, cost: 0, at: performance.now(), slow: 0, fast: 0, low: 0, hist: [], sample: false, full: 0, px: new Uint8Array(4) };
   const resize = () => {
     const w = Math.max(200, wrap.clientWidth), h = Math.max(200, wrap.clientHeight);
     if (w === size.w && h === size.h) return;
@@ -1018,15 +1043,35 @@ export async function create(AKT, stage, opts, onFail) {
     camMoved = true;
   };
   const ro = new ResizeObserver(resize); ro.observe(wrap);
+  setLite = (on, auto) => {
+    if (on === lite && !auto) return;
+    lite = on;
+    liteBtn.setAttribute('aria-pressed', String(on));
+    liteNote.hidden = !on;
+    /* a short note in the bar (it must not wrap at 1280 px); the reason and what the button does are in its tooltip */
+    liteNote.textContent = on ? (auto === 'soft' ? 'без видеокарты' : auto ? `меньше ${LITE_FPS} кадров/с` : '') : '';
+    liteNote.hidden = !on || !liteNote.textContent;
+    liteNote.title = on ? `Лёгкий режим${auto === 'soft' ? ': нет видеокарты, сцену считает процессор' : auto ? `: включился сам, меньше ${LITE_FPS} кадров/с` : ''}. Ниже разрешение, ≈ 15 кадров в секунду, подписи реже, без пульсации беды. Кнопка «Лёгкий режим» возвращает прежний вид.` : '';
+    pixelRatio = on ? Math.min(pixelRatio, 0.6) : pixelRatio0; size = { w: 0, h: 0 }; resize();
+    perf.slow = 0; perf.fast = 0; perf.low = 0; perf.hist.length = 0; labelsDirty = true;
+    if (on) for (const p of pulsing) { if (p.m.emissive) p.m.emissiveIntensity = 0.5; else if (p.base) p.m.color.copy(p.base).lerp(GLOW_ISSUE, 0.5); }
+  };
+  liteBtn.addEventListener('click', () => {
+    const on = !lite;
+    liteChoice = on ? '1' : '0';
+    try { localStorage.setItem('dio-lite', liteChoice); } catch (e) { /* необязательно */ }
+    setLite(on, false);
+  });
   const frame = now => {
     if (!alive) return;
     raf = requestAnimationFrame(frame);
-    if (document.hidden || now - last < FRAME_MS) return;
+    if (document.hidden) { perf.frames = 0; perf.cost = 0; perf.at = now; perf.low = 0; return; }
+    if (now - last < (lite ? FRAME_MS_LITE : FRAME_MS)) return;
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     const c0 = performance.now();
     try {
       const moved = stepCamera(dt);
-      state.t = (now - tStart) / 1000; state.dt = dt; state.focus = focusId; state.camDist = cur.dist;
+      state.t = (now - tStart) / 1000; state.dt = dt; state.focus = focusId; state.camDist = cur.dist; state.lite = lite;
       const since = Math.min(2.5, Math.max(0, Date.now() / 1000 - AKT.polled));
       state.simNow = AKT.simTime == null ? null : AKT.simTime + since * state.simRate;
       if (ghostDirty) updateGhosts();
@@ -1038,7 +1083,7 @@ export async function create(AKT, stage, opts, onFail) {
         }
       }
       state.fresh = false;
-      if (pulsing.length) {
+      if (pulsing.length && !lite) {
         const s = 0.5 + 0.5 * Math.sin(state.t * 4.2), k = 0.35 + 0.45 * s;
         for (const p of pulsing) {
           if (p.m.emissive) p.m.emissiveIntensity = k;
@@ -1054,7 +1099,7 @@ export async function create(AKT, stage, opts, onFail) {
         perf.full = performance.now() - c0;
       }
       if (!firstFrame) { firstFrame = performance.now(); marks.firstRender = Math.round(firstFrame - r0); marks.first = Math.round(firstFrame); }
-      if (moved || labelsDirty || now - lastPlace > 140) { lastPlace = now; labelsDirty = false; placeLabels(); }
+      if (moved || labelsDirty || now - lastPlace > (lite ? 400 : 140)) { lastPlace = now; labelsDirty = false; placeLabels(); }
       camMoved = false;
       coreErr = 0;
     } catch (e) {
@@ -1081,7 +1126,8 @@ export async function create(AKT, stage, opts, onFail) {
       const warm = firstFrame && performance.now() - firstFrame > 5000 && perf.hist.length === 3;
       const setPr = v => { pixelRatio = v; size = { w: 0, h: 0 }; resize(); perf.slow = 0; perf.fast = 0; perf.hist.length = 0; };
       if (warm && 1000 / med < 18 && pixelRatio > 0.6) { if (++perf.slow >= 3) setPr(Math.max(0.6, pixelRatio * 0.85)); } else perf.slow = 0;
-      if (warm && pixelRatio < pixelRatio0 && med * Math.pow(Math.min(pixelRatio0, pixelRatio / 0.85) / pixelRatio, 2) < 1000 / 26) { if (++perf.fast >= 5) setPr(Math.min(pixelRatio0, pixelRatio / 0.85)); } else perf.fast = 0;
+      if (warm && !lite && pixelRatio < pixelRatio0 && med * Math.pow(Math.min(pixelRatio0, pixelRatio / 0.85) / pixelRatio, 2) < 1000 / 26) { if (++perf.fast >= 5) setPr(Math.min(pixelRatio0, pixelRatio / 0.85)); } else perf.fast = 0;
+      if (liteChoice === null && !lite && warm && fps < LITE_FPS) { if (++perf.low >= 3) setLite(true, true); } else if (fps >= LITE_FPS) perf.low = 0;
       perf.frames = 0; perf.cost = 0; perf.at = now; perf.sample = true;
     }
   };
@@ -1108,6 +1154,8 @@ export async function create(AKT, stage, opts, onFail) {
     route: (a, b) => { const c = route(a, b); return c ? Math.round(c.len) : null; },
     path: n => { const c = pathFor(n); return c ? Math.round(c.len) : null; },
   };
+  if (liteChoice === '1') setLite(true, false);
+  else if (liteChoice === null && soft) setLite(true, 'soft');     // без видеокарты сцена отнимала у стенда 4 ядра из 8 (23.10)
   raf = requestAnimationFrame(frame);
 
   return {

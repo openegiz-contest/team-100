@@ -69,9 +69,13 @@
     { id: 'exc-4', x: 5000, y: 3900, to: 'exc-4', text: () => excText('exc-4'), title: () => excTitle('exc-4'), st: 'exc-4', prio: 6 },
     { id: 'exc-5', x: 5000, y: 3150, to: 'exc-5', text: () => excText('exc-5'), title: () => excTitle('exc-5'), st: 'exc-5', prio: 6 },
     { id: 'conc-stock', x: 900, y: 60, to: 'conc-stock', text: () => `${G(AKT.levelOf('conc-stock'))}Концентрат · ${AKT.vsBase('conc-stock', 'stock_t', fmt, 50)}${NB}т`, title: () => `Склад концентрата (место — схема): ${AKT.stOf('conc-stock')} · ${fmt(AKT.num('conc-stock', 'stock_t'))} из ${fmt(AKT.pass('conc-stock', 'capacity_t'))} т · приход ${f1(AKT.num('conc-stock', 'in_tph'))} т/ч · отгрузка поездом в 06:00 и 18:00`, st: 'conc-stock', prio: 7 },
+    { id: 'leach-1', x: -1500, y: 700, anchor: 'middle', to: 'leach-1', text: () => oxText(), title: () => oxTitle(), st: 'leach-1', prio: 9 },
     { id: 'water', x: 600, y: -1300, to: [1215, -1024], text: () => waterText(), title: () => waterTitle(), st: 'water', prio: 8 },
     { id: 'intake', x: -250, y: 3150, anchor: 'end', layer: 'water', text: () => `водовод ≈ 27${NB}км → скважины · ${AKT.vsBase('water', 'intake_m3h', fmt, 50)}${NB}м³/ч`, title: () => `Водовод ≈ 27 км от скважин (схема): забор свежей воды ${fmt(AKT.num('water', 'intake_m3h'))} м³/ч`, href: '?view=unit&id=kz.aktogay:water', prio: 9 },
   ];
+  /* oxide line (heap leach -> SX-EW): the place is a scheme; the label appears only when the pad is cold (UI rule 1), the marker stays */
+  const oxText = () => AKT.thing('leach-1') && AKT.st('leach-1') === 'COLD' ? `${G(AKT.levelOf('leach-1'))}Куча: холодное выщелачивание · катод ${f2(AKT.num('sxew-1', 'cathode_tph'))}${NB}т/ч` : '';
+  const oxTitle = () => `Окисленная руда: куча выщелачивания → SX-EW → катод (место — схема): ${AKT.stOf('leach-1')} · катод ${f2(AKT.num('sxew-1', 'cathode_tph'))} т/ч при уровне квартала ${f2(AKT.num('sxew-1', 'cathode_level_tph'))} т/ч (квартальный выпуск по отчётам, не замер)`;
   const excText = n => AKT.thing(n) && AKT.deviates(n) ? `${G(AKT.levelOf(n))}Экскаватор ${n.slice(-1)} ${AKT.stOf(n)}` : '';
   const excTitle = n => { const b = AKT.val(n, 'block'); return `${AKT.nameRu(n)} (место — схема): ${AKT.stOf(n)} · ${fmt(AKT.num(n, 'tph'))} т/ч${b ? ' · партия ' + AKT.batchNo(String(b)) : ''}${AKT.val(n, 'bench') != null ? ' · уступ ' + fmt(AKT.num(n, 'bench')) : ''}`; };
   const beltText = n => AKT.stopped(AKT.st(n)) || AKT.levelOf(n) ? `${G(AKT.levelOf(n) || 1)}Конвейер ${n.slice(-1)} ${AKT.stOf(n)} · ${AKT.vsBase(n, 'tph', fmt, 50)}${NB}т/ч` : '';
@@ -175,7 +179,7 @@
       if (opts && opts.note) { const n = document.createElement('div'); n.className = 'fallback-note'; n.setAttribute('role', 'status'); n.textContent = opts.note; stage.appendChild(n); }
       this.lyr = loadLayers();
       const bar = document.createElement('div'); bar.id = 'plan-bar';
-      bar.innerHTML = `<span class="grp" role="group" aria-label="Подложка"><button type="button" id="lay-scheme" aria-pressed="true">Схема</button><button type="button" id="lay-sat" aria-pressed="false">Спутник</button></span>
+      bar.innerHTML = `<span class="grp" role="group" aria-label="Подложка"><button type="button" id="lay-scheme" aria-pressed="true">Схема</button><button type="button" id="lay-sat" aria-pressed="false">Спутник</button><button type="button" id="lay-3d" aria-pressed="false" title="Открыть диораму: весь рудник макетом в 3D">3D</button></span>
 <span class="lyr-l">Слои:</span><span class="grp" role="group" aria-label="Слои карты">${LAYERS.map(([k, t]) => `<button type="button" data-lyr="${k}" aria-pressed="false" title="Показать ${t.toLowerCase()} на карте; отклонения видны всегда">${t}</button>`).join('')}</span>
 <span class="key" aria-label="Знаки"><span><span class="lv lv-2">▲</span> отклонение</span><span><span class="lv lv-1">◆</span> стоит / опасно</span><span><span class="lv lv-3">△</span> скоро</span><span><span class="rk" style="font-size:12px">1</span> беда</span><span>≈ расчёт модели</span><a href="${AKT.href('?view=legend')}">Легенда</a></span>`;
       stage.appendChild(bar);
@@ -187,6 +191,7 @@
       this.resize();
       bar.querySelector('#lay-scheme').addEventListener('click', () => this.setLayer('scheme'));
       bar.querySelector('#lay-sat').addEventListener('click', () => this.setLayer('sat'));
+      bar.querySelector('#lay-3d').addEventListener('click', () => { location.search = AKT.href('?view=diorama').slice(1); });
       bar.querySelectorAll('[data-lyr]').forEach(b => b.addEventListener('click', () => {
         const k = b.dataset.lyr; this.lyr[k] = !this.on(k);
         AKT.store.set('akt-layers', JSON.stringify(this.lyr));
@@ -304,6 +309,12 @@
       }
       for (const n of ['stockpile-1', 'stockpile-2']) addBelt(n, plan.anchors[n].to_sag, { sag: 'sag-' + n.slice(-1) });
 
+      /* ore on the haul roads: dashes run along the road, the width follows t/h of the pit (ramps) or of the waste (dump road) */
+      this.hauls = {};
+      for (const r of ['ramp-1', 'ramp-2', 'road-dump']) if (plan.anchors[r] && plan.anchors[r].path) {
+        const dash = E('polyline', { points: P(plan.anchors[r].path), class: 'haul-flow', id: 'haulflow-' + r }, flows);
+        this.hauls[r] = { dash, off: 0, v: 0 };
+      }
       const scheme = E('g', { class: 'scheme' }, svg);
       for (const n of ['stockpile-1', 'stockpile-2']) {
         const [x, y] = this.anchor(n);
@@ -327,7 +338,7 @@
         return rec;
       };
       marker('crusher-1', 16, 11); marker('crusher-2', 16, 11); marker('line-1', 22, 22); marker('line-2', 22, 22);
-      marker('conc-stock', 16, 11); marker('power', 12, 12);
+      marker('conc-stock', 16, 11); marker('power', 12, 12); marker('leach-1', 11, 8); marker('sxew-1', 11, 8);
       for (const n of Array.from(new Set(['exc-1', 'exc-2', 'exc-3'].concat(AKT.ofType('exc')))))
         if (plan.anchors[n] || AKT.attr(n, 'ui.plan')) { const r = marker(n, 13, 11, 'tri'); if (r) r.layer = 'tech'; }
       this.gRoads = E('g', { class: 'xroads' }, svg);
@@ -464,6 +475,7 @@
         const b = this.belts[n];
         b.dash.setAttribute('stroke-dasharray', `${5 / k} ${13 / k}`);
       }
+      for (const n in this.hauls) this.hauls[n].dash.setAttribute('stroke-dasharray', `${5 / k} ${15 / k}`);
       for (const n in this.trucks) this.trucks[n].el.setAttribute('r', String(this.truckR() / k));
     },
     truckR() { return this.on('tech') ? 4.2 : 2.8; },
@@ -487,7 +499,7 @@
         if (tip.textContent !== tt) tip.textContent = tt;
         a.setAttribute('aria-label', tt.replace(/≈/g, 'примерно, по расчёту модели,'));
         const lv = def.st ? (def.st === 'fleet' ? (Object.keys(repairs()).length ? 1 : 0) : AKT.levelOf(def.st)) : 0;
-        const cls = `lbl ${AKT.lvCls(lv)}${def.st && chain.has(def.st) && AKT.check ? ' scen' : ''}`;
+        const cls = `lbl ${AKT.lvCls(lv)}${def.st && chain.has(def.st) && AKT.hatchOn() ? ' scen' : ''}`;
         if (el.getAttribute('class') !== cls) el.setAttribute('class', cls);
       }
       for (const id of ['intake']) this.intakeLine.style.display = this.on('water') ? '' : 'none';
@@ -498,11 +510,11 @@
           const lvl = AKT.num(n, 'level_t'), live = AKT.pass(n, 'live_t') || 40000;
           el.setAttribute('r', String(170 * Math.sqrt(Math.max(0.04, Math.min(1, (lvl || 0) / live)))));
           const out = this.svg.querySelector('#stock-out-' + n);
-          const c = 'stock-outline' + (AKT.check && chain.has(n) ? ' scen' : '');
+          const c = 'stock-outline' + (AKT.hatchOn() && chain.has(n) ? ' scen' : '');
           if (out.getAttribute('class') !== c) out.setAttribute('class', c);
           continue;
         }
-        const cls = `node ${AKT.levelCls(n)}${AKT.check && chain.has(n) ? ' scen' : ''}`;
+        const cls = `node ${AKT.levelCls(n)}${AKT.hatchOn() && chain.has(n) ? ' scen' : ''}${AKT.prop && AKT.prop.fresh(n) ? ' scen-new' : ''}`;
         if (el.getAttribute('class') !== cls) el.setAttribute('class', cls);
         if (AKT.type(n) === 'exc') { const tt = excTitle(n) + ' · нажмите — карточка', te = el.querySelector('title'); if (te && te.textContent !== tt) te.textContent = tt; }
       }
@@ -516,15 +528,32 @@
         const stopped = AKT.stopped(st) || (tph != null && tph < 1);
         const w = stopped ? 1.5 : (2 + 8 * Math.min(1, (tph || 0) / cap));
         b.belt.setAttribute('stroke-width', w);
-        const cls = 'belt' + (stopped ? ' st-red' : '');
+        /* red where the open troubles lose copper now (the same numbers as «Путь меди») */
+        const lossNow = beltLoss(n, b);
+        const cls = 'belt' + (stopped ? ' st-red' : '') + (lossNow ? ' loss' : '');
         if (b.belt.getAttribute('class') !== cls) b.belt.setAttribute('class', cls);
         b.dash.style.display = stopped ? 'none' : '';
         b.dash.setAttribute('stroke-width', Math.max(1.5, w * 0.5));
+        const dcls = 'belt-dash' + (lossNow && !stopped ? ' loss' : '');
+        if (b.dash.getAttribute('class') !== dcls) b.dash.setAttribute('class', dcls);
         b.v = stopped ? 0 : 14 + 46 * Math.min(1.2, (tph || 0) / cap);     // px per second of the ore on the belt
         const inChain = topChain.has(n) || (b.sag && topChain.has(b.sag));
         b.halo.style.display = inChain ? '' : 'none';
         b.halo.setAttribute('stroke-width', w + 10);
-        for (const c of b.chev) c.setAttribute('class', 'chev' + (stopped ? ' st-red' : ''));
+        for (const c of b.chev) c.setAttribute('class', 'chev' + (stopped ? ' st-red' : lossNow ? ' loss' : ''));
+      }
+      /* haul roads: width and speed from the ore of the pit (Ditto), nothing while the excavators stand */
+      const lossBy = AKT.troubleLoss ? AKT.troubleLoss().by : {};
+      for (const r in this.hauls) {
+        const h = this.hauls[r];
+        const tph = r === 'road-dump' ? AKT.num('fleet', 'waste_tph') : (AKT.num('crusher-' + r.slice(-1), 'tph') ?? AKT.num('pit', 'mining_tph'));
+        const cap = r === 'road-dump' ? 8000 : 4880;
+        const idle = tph == null || tph < 1 || AKT.stopped(AKT.st(r));
+        h.dash.style.display = idle ? 'none' : '';
+        h.dash.setAttribute('stroke-width', (2 + 7 * Math.min(1, (tph || 0) / cap)).toFixed(1));
+        h.v = idle ? 0 : 12 + 40 * Math.min(1.2, (tph || 0) / cap);
+        const hc = 'haul-flow' + (r !== 'road-dump' && lossBy[r.slice(-1) + ':0'] > 0 ? ' loss' : '');
+        if (h.dash.getAttribute('class') !== hc) h.dash.setAttribute('class', hc);
       }
       this.updateCrews(); this.updateBatches(); this.updateIssues(top); this.updateExtras(chain); this.updatePeople(); this.updateTrucks(); this.updateInset(chain);
       this.stackInset();
@@ -638,6 +667,8 @@
       const step = ts => {
         this.raf = 0;
         if (!this.svg || !this.svg.isConnected || document.hidden) return;
+        /* 25 frames a second are enough for belts and trucks: a lower load on a machine without a graphics card */
+        if (this.lastTs && ts - this.lastTs < 38) { this.raf = requestAnimationFrame(step); return; }
         const dt = this.lastTs ? Math.min(0.1, (ts - this.lastTs) / 1000) : 0;
         this.lastTs = ts;
         this.frame(dt);
@@ -656,6 +687,12 @@
         b.off -= b.v * dt / k;
         b.dash.setAttribute('stroke-dashoffset', String(b.off % (18 / k)));
       }
+      for (const n in this.hauls) {
+        const h = this.hauls[n];
+        if (paused || still || !h.v) continue;
+        h.off -= h.v * dt / k;
+        h.dash.setAttribute('stroke-dashoffset', String(h.off % (20 / k)));
+      }
       const ease = 1 - Math.exp(-dt * 5);
       for (const n in this.trucks) {
         const t = this.trucks[n];
@@ -666,8 +703,10 @@
             if (/QUEUE|DUMP/.test(t.st)) t.f += (0.97 - t.f) * ease * 0.5;
             else if (/LOADING/.test(t.st)) t.f += (0.03 - t.f) * ease * 0.5;
             else {
-              t.f += t.dir * dt * mm / t.trip;
-              if (t.f > 0.98) { t.f = 0.98; t.dir = -1; } else if (t.f < 0.02) { t.f = 0.02; t.dir = 1; }
+              /* between two readings from Ditto the truck keeps going along the road in the direction of its state,
+                 and waits at the end of the road for the next reading (it does not turn round by itself) */
+              const a = AKT.truckAlong(t.f, t.dir, t.st, dt * mm, t.trip);
+              t.f = a.f; t.dir = a.dir;
             }
           }
           const p = pointAt(t.path, t.f);
@@ -703,7 +742,7 @@
             this.roads[n] = pl;
           }
           pl.setAttribute('points', P(x.path));
-          pl.setAttribute('class', `xroad ${AKT.lvCls(lv)}${AKT.check && chain.has(n) ? ' scen' : ''}`);
+          pl.setAttribute('class', `xroad ${AKT.lvCls(lv)}${AKT.hatchOn() && chain.has(n) ? ' scen' : ''}`);
           pl.parentNode.style.display = show ? '' : 'none';
           pl.parentNode.querySelector('title').textContent = `${AKT.nameRu(n)} (${AKT.typeRu(AKT.type(n))}): ${AKT.stOf(n)}${AKT.num(n, 'trucks_on') != null ? ' · самосвалов на дороге ' + fmt(AKT.num(n, 'trucks_on')) : ''}`;
           if (!x.pos) continue;
@@ -742,7 +781,7 @@
         if (machine) { const p = AKT.machinePos(n); if (p) { rec.x = p[0]; rec.y = p[1]; } } else { rec.x = x.pos[0]; rec.y = x.pos[1]; }
         rec.hidden = !show;
         rec.g.style.display = show ? '' : 'none';
-        rec.g.setAttribute('class', `xm x-${x.cat} ${AKT.lvCls(lv)}${AKT.check && chain.has(n) ? ' scen' : ''}`);
+        rec.g.setAttribute('class', `xm x-${x.cat} ${AKT.lvCls(lv)}${AKT.hatchOn() && chain.has(n) ? ' scen' : ''}`);
         if (rec.val) {
           /* value on the map: only for a deviation or in the instrument layer */
           const v = lv || this.on(layer) ? (lv ? G(lv) : '') + shortVal(n) : '';
@@ -964,7 +1003,7 @@
         if (e.textContent !== text) { e.textContent = text; const tt = e.parentNode.querySelector('title'); if (tt) tt.textContent = text + ' · нажмите — подробнее'; }
         if (cls !== undefined) { const c = cls || ''; if ((e.getAttribute('class') || '') !== c) e.setAttribute('class', c); }
       };
-      const sq = (key, name) => { const e = this.ins['sq-' + key]; if (!e) return; const c = `sq ${AKT.levelCls(name)}${AKT.check && chain.has(name) ? ' scen' : ''}`; if (e.getAttribute('class') !== c) e.setAttribute('class', c); };
+      const sq = (key, name) => { const e = this.ins['sq-' + key]; if (!e) return; const c = `sq ${AKT.levelCls(name)}${AKT.hatchOn() && chain.has(name) ? ' scen' : ''}`; if (e.getAttribute('class') !== c) e.setAttribute('class', c); };
       const word = (name, normal) => { const s = AKT.st(name); return s && s !== normal ? ` ${AKT.stRu(s, name)}` : ''; };
       const mw = v => v == null ? '—' : f1(v / 1000);
       for (const n of [1, 2]) {
@@ -1095,6 +1134,12 @@
     const card = document.getElementById('topcard');
     if (card) { card.scrollIntoView({ block: 'nearest' }); card.focus(); }
   };
+  /* the belt of line N carries copper that the open troubles lose now (stage 1 the belt, 2 the stockpile, 3 the mill) */
+  function beltLoss(n, b) {
+    if (!AKT.troubleLoss) return false;
+    const by = AKT.troubleLoss().by, line = n.slice(-1);
+    return b.sag ? (by[line + ':2'] > 0 || by[line + ':3'] > 0) : by[line + ':1'] > 0;
+  }
   function pathLen(path) { let s = 0; for (let i = 1; i < path.length; i++) s += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); return s; }
   function pointAt(path, f) {
     const total = pathLen(path); let d = Math.max(0, Math.min(1, f)) * total;

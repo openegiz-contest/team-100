@@ -68,10 +68,12 @@ from . import comminution as cm
 from . import events as ev
 from . import flotation as fz
 from . import ore
+from . import oxide
 from . import people as pp
 from . import pit as pt
 from . import sensors as se
 from . import utilities as ut
+from . import wear
 from .params import ParamSet, default
 from .state import (CREW_FOR, MIN_PER_DAY, MIN_PER_H, NO_VALUE, CauseEffects, Counters, CrewJob,
                     HiddenCause, LabResult, LineState, OreProps, PlannedCall, PlantHooks, PlantState,
@@ -87,8 +89,8 @@ PCT = 100.0             # unit conversion
 G_PER_T = 1e6           # unit conversion: g/t x t/h -> t/h divides by this
 WATER_SCALE_FULL = 0.999   # numerical: an ore cut for water below 0.1 % ends (the filter never reaches 1)
 
-CAUSE_KINDS = ("dose", "cyclone", "liner", "oxide", "energy", "reagent", "leak", "balls", "conc")
-DECISION_CAUSES = ("energy", "balls", "conc")   # ended by a decision of the metallurgist
+CAUSE_KINDS = ("dose", "cyclone", "liner", "oxide", "energy", "reagent", "leak", "balls", "conc", "roping", "phdrift")
+DECISION_CAUSES = ("energy", "balls", "conc", "roping")   # ended by a decision of the metallurgist / grinding operator
 LAB_SHOWS = ("dose", "oxide")              # causes a lab sample can reveal
 ACS_SHOWS = ("dose", "oxide", "cyclone")   # causes behind a tails alarm
 SUMMARY_KEYS = ("cu_t", "ore_t", "energy_mwh", "water_m3", "usd")
@@ -97,16 +99,22 @@ SUMMARY_KEYS = ("cu_t", "ore_t", "energy_mwh", "water_m3", "usd")
 ISSUE_NODE = {"crusher": "crusher-{}", "trip": "crusher-{}", "dose": "flot-{}", "oxide": "flot-{}",
               "cyclone": "cyclones-{}", "liner": "sag-{}", "grid": "power", "hard": "pit",
               "reline": "sag-{}", "water": "water", "hpgr_fire": "pebble-{}", "road": "ramp-{}", "pit": "pit",
+              "conveyor": "conveyor-{}", "pitstop": "pit",
               "energy": "sag-{}", "reagent": "rougher-{}", "leak": "water", "balls": "ball-{}a", "conc": "flot-{}",
-              "startup": "ball-{}a"}
-SITE_ISSUES = ("grid", "water", "hpgr_fire", "leak")   # issue keys without a line number
+              "startup": "ball-{}a", "icy": "pit", "fatigue": "fleet", "oil": "exc-1", "roping": "cyclones-{}", "leachcold": "leach-1",
+              "phdrift": "ph-{}", "hpgr": "pebble-{}", "mantle": "crusher-{}", "sample": "analyzer-{}",
+              "gmd": "sag-{}", "idler": "conveyor-{}", "froth": "flot-{}", "rake": "thick-{}", "cloth": "filter-{}",
+              "slurry": "cyclones-{}", "brake": "fleet", "track": "exc-1"}
+SITE_ISSUES = ("grid", "water", "hpgr_fire", "leak", "pitstop", "icy", "fatigue", "oil", "leachcold", "brake", "track")   # issue keys without a line number
 _CREW_KEY = {"trip": "lube_trip", "cyclones": "cyclone"}   # issue / node kind -> state.CREW_FOR key
 # Russian words of the truth log (validation-sim.truth_log is shown in the interface)
 CAUSE_RU = {"dose": "дрейф расходомера собирателя", "cyclone": "засор циклона", "liner": "износ футеровки SAG",
             "oxide": "окисленная руда", "energy": "перерасход энергии SAG (перегруз или крупное питание)",
             "reagent": "передозировка собирателя (расходомер занижает)",
             "leak": "утечка на водоводе оборотной воды",
-            "balls": "перерасход мелющих шаров", "conc": "разубоживание концентрата (Cu ниже нормы)"}
+            "balls": "перерасход мелющих шаров", "conc": "разубоживание концентрата (Cu ниже нормы)",
+            "roping": "канатирование гидроциклонов и перегрузка шаровой мельницы",
+            "phdrift": "дрейф pH-метра (электрод в накипи извести)"}
 FOUND_BY_RU = {"lab": "лаборатория", "acs": "тревога АСУ по хвостам", "module": "модуль двойника",
                "crew": "бригада на месте", "cancel": "не найдена, сценарий отменён", "": "не найдена",
                "report": "суточный отчёт по энергии", "audit": "сверка бака реагентов",
@@ -186,16 +194,27 @@ class Plant:
         self.base_winter = False                        # season by the date (set by akt-sim)
         self.winter_on = False                          # winter return loss (set by akt-sim from the date, or scenario winter)
         self._dust_until = NO_VALUE                     # scenario dust: windy dry spell until this minute
+        self._leach_until = NO_VALUE                    # scenario leachcold: cold spell on the leach pad until this minute
+        self.ox_date = None                             # (year, 0-based day of year) of the quarter of the oxide line; None = model clock (set by akt-sim)
         self._startups: dict[int, tuple[float, float]] = {}   # line -> (start command from, to), scenario startup
         self._ball_repair: set[int] = set()             # lines whose ball mill "a" stands for the repair with people inside
         self._water_scale = 1.0                         # ore share the water allows (1 = no cut)
         self._fire_until = NO_VALUE                     # scenario hpgr_fire: S0 flag until this minute
+        self._pitstop_until = NO_VALUE                  # scenario pitstop: ore excavators stand until this minute
+        self._icy_until = NO_VALUE                      # scenario icy: ice and snowstorm on the haul roads until this minute
+        self._fatigue_until = NO_VALUE                  # scenario fatigue: alert of a tired driver until this minute
+        self._wq: dict[int, tuple] = {}                 # tier T: line -> (feed factor, recovery loss pp, filter capacity factor)
+        self._wmult = 1.0                               # tier T: truck cycle multiplier of a throttled brake
+        self._hpgr: dict[int, float] = {}               # scenario hpgr:N: line -> minute the uneven feed started
+        self._hpgr_tripped: set[int] = set()            # lines whose metal detector already tripped
+        self._rope_flot: dict[int, float] = {}          # line -> minute until which a rougher line stands after heavy roping
         self._relines: list[tuple[int, float, float, bool]] = []   # (line, start, end, scenario)
         self._warmup_end: float | None = None           # target minute of a running warm-up
         self._down_idx = {n: 0 for n in lines}
         self._down = {n: False for n in lines}
         self._calls: list[PlannedCall] = []
         self._jobs: dict[str, CrewJob] = {}             # open crew job per issue
+        self._work_set: dict[str, float] = {}           # median repair time (h) set by the constructor, per issue key
         self._loud: dict[str, float] = {}               # issue -> minute it is noticed by alarm
         self._crew_t = t0
         thick0 = sum(ln.thick.inventory_t for ln in st.lines)
@@ -250,7 +269,11 @@ class Plant:
         # 2. crews and people
         self._crews_step(t)
         pp.people_step(st, t)
-        # 3. ore
+        # 3. ore (haul roads: weather, restriction; excavator oil first, a failure takes the machine down)
+        self._pit_weather(t)
+        self._oil_step(t)
+        if st.wear or self._wq or self._wmult != 1.0:
+            wear.step(self, t)               # tier T: slow troubles with a monitored signal
         ore.plan_step(st, p)
         ore.fleet_step(st, p)
         targets = ore.mining_targets(st, p)
@@ -266,7 +289,7 @@ class Plant:
         for ln in st.lines:
             n = ln.n
             avail = ore.pocket_avail_tph(st, n, dt)
-            room = ore.stock_room_tph(st, n, dt, p)
+            room = 0.0 if ln.conveyor.fault else ore.stock_room_tph(st, n, dt, p)   # tripped belt: nowhere to discharge
             c_tph = cm.crusher_step(ln.crusher, avail, room, p, normal(st.seed, k, "lube-%d" % n))
             if ln.crusher.fault == "lube_trip":
                 self._register_loud("trip:%d" % n, t)
@@ -410,6 +433,7 @@ class Plant:
                 cr.fault = ""
             cr.fault_until_min = NO_VALUE
             cr.lube_bias_kpa = 0.0
+            ln.conveyor.fault, ln.conveyor.fault_until_min = "", NO_VALUE
             sag = ln.sag
             if sag.state == "RELINE" and any(w[0] == ln.n and w[3] for w in self._relines):
                 sag.state = "RUN"
@@ -437,9 +461,31 @@ class Plant:
                 ln.pebble.state = "RUN"
                 ln.pebble.stop_until_min = NO_VALUE
         self._fire_until = NO_VALUE
+        if self._pitstop_until != NO_VALUE:
+            for ex in st.excavators:
+                if ex.state == "DOWN":
+                    ex.state, ex.down_until_min = "IDLE", NO_VALUE
+            self._pitstop_until = NO_VALUE
         self._leak_frac = 0.0
+        self._icy_until = NO_VALUE
+        self._fatigue_until = NO_VALUE
+        self._hpgr.clear()
+        self._hpgr_tripped.clear()
+        self._rope_flot.clear()
+        wear.clear(self)
+        st.pit.restrict_until_min = NO_VALUE
+        for ex in st.excavators:
+            ex.oil_pct, ex.oil_event_min, ex.oil_fix_min = self.prm["pit_oil_start_pct"], NO_VALUE, NO_VALUE
+        for ln in st.lines:
+            ln.crusher.service_until_min = NO_VALUE
+            if ln.crusher.fault == "mantle":
+                ln.crusher.fault = ""
+            ln.analyzer.blocked = False
+            ln.pebble.hpgr_eff, ln.pebble.hpgr_skew_pct = 1.0, 0.0
+            ln.pebble.hpgr_kw_diff_pct, ln.pebble.metal_alarm = 0.0, False
         self.winter_on = self.base_winter
         self._dust_until = NO_VALUE
+        self._leach_until = NO_VALUE
         self._startups.clear()
         self._ball_repair.clear()
         for ln in st.lines:
@@ -455,6 +501,7 @@ class Plant:
         self._loud.clear()
         self._calls.clear()
         self._jobs.clear()
+        self._work_set.clear()
         st.scenario = None
 
     def call(self, node: str, crew: str | None = None, issue: str = "",
@@ -484,8 +531,20 @@ class Plant:
         if kind in ("hard", "reline", "pit"):
             self._pit_call(kind, n, node)
             return None
-        if kind in ("hpgr_fire", "road"):
-            return None                       # decisions of a person: de-energise, evacuate, reroute
+        if kind == "icy":
+            self._restrict_traffic(t)         # the mine dispatcher limits the traffic on the haul roads
+            return None
+        if kind == "fatigue":
+            self._fatigue_until = t + self.prm["crew_person_decision_h"] * MIN_PER_H   # the driver is replaced / machines separated
+            return None
+        if kind == "oil":
+            self._oil_call(t)
+            return None
+        if kind in wear.KINDS:
+            wear.call(self, kind, n, t)       # tier T: the person comes, the unit is fixed after the work
+            return None
+        if kind in ("hpgr_fire", "road", "pitstop", "leachcold"):
+            return None                       # decisions of a person: de-energise, evacuate, reroute, plan the stock
         if kind in DECISION_CAUSES:
             self._energy_call(n, t, kind)
             return None
@@ -687,6 +746,8 @@ class Plant:
         st, p = self.state, self.prm
         n = e.line
         t0 = e.t_start_min
+        if e.data.get("work_h"):
+            self._work_set[str(e.data.get("issue", ""))] = float(e.data["work_h"])
         if e.kind == "crusher":
             cr = st.line(n).crusher
             cr.fault = "scenario"
@@ -729,11 +790,49 @@ class Plant:
         elif e.kind == "road":
             hours = e.duration_h if e.duration_h > 0 else p["pit_road_close_h"]
             pt.close_road(st, n, t0 + hours * MIN_PER_H)
+        elif e.kind == "conveyor":
+            cv = st.line(n).conveyor
+            cv.fault = "scenario"
+            self._register_loud("conveyor:%d" % n, t0)
+        elif e.kind == "pitstop":
+            hours = e.duration_h if e.duration_h > 0 else p["scen_pitstop_h"]
+            self._pitstop_until = t0 + hours * MIN_PER_H
+            for ex in st.excavators:
+                ex.state, ex.tph, ex.block = "DOWN", 0.0, ""
+                ex.down_until_min = self._pitstop_until
+            self._register_loud("pitstop", t0)
+        elif e.kind == "icy":
+            hours = e.duration_h if e.duration_h > 0 else p["scen_icy_h"]
+            self._icy_until = t0 + hours * MIN_PER_H
+        elif e.kind == "fatigue":
+            hours = e.duration_h if e.duration_h > 0 else p["scen_fatigue_h"]
+            self._fatigue_until = t0 + hours * MIN_PER_H
+        elif e.kind in wear.KINDS:
+            wear.start(self, e.kind, n, t0, e.data.get("fix_h"))
+        elif e.kind == "oil":
+            exc1 = next((x for x in st.excavators if x.name in site().OIL_SENSOR), None)
+            if exc1 is not None:
+                exc1.oil_event_min, exc1.oil_fix_min = t0, NO_VALUE
+        elif e.kind == "hpgr":
+            self._hpgr[n] = t0                  # not loud: nobody is alarmed, the module finds it by skew and drive power
+            self._hpgr_tripped.discard(n)
+        elif e.kind == "sample":
+            st.line(n).analyzer.blocked = True
+            self._register_loud("sample:%d" % n, t0)
+        elif e.kind == "mantle":
+            hours = e.duration_h if e.duration_h > 0 else p["crush_mantle_h"]
+            cr = st.line(n).crusher
+            cr.fault, cr.state, cr.tph, cr.power_kw = "mantle", "STOP", 0.0, 0.0
+            cr.service_until_min = t0 + hours * MIN_PER_H
+            self._register_loud("mantle:%d" % n, t0)
         elif e.kind == "winter":
             self.winter_on = True
         elif e.kind == "dust":
             hours = e.duration_h if e.duration_h > 0 else p["scen_dust_h"]
             self._dust_until = t0 + hours * MIN_PER_H
+        elif e.kind == "leachcold":
+            hours = e.duration_h if e.duration_h > 0 else p["scen_leach_h"]
+            self._leach_until = t0 + hours * MIN_PER_H
         elif e.kind == "startup":
             # planned repair inside the ball mill "a" of line n by the mill crew (work permit); later somebody gives
             # the start command although people are inside
@@ -813,6 +912,10 @@ class Plant:
             self._fire_until = NO_VALUE
         if self._dust_until != NO_VALUE and t >= self._dust_until - EPS:
             self._dust_until = NO_VALUE
+        if self._leach_until != NO_VALUE and t >= self._leach_until - EPS:
+            self._leach_until = NO_VALUE
+        if self._pitstop_until != NO_VALUE and t >= self._pitstop_until - EPS:
+            self._pitstop_until = NO_VALUE            # the excavators leave DOWN by themselves (ore.dig_step)
         if self._extra_teams and self._extra_until and all(d <= t + EPS for d in self._extra_until.values()):
             for cn in self._extra_teams:                  # the deputy's jobs are done: back to the usual teams
                 cr = st.crews.get(cn)
@@ -840,6 +943,7 @@ class Plant:
                 sag.state = "RUN"                  # new liner after the reline
                 sag.liner_x = 0.0
                 sag.liner_wear_mm = 0.0
+                sag.liner_ground_t = 0.0
                 sag.reline_until_min = NO_VALUE
                 if st.flags.get("people_in_sag") == float(n):
                     del st.flags["people_in_sag"]
@@ -854,6 +958,7 @@ class Plant:
                 elif sag.state == "STOP":
                     sag.state = "RUN"
             self._down[n] = sag.state in ("RELINE", "STOP")
+            self._hpgr_step(ln, t)
             pw = self._peb[n]
             while pw and pw[0][1] <= t + EPS:
                 pw.pop(0)
@@ -985,6 +1090,96 @@ class Plant:
             for m in rel_lines:
                 self._c4[m] = True
 
+    # ================================================ internals: pit, tier S
+    def _restrict_traffic(self, t: float) -> None:
+        """Decision of the mine dispatcher: traffic restriction (speed limit) on the haul roads until the spell is over."""
+        p = self.prm
+        end = (self._icy_until if self._icy_until != NO_VALUE and self._icy_until > t else t + p["scen_icy_h"] * MIN_PER_H)
+        self.state.pit.restrict_until_min = end + 30.0
+
+    def _pit_weather(self, t: float) -> None:
+        """Visibility, friction index and truck cycle multiplier of the haul roads for this step (winter touches the pit,
+        not the plant: the multiplier of the season is small); fatigue alert flags of the fleet."""
+        st, p = self.state, self.prm
+        pit = st.pit
+        icy = self._icy_until != NO_VALUE and t < self._icy_until - EPS
+        if self._icy_until != NO_VALUE and not icy:
+            self._icy_until = NO_VALUE
+        if icy:
+            vis, grip, mult = p["pit_vis_icy_m"], p["pit_grip_icy"], p["pit_icy_cycle_mult"]
+        elif self.winter_on:
+            vis, grip, mult = p["pit_vis_clear_m"], p["pit_grip_winter"], p["pit_winter_cycle_mult"]
+        else:
+            vis, grip, mult = p["pit_vis_clear_m"], p["pit_grip_clear"], 1.0
+        if pit.restrict_until_min != NO_VALUE:
+            if t < pit.restrict_until_min - EPS:
+                mult *= p["pit_restrict_cycle_mult"]
+            else:
+                pit.restrict_until_min = NO_VALUE
+        pit.visibility_m, pit.road_grip, pit.cycle_mult = vis, grip, mult * self._wmult
+        fl = st.fleet
+        on = self._fatigue_until != NO_VALUE and t < self._fatigue_until - EPS
+        if self._fatigue_until != NO_VALUE and not on:
+            self._fatigue_until = NO_VALUE
+        fl.fatigue = on
+        if on:
+            _tid, bort, model = site().fatigue_truck(p)
+            fl.fatigue_truck = f"{bort} ({model})"
+        else:
+            fl.fatigue_truck = ""
+
+    def _oil_call(self, t: float) -> None:
+        """The shift mechanic is called to the excavator with contaminated oil: filtration and flushing take pit_oil_fix_h;
+        a call after the pump has failed does not shorten the repair."""
+        p = self.prm
+        for ex in self.state.excavators:
+            if ex.oil_event_min != NO_VALUE and ex.state != "DOWN" and ex.oil_fix_min == NO_VALUE:
+                ex.oil_fix_min = t + ev.arrival_min(self.state.seed, "oil", p) + p["pit_oil_fix_h"] * MIN_PER_H
+        person = site().DECISION_PERSON.get("oil")
+        if person:
+            pp.assign_duty(self.state, person, "exc-1", t, p, hours=p["pit_oil_fix_h"])
+
+    def _oil_step(self, t: float) -> None:
+        """Hydraulic oil contamination of the excavator with a sensor (scenario oil): rises to the alert level over pit_oil_rise_h,
+        pit_oil_fail_h later the pump fails (the excavator is DOWN for pit_oil_repair_h) unless the oil was serviced."""
+        p = self.prm
+        start, alert = p["pit_oil_start_pct"], p["pit_oil_alert_pct"]
+        for ex in self.state.excavators:
+            if ex.oil_event_min == NO_VALUE:
+                continue
+            if ex.oil_fix_min != NO_VALUE and t >= ex.oil_fix_min - EPS:
+                ex.oil_pct, ex.oil_event_min, ex.oil_fix_min = start, NO_VALUE, NO_VALUE   # serviced (or repaired)
+                continue
+            if ex.state == "DOWN":
+                continue
+            h = max(0.0, (t - ex.oil_event_min) / MIN_PER_H)
+            ex.oil_pct = min(1.4 * alert, start + (alert - start) * h / p["pit_oil_rise_h"])
+            if ex.oil_fix_min == NO_VALUE and h >= p["pit_oil_rise_h"] + p["pit_oil_fail_h"]:
+                ex.state, ex.tph, ex.block = "DOWN", 0.0, ""
+                ex.down_until_min = t + p["pit_oil_repair_h"] * MIN_PER_H
+                ex.oil_fix_min = ex.down_until_min
+
+    def _hpgr_step(self, ln: LineState, t: float) -> None:
+        """Uneven feed of the HPGR (scenario hpgr:N, line 2): skew and power difference of the drives grow over peb_hpgr_ramp_min,
+        the HPGR throughput falls; if nobody repairs in peb_hpgr_tramp_after_h tramp metal reaches the rolls, the metal detector
+        trips and the HPGR stands peb_hpgr_stop_h."""
+        p, peb, n = self.prm, ln.pebble, ln.n
+        t0 = self._hpgr.get(n)
+        if t0 is None:
+            if peb.hpgr_eff != 1.0 or peb.hpgr_skew_pct != 0.0 or peb.metal_alarm:
+                peb.hpgr_eff, peb.hpgr_skew_pct, peb.hpgr_kw_diff_pct, peb.metal_alarm = 1.0, 0.0, 0.0, False
+            return
+        age = max(0.0, t - t0)
+        ramp = min(1.0, age / p["peb_hpgr_ramp_min"]) if p["peb_hpgr_ramp_min"] > 0 else 1.0
+        peb.hpgr_eff = 1.0 - (1.0 - p["peb_hpgr_uneven_eff"]) * ramp
+        peb.hpgr_skew_pct = p["peb_hpgr_skew_pct"] * ramp
+        peb.hpgr_kw_diff_pct = p["peb_hpgr_kwdiff_pct"] * ramp
+        if age >= p["peb_hpgr_tramp_after_h"] * MIN_PER_H and n not in self._hpgr_tripped:
+            self._hpgr_tripped.add(n)
+            self._peb[n] = sorted(self._peb.get(n, []) + [(t, t + p["peb_hpgr_stop_h"] * MIN_PER_H)])
+        stop = self._peb.get(n) and self._peb[n][0][0] <= t + EPS
+        peb.metal_alarm = bool(n in self._hpgr_tripped and stop)
+
     # ==================================================== internals: crews
     def _set_crew_count(self, name: str, count: int) -> None:
         crew = self.state.crews.get(name)
@@ -1033,8 +1228,26 @@ class Plant:
             return self._leak_frac > 0.0
         if kind == "leak":
             return any(c.kind == "leak" and self._active(c, t) for c in st.causes)
+        if kind == "pitstop":
+            return self._pitstop_until != NO_VALUE and t < self._pitstop_until - EPS
+        if kind == "icy":
+            return self._icy_until != NO_VALUE and t < self._icy_until - EPS
+        if kind == "fatigue":
+            return self._fatigue_until != NO_VALUE and t < self._fatigue_until - EPS
+        if kind == "oil":
+            return any(x.oil_event_min != NO_VALUE for x in st.excavators)
+        if kind in wear.KINDS:
+            return wear.active(st, kind, n)
         if not 1 <= n <= len(st.lines):
             return False
+        if kind == "hpgr":
+            return n in self._hpgr
+        if kind == "sample":
+            return st.line(n).analyzer.blocked
+        if kind == "mantle":
+            return st.line(n).crusher.fault == "mantle"
+        if kind == "conveyor":
+            return st.line(n).conveyor.fault == "scenario"
         if kind == "startup":
             return n in self._ball_repair
         if kind == "crusher":
@@ -1067,7 +1280,7 @@ class Plant:
             return None
         work_h = pc.work_h
         if not (work_h is not None and math.isfinite(work_h) and work_h > 0.0):
-            work_h = ev.repair_hours(st.seed, issue, ev.work_median_h(kind, p), p)
+            work_h = ev.repair_hours(st.seed, issue, self._work_set.get(issue) or ev.work_median_h(kind, p), p)
         travel = p["crew_dose_arrive_min"] if kind == "dose" else ev.arrival_min(st.seed, issue, p)
         if getattr(self, "_late_ok", False) and u01(st.seed, int(t), "late-" + issue, 0) < p["crew_late_p"]:
             travel += p["crew_late_min"]          # the message reached the person late (free run, people called)
@@ -1076,6 +1289,10 @@ class Plant:
         self._jobs[issue] = job
         if kind in ("crusher", "trip"):
             st.line(n).crusher.fault_until_min = job.t_done_min
+        elif kind == "conveyor":
+            st.line(n).conveyor.fault_until_min = job.t_done_min
+        elif kind == "mantle":
+            st.line(n).crusher.service_until_min = job.t_done_min
         return job
 
     def _finish(self, issue: str, job: CrewJob) -> None:
@@ -1097,6 +1314,29 @@ class Plant:
             for b in st.line(n).balls:
                 b.start_cmd = 0.0
             return
+        if kind == "conveyor":
+            cv = st.line(n).conveyor
+            cv.fault, cv.fault_until_min = "", NO_VALUE
+            self._loud.pop(issue, None)
+            return
+        if kind == "sample":
+            st.line(n).analyzer.blocked = False                  # sample line cleaned: the analyser reads again
+            self._loud.pop(issue, None)
+            return
+        if kind == "mantle":
+            cr = st.line(n).crusher
+            cr.fault, cr.service_until_min = "", NO_VALUE        # new mantle: the crusher runs again
+            self._loud.pop(issue, None)
+            return
+        if kind == "hpgr":
+            self._hpgr.pop(n, None)                             # feed chute / cheek plates set, metal removed
+            self._hpgr_tripped.discard(n)
+            self._peb[n] = []
+            peb = st.line(n).pebble
+            if peb.state == "STOP":
+                peb.state, peb.stop_until_min = "RUN", NO_VALUE
+            self._loud.pop(issue, None)
+            return
         if kind in ("crusher", "trip"):
             cr = st.line(n).crusher
             if kind == "crusher" and cr.fault == "scenario":
@@ -1110,6 +1350,8 @@ class Plant:
         elif kind in CAUSE_KINDS:
             for c in [c for c in st.causes if c.kind == kind and c.line == n and self._active(c, job.t_done_min)]:
                 self._end_cause(c, job.t_done_min, "crew")
+            if kind == "phdrift":
+                st.line(n).ph.lab_idx = -1            # the cleaned electrode is checked with a fresh grab sample
 
     def _mark_found(self, kind: str, n: int, t: float, by: str) -> None:
         for c in self.state.causes:
@@ -1122,6 +1364,10 @@ class Plant:
         st = self.state
         nk, n = node_kind_line(node)
         t = st.clock.t_min
+        if st.wear:
+            hit = wear.issue_at(st, node)
+            if hit is not None:
+                return hit
         if nk == "power":
             return "grid", 0
         if nk in ("water", "piezometer", "piezo") and self._leak_frac > 0.0:
@@ -1130,6 +1376,18 @@ class Plant:
             return "leak", 0
         if nk == "pebble" and st.flags.get("fire") == float(n):
             return "hpgr_fire", n
+        if nk == "pebble" and n in self._hpgr:
+            return "hpgr", n
+        if nk == "analyzer" and 1 <= n <= len(st.lines) and st.line(n).analyzer.blocked:
+            return "sample", n
+        if nk == "pit" and self._pitstop_until != NO_VALUE and t < self._pitstop_until - EPS:
+            return "pitstop", 0
+        if nk in ("pit", "road", "ramp") and self._icy_until != NO_VALUE and t < self._icy_until - EPS:
+            return "icy", 0
+        if nk == "fleet" and self._fatigue_until != NO_VALUE and t < self._fatigue_until - EPS:
+            return "fatigue", 0
+        if nk == "exc" and any(x.oil_event_min != NO_VALUE for x in st.excavators):
+            return "oil", 0
         if nk in ("pit", "batch"):
             return ("hard", 0) if nk == "batch" else ("pit", 0)
         if not 1 <= n <= len(st.lines):
@@ -1138,6 +1396,8 @@ class Plant:
             cr = st.line(n).crusher
             if cr.fault == "scenario":
                 return "crusher", n
+            if cr.fault == "mantle":
+                return "mantle", n
             if cr.fault == "lube_trip" or cr.lube_bias_kpa != 0.0:
                 return "trip", n
             return "", 0
@@ -1145,10 +1405,10 @@ class Plant:
             return "grid", n
         if nk == "ball" and any(b.name == node and b.start_cmd == 1.0 for b in st.line(n).balls):
             return "startup", n
-        want = {"flot": ("dose", "oxide", "reagent"), "rougher": ("reagent", "dose", "oxide"),
+        want = {"flot": ("dose", "oxide", "reagent", "phdrift"), "rougher": ("reagent", "dose", "oxide", "phdrift"),
                 "cleaner": ("dose", "oxide"), "flowmeter": ("reagent", "dose"),
-                "cyclones": ("cyclone",), "sag": ("energy", "liner"), "ball": ("balls",),
-                "line": ("balls",)}.get(nk, ())
+                "cyclones": ("cyclone", "roping"), "sag": ("energy", "liner"), "ball": ("balls", "roping"),
+                "line": ("balls",), "ph": ("phdrift",), "phmeter": ("phdrift",)}.get(nk, ())
         for c in st.causes:
             if c.line == n and c.kind in want and self._active(c, t):
                 return c.kind, n
@@ -1161,6 +1421,7 @@ class Plant:
         n = ln.n
         sag, peb = ln.sag, ln.pebble
         down = self._down[n]
+        wq = self._wq.get(n)
         fx = ev.cause_effects(st.causes, n, t, p) if st.causes else CauseEffects()
         ln.cyclones.clogged = int(fx.clogged)
         f = ore.feed_props(st, n)
@@ -1172,13 +1433,17 @@ class Plant:
         cap_kw = INF
         rule_bound = False
         avail = 0.0
+        lv = st.levers                    # what-if levers (control of the model); empty = off, nothing below changes
+        feed_sp = 0.0
         if not down:
             avail = ore.stock_available_tph(st, n, dt)
+            if wq is not None:
+                avail = min(avail, wq[0] * p["cal_line_tph"])   # tier T: drive derate, buried rakes, worn feed pump (like the water cut)
             if self._water_scale < 1.0:
                 # not enough process water: the line takes only the ore the water allows
                 avail = min(avail, self._water_scale * p["cal_line_tph"])
             cap_kw = self._grid_cap_kw[n]
-            rule_q = cm.line_feed_cap_tph(ln.balls, feed.bwi, p)
+            rule_q = cm.line_feed_cap_tph(ln.balls, feed.bwi, p, lv.get("p80_um", 0.0) if lv else 0.0)
             if rule_q < INF:
                 e = cm.sag_specific_energy(feed, p, peb.state != "STOP") * fx.sag_e_mult
                 eta = cm.liner_eta(sag.liner_x, p) * fx.sag_eta_mult
@@ -1186,18 +1451,40 @@ class Plant:
                 if rule_kw < cap_kw:
                     cap_kw = rule_kw
                     rule_bound = True
-        q = cm.sag_step(sag, peb, avail, feed, cap_kw, fx, dt, p, normal(st.seed, k, "sag-%d" % n))
+        if peb.hpgr_tph > 0.0:           # uneven feed of the HPGR lowers what the pebble circuit of line 2 can take
+            peb.limit_tph = min(p["peb_limit_tph"], peb.hpgr_tph * peb.hpgr_eff)
+        if lv and not down:
+            feed_sp = self._lever_feed_sp(n, feed.bwi, ln)
+        q = cm.sag_step(sag, peb, avail, feed, cap_kw, fx, dt, p, normal(st.seed, k, "sag-%d" % n), feed_sp)
         drawn = ore.reclaim_step(st, n, q, dt, p)
         used = feed
         if q > 0.0 and drawn is not None and drawn.cu_pct > 0.0:
             used = OreProps(drawn.cu_pct, drawn.ascu_pct + fx.ascu_add_pp, drawn.axb, drawn.bwi)
         p80_grind = cm.ball_step(ln.balls, q, used.bwi, p)
-        p80 = cm.cyclone_step(ln.cyclones, q, p80_grind, p)
+        p80 = cm.cyclone_step(ln.cyclones, q, p80_grind, p, fx.rope)
+        for b in ln.balls:
+            b.overload_pct = p["ball_rope_over_pct"] * fx.rope if (b.state == "RUN" and q > 0.0) else 0.0
+        # recovery lost beyond the P80 effect: pH above the setpoint (scaled electrode), a rougher line stopped by heavy roping
+        ln.ph.bias = fx.ph_bias
+        if fx.rope_flot_pp > 0.0 and n not in self._rope_flot:
+            self._rope_flot[n] = t + p["cyc_rope_flot_h"] * MIN_PER_H
+        rope_loss = fx.rope_flot_pp if fx.rope_flot_pp > 0.0 else (
+            p["cyc_rope_flot_pp"] if t < self._rope_flot.get(n, -INF) else 0.0)
+        if fx.rope_flot_pp <= 0.0 and n in self._rope_flot and t >= self._rope_flot[n]:
+            del self._rope_flot[n]
+        rec_loss = p["flot_ph_pp_unit"] * fx.ph_bias + rope_loss
+        if wq is not None:
+            rec_loss += wq[1]                 # tier T: level oscillation of the flotation cells
         rough = ln.rougher
-        res = fz.flotation_step(ln.flot, rough, ln.cleaner, q, used, p80, fx.dose_ratio, rough.dose_sp_gt,
-                                t, dt, p, fx.conc_drop_pp)
+        dose_ratio, dose_meas, conc_drop = fx.dose_ratio, rough.dose_sp_gt, fx.conc_drop_pp
+        if lv:
+            rec_loss, dose_ratio, dose_meas, conc_drop = self._lever_flotation(lv, p80, rec_loss, fx, rough)
+        res = fz.flotation_step(ln.flot, rough, ln.cleaner, q, used, p80, dose_ratio, dose_meas,
+                                t, dt, p, conc_drop, rec_loss)
         self._reagent_tank(rough, q, dt)
         cap = fz.filter_capacity_tph(ln.filter, t, cs_full, st.seed, p)
+        if wq is not None:
+            cap *= wq[2]                      # tier T: blind filter cloth
         uf = fz.thickener_step(ln.thick, res.conc_tph, cap, dt, p)
         # weigher totalizers: every step's weighed rate (class 1 noise) x dt, as a plant counts them;
         # the concentrate balance of akt-losses takes differences of these, not sparse rate samples
@@ -1221,6 +1508,74 @@ class Plant:
                 "conc_tph": res.conc_tph, "tails_cu_tph": max(0.0, q - res.conc_tph) * tail / PCT,
                 "tails_tph": max(0.0, q - res.conc_tph), "cake_tph": ln.filter.cake_tph,
                 "moist_pct": ln.filter.moisture_pct, "wet_tph": wet}
+
+    # ------------------------------------------------------------ levers (what-if control of the MODEL, not of the plant)
+    LEVER_KEYS = ("feed_1", "feed_2", "p80_um", "dose_gt")
+
+    def set_levers(self, values: dict | None) -> dict[str, float]:
+        """Set the what-if levers on this copy; returns the levers now in force (empty = all neutral).
+
+        feed_N: feed rate of SAG line N, % of the nominal line rate (100 = neutral), lev_feed_min..max_pct;
+        p80_um: grind P80 target (0 = off), lev_p80_min..max_um; dose_gt: collector dose (0 = off), lev_dose_min..max_gt.
+        A value outside its bounds is clamped; a missing key keeps the lever as it is; None or {} clears all of them.
+        """
+        st, p = self.state, self.prm
+        if not values:
+            st.levers = {}
+            return {}
+        lv = dict(st.levers)
+        for key, raw in values.items():
+            if key not in self.LEVER_KEYS:
+                raise ValueError("unknown lever: %s" % key)
+            v = float(raw)
+            if not math.isfinite(v):
+                raise ValueError("lever %s is not a number" % key)
+            if key.startswith("feed_"):
+                v = min(max(v, p["lev_feed_min_pct"]), p["lev_feed_max_pct"])
+                neutral = abs(v - 100.0) < 1e-9
+            elif key == "p80_um":
+                v = 0.0 if v <= 0.0 else min(max(v, p["lev_p80_min_um"]), p["lev_p80_max_um"])
+                neutral = v == 0.0
+            else:
+                v = 0.0 if v <= 0.0 else min(max(v, p["lev_dose_min_gt"]), p["lev_dose_max_gt"])
+                neutral = v == 0.0
+            if neutral:
+                lv.pop(key, None)
+            else:
+                lv[key] = v
+        st.levers = lv
+        return dict(lv)
+
+    def _lever_feed_sp(self, n: int, bwi: float, ln: LineState) -> float:
+        """Feed setpoint of line n from the levers, t/h (0 = none): the nominal line rate (or the rate at which the
+        running ball mills grind to the P80 target) times the feed lever."""
+        lv, p = self.state.levers, self.prm
+        m = lv.get("feed_%d" % n, 100.0) / 100.0
+        t80 = lv.get("p80_um", 0.0)
+        if t80 <= 0.0 and m == 1.0:
+            return 0.0
+        base = cm.line_grind_rate_tph(ln.balls, bwi, t80, p) if t80 > 0.0 else p["cal_line_tph"]
+        return base * m
+
+    def _lever_flotation(self, lv: dict, p80: float, rec_loss: float, fx: CauseEffects, rough) -> tuple:
+        """(recovery loss pp, dose ratio, measured dose, concentrate dilution pp) with the P80 and dose levers.
+
+        P80 lever: total recovery follows lev_p80_pp_10um per 10 um around flot_p80_ref_um in both directions; the part the
+        base model already takes for a coarser grind is taken off. Dose lever: ratio = dose / flot_dose_sp_gt times the cause
+        ratio; below 1 the under-dose loss of the model, above 1 no gain (RG1) and the concentrate is diluted."""
+        p = self.prm
+        conc_drop = fx.conc_drop_pp
+        ratio, meas = fx.dose_ratio, rough.dose_sp_gt
+        if lv.get("p80_um", 0.0) > 0.0 and p80 != NO_VALUE and p80 > 0.0:
+            d = (p80 - p["flot_p80_ref_um"]) / 10.0
+            baked = p["flot_p80_pp_10um"] * fz._base_stage_share(p) * max(0.0, d)
+            rec_loss += p["lev_p80_pp_10um"] * d - baked
+        dose = lv.get("dose_gt", 0.0)
+        if dose > 0.0:
+            lr = dose / p["flot_dose_sp_gt"]
+            ratio, meas = fx.dose_ratio * lr, dose
+            conc_drop += p["lev_dose_conc_pp"] * max(0.0, lr - 1.0) / 0.4
+        return rec_loss, ratio, meas, conc_drop
 
     def _reagent_tank(self, rough, q: float, dt: float) -> None:
         """Collector day tank of a line: the true dose leaves it, the flowmeter totalizer counts its own
@@ -1246,8 +1601,10 @@ class Plant:
                         winter_frac=p["winter_return_frac"] if self.winter_on else 0.0)
         w = st.water
         w.air_temp_c, w.wind_ms, w.beach_dry_pct = ut.weather(st.clock.t_min, st.seed, self.winter_on,
-                                                              self._dust_until != NO_VALUE, p)
+                                                              self._dust_until != NO_VALUE, p,
+                                                              self._icy_until != NO_VALUE)
         w.winter = 1.0 if self.winter_on else 0.0
+        oxide.oxide_step(st, self._leach_until != NO_VALUE, dt, p, self.ox_date)   # reported cathode level of the quarter; no effect on the sulphide plant
         ut.water_step(w, wf, dt, p, normal(st.seed, k, "piezo"))
         # totalizers: the intake flowmeter (its noise each step) and the water that leaves the circuit
         w.intake_m3_total += w.intake_m3h * (1.0 + p["sens_flow_sigma"] * normal(st.seed, k, "water-intake-tot")) \
@@ -1280,6 +1637,13 @@ class Plant:
         st, p = self.state, self.prm
         for ln, f in zip(st.lines, flows):
             n = ln.n
+            ph = ln.ph
+            ph.reading = p["flot_ph_sp"]                   # the control holds the reading at the setpoint
+            idx = int(t // (p["sens_ph_lab_every_h"] * MIN_PER_H))
+            if idx != ph.lab_idx:                          # grab sample with a hand-held meter: the real pH
+                ph.lab_idx = idx
+                ph.lab_ph = p["flot_ph_sp"] + ph.bias + p["sens_ph_lab_sigma"] * normal(st.seed, idx, "ph-lab-%d" % n)
+                ph.lab_t_min = t
             if se.analyzer_step(ln.analyzer, ln.flot, n, t, st.seed, k, p) and ln.analyzer.alarm:
                 for c in self._unfound(n, ACS_SHOWS, t):
                     self._found(c, t, "acs")
@@ -1349,6 +1713,8 @@ class Plant:
             d_e = line_mw * h
             d_w = w.intake_m3h * share * h
             d_usd = ut.value_usd(d_cu, d_e, d_w, p)
+            if st.levers.get("dose_gt", 0.0) > 0.0:       # reagent above (below) the setpoint dose costs (saves) money
+                d_usd -= (ln.rougher.dose_true_gt - p["flot_dose_sp_gt"]) * f["q"] * h / G_PER_T * p["lev_reagent_usd_t"]
             d_co2 = ut.co2_t(d_e, p)
             vals = (f["q"] * h, f["cu_feed_tph"] * h, d_cu, f["conc_tph"] * h, f["tails_cu_tph"] * h,
                     d_e, d_w, w.recycle_m3h * share * h, d_usd, d_co2, dt)
@@ -1425,6 +1791,19 @@ class CopySet:
 
     copies: dict[str, Plant]
     spec: ScenarioSpec
+    lever_only = False          # True: made from a free run by the first lever (no scenario); fact + base only
+
+    @classmethod
+    def from_plant(cls, fact: "Plant") -> "CopySet":
+        """Fact copy = the running free-run plant, base copy = its clone (same state, no levers): the first lever of a
+        free run starts the comparison "base / fact / difference" without a scenario."""
+        cs = cls.__new__(cls)
+        cs.prm = fact.prm
+        cs.copies = {"fact": fact, "base": fact.clone()}
+        cs.spec = ev.parse_scenario("", fact.t_min, fact.prm)
+        cs.cancelled = False
+        cs.lever_only = True
+        return cs
 
     def step(self, dt_min: float | None = None) -> None:
         """Step every copy once."""
