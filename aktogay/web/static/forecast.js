@@ -51,6 +51,9 @@
       const so = kind === 'day' ? FC.dayNow() : FC.shiftNow();
       if (so == null) return null;
       const endAt = kind === 'day' ? c.day_end_at : c.shift_end_at;
+      /* the first poll of a new run (scenario start or cancel) may carry no end time or corridor yet, or the end time of the shift that has just
+         ended (then the chart has zero width): no chart, not a chart of NaN or Infinity */
+      if (![endAt, c.rate_lo_tph, c.rate_hi_tph].every(Number.isFinite) || !(endAt > (kind === 'day' ? FC.dayStart(t) : FC.shiftStart(t)))) return null;
       const h = Math.max(0, (endAt - t) / 60);
       const plan = kind === 'day' ? c.plan_day_t : c.plan_shift_t;
       return { now: so, end: so + c.rate_tph * h, lo: so + c.rate_lo_tph * h, hi: so + c.rate_hi_tph * h, plan, endAt, h, rate: c.rate_tph, c };
