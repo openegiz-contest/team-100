@@ -107,12 +107,13 @@ services:
   # One shot after akt-setup: calibration against the annual reports (sim/calib.py --quick,
   # about 2 min) and the on/off trial summary (sim/data/trial_n100.json) into the thing
   # validation-calib (state, report_json); ?view=calib shows them. `make up` does not
-  # wait for it; `make akt-calib` runs it again and prints the table. Same image as akt-sim.
+  # wait for it; `make akt-calib` runs it again and prints the table. Same Dockerfile as akt-sim, own tag: two services
+  # that build one tag at the same time fail on Docker 29 ("image ... already exists", containerd image store).
   akt-calib:
     build:
       context: ../../aktogay
       dockerfile: docker/sim.Dockerfile
-    image: aktogay/sim:local
+    image: aktogay/calib:local
     restart: "no"
     mem_limit: 256m
     command: ["python", "-I", "/akt/run.py", "calib", "--quick", "--publish", "--out", "/tmp/calib.json"]

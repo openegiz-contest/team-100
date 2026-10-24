@@ -1,6 +1,6 @@
 """Calibration report for the stand: the thing validation-calib in Ditto.
 
-akt-calib (compose service, image aktogay/sim:local) is the only writer of
+akt-calib (compose service, image aktogay/calib:local, same Dockerfile as akt-sim) is the only writer of
 validation-calib (design section 2: one writer per thing). It runs
 `run.py calib --quick --publish`:
 
