@@ -10,6 +10,9 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC = os.path.join(ROOT, "web", "static")
 DOCS = os.path.join(os.path.dirname(ROOT), "final_docs")
+if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+    DOCS = os.path.dirname(ROOT)
+README = "README_aktogay.md" if os.path.basename(DOCS) == "final_docs" else "README.md"
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
@@ -118,14 +121,14 @@ class WebGlStartTest(unittest.TestCase):
 
 class ReadmeTableTest(unittest.TestCase):
     def test_first_screen_is_the_five_minute_check(self):
-        r = read(DOCS, "README_aktogay.md")
+        r = read(DOCS, README)
         heads = re.findall(r"^#+ .*$", r, re.M)
         self.assertEqual(heads[1], "### Как проверить за 5 минут")
         self.assertIn("python3 -I -m unittest", r)
         self.assertNotRegex(r, r"`python -I -m unittest")
 
     def test_table_by_sections_of_the_solution(self):
-        r = read(DOCS, "README_aktogay.md")
+        r = read(DOCS, README)
         t = r[r.index("### Разделы решения: где смотреть и что видно"):]
         t = t[:t.index("\n### ", 10)]
         self.assertIn("| Раздел решения | Где посмотреть | Что видно |", t)

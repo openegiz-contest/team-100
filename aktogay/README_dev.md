@@ -68,7 +68,7 @@ aktogay/
                       and the evidence list with the age of every measurement of an issue card
     inside.py         the page «Изнутри»: nodes, signals with the place where each is seen, failures with sources, depth A/B/C;
                       writes web/static/inside.json (a test keeps it equal)
-    readiness.py      the nine points of every new trouble; writes web/static/readiness.json and final_docs/READINESS.md
+    readiness.py      the nine points of every new trouble; writes web/static/readiness.json and READINESS.md (the repository root; final_docs/ in the team's working tree)
     scenarios.py      catalog of scenarios (what should happen, how to check) and the constructor of a trouble; writes web/static/scenarios.json
     apidoc.py         web/API.md (HTTP API and, per module, inputs, outputs, tests) and web/static/modules.json (live table of «Как проверить»)
   setup/

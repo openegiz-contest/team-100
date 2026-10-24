@@ -33,9 +33,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)                                  # aktogay/
 STAGE = os.path.dirname(ROOT)
 CLAIMS = os.path.join(ROOT, "web", "static", "claims.json")
-DOCS = {"SUBMISSION": os.path.join(STAGE, "final_docs", "SUBMISSION.md"),
-        "README": os.path.join(STAGE, "final_docs", "README_aktogay.md")}
-STOP_DOCS = dict(DOCS, VALIDATION=os.path.join(STAGE, "final_docs", "VALIDATION.md"))
+def _doc(name: str) -> str:
+    """final_docs/<name> in the working tree of the team, or the repository root (README_aktogay.md is README.md there)."""
+    p = os.path.join(STAGE, "final_docs", name)
+    return p if os.path.exists(p) else os.path.join(STAGE, "README.md" if name == "README_aktogay.md" else name)
+
+
+DOCS = {"SUBMISSION": _doc("SUBMISSION.md"), "README": _doc("README_aktogay.md")}
+STOP_DOCS = dict(DOCS, VALIDATION=_doc("VALIDATION.md"))
 PRES_DEFAULTS = (os.path.join(STAGE, "pres", "index.html"), os.path.join(os.path.dirname(STAGE), "pres", "index.html"))
 CONCEPT = ("## Concept", "## Почему это важно")
 

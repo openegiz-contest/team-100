@@ -14,6 +14,9 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC = os.path.join(ROOT, "web", "static")
 DOCS = os.path.join(os.path.dirname(ROOT), "final_docs")
+if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+    DOCS = os.path.dirname(ROOT)
+README = "README_aktogay.md" if os.path.basename(DOCS) == "final_docs" else "README.md"
 SETUP = os.path.join(ROOT, "setup")
 for p in (ROOT, SETUP):
     if p not in sys.path:
@@ -209,12 +212,12 @@ class StaticSpreadTest(unittest.TestCase):
         import twins
         n = len(twins.Model().things)
         self.assertEqual(n, 136)
-        for name in ("README_aktogay.md", "SUBMISSION.md"):
+        for name in (README, "SUBMISSION.md"):
             t = read(DOCS, name)
             for m in re.finditer(r"(\d+)\s+(?:постоянн\w+\s+вещ\w+|постоянных\s+вещей)", t):
                 self.assertEqual(int(m.group(1)), n, f"{name}: {m.group(0)}")
             self.assertNotRegex(t, r"\b(?:127|133)\s+постоянн")
-        self.assertIn("создаёт 136", read(DOCS, "README_aktogay.md"))
+        self.assertIn("создаёт 136", read(DOCS, README))
 
     def test_no_text_for_a_reader_outside_the_dispatcher(self):
         bad = re.compile(r"жюри|судь[яеи]|для\s+ИИ|нейросет|\bLLM\b", re.I)

@@ -4,10 +4,10 @@ who is called and the backup, short checklist, closure, check (scenario, test, r
 
 One table for three readers: the troubles of `priority.py` take the checklist and the closure from it (text of the
 card), the page «Как проверить» shows the table «беда → сигнал на реальной фабрике → откуда данные» from
-`web/static/readiness.json`, and `final_docs/READINESS.md` is the same table in full. Both files are written by
+`web/static/readiness.json`, and `READINESS.md` (the repository root; `final_docs/` in the team's working tree) is the same table in full. Both files are written by
 this module and a test keeps them equal to it:
 
-  python -I modules/readiness.py --write-json web/static/readiness.json --write-md ../final_docs/READINESS.md
+  python -I modules/readiness.py --write-json web/static/readiness.json --write-md ../READINESS.md      # ../final_docs/READINESS.md in the team's working tree
 
 The checklists carry only what a source says (Safety Rules, order of the Ministry of Investment and Development of
 Kazakhstan no. 348 of 30.12.2014, items 12, 63, 315, 316); where no source exists the line says «уточнить по

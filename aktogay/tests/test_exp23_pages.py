@@ -13,6 +13,9 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC = os.path.join(ROOT, "web", "static")
 DOCS = os.path.join(os.path.dirname(ROOT), "final_docs")
+if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+    DOCS = os.path.dirname(ROOT)
+README = "README_aktogay.md" if os.path.basename(DOCS) == "final_docs" else "README.md"
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
@@ -191,7 +194,7 @@ class PageWiringTest(unittest.TestCase):
             for i, line in enumerate(read(STATIC, name).splitlines(), 1):
                 if re.search(r"1[.,]26", line):
                     self.assertRegex(line, r"22\.10|историч|Прежн", f"{name}:{i}")
-        for name in ("README_aktogay.md", "SUBMISSION.md"):
+        for name in (README, "SUBMISSION.md"):
             t = read(DOCS, name)
             if name == "SUBMISSION.md":                     # the «Concept» section is the participant's text and is checked by check_numbers.py (reported, not edited)
                 t = t[:t.index("## Concept")] + t[t.index("## Почему это важно"):]
@@ -258,7 +261,7 @@ class Toggle3dTest(unittest.TestCase):
         self.assertIn(WEBGL_NOTE, site)
         self.assertEqual(site.count("none: WEBGL_NOTE"), 2)
         self.assertNotIn("В этом браузере нет WebGL", site)
-        readme = read(DOCS, "README_aktogay.md")
+        readme = read(DOCS, README)
         req = readme[readme.index("### Требования"):readme.index("### Запуск")]
         self.assertIn("WebGL", req)
         self.assertIn("--enable-unsafe-swiftshader", req)
@@ -271,14 +274,14 @@ class DocsConsistencyTest(unittest.TestCase):
     def test_one_number_of_types(self):
         n = len(json.loads(read(ROOT, "setup", "things.json"))["types"])
         self.assertEqual(n, 45)
-        for name in ("README_aktogay.md", "SUBMISSION.md"):
+        for name in (README, "SUBMISSION.md"):
             t = read(DOCS, name)
             for m in re.finditer(r"\b(\d+)\s+тип(?:а|ов)\b", t):
                 self.assertEqual(int(m.group(1)), n, f"{name}: {m.group(0)}")
-        self.assertIn("45 типов", read(DOCS, "README_aktogay.md"))
+        self.assertIn("45 типов", read(DOCS, README))
 
     def test_readme_describes_the_live_menu(self):
-        readme = read(DOCS, "README_aktogay.md")
+        readme = read(DOCS, README)
         m = re.search(r"const MENU4 = \[(.*?)\n\];", read(STATIC, "app.js"), re.S)
         groups = re.findall(r"\['(?:now|shift|analysis|learn)', '([^']+)'", m.group(1))
         self.assertEqual(groups, ["Сейчас", "Смена", "Анализ", "Обучение и справка"])

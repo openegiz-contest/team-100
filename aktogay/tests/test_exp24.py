@@ -10,6 +10,9 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(os.path.dirname(ROOT), "final_docs")
+if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+    DOCS = os.path.dirname(ROOT)
+README = "README_aktogay.md" if os.path.basename(DOCS) == "final_docs" else "README.md"
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
@@ -125,7 +128,7 @@ class DocumentsQuoteTheFileTest(unittest.TestCase):
         r1 = stored["runs"]["R1"]["twin_minus_asis"]
         head = cn.fmt(r1["mean"], 2)
         ci = "[%s; %s]" % (cn.fmt(r1["ci95"][0], 2), cn.fmt(r1["ci95"][1], 2))
-        for name in ("SUBMISSION.md", "README_aktogay.md", "VALIDATION.md"):
+        for name in ("SUBMISSION.md", README, "VALIDATION.md"):
             t = text(DOCS, name).replace("\xa0", " ").replace(" ", " ")
             self.assertIn(head, t, name)
             self.assertIn(ci, t, name)

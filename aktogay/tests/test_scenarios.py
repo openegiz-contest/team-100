@@ -20,6 +20,9 @@ if WEB not in sys.path:
     sys.path.insert(0, WEB)
 STATIC = os.path.join(WEB, "static")
 FINAL = os.path.join(os.path.dirname(ROOT), "final_docs")
+if not os.path.isdir(FINAL):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+    FINAL = os.path.dirname(ROOT)
+README = "README_aktogay.md" if os.path.basename(FINAL) == "final_docs" else "README.md"
 
 from tests import mod_support as ms  # noqa: E402
 from tests.test_mod_priority import T0, fork_ov, fork_store, modules, run_fork  # noqa: E402

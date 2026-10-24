@@ -20,6 +20,9 @@ from sim.params import default  # noqa: E402
 from sim.plant import CopySet  # noqa: E402
 
 DOCS = os.path.normpath(os.path.join(ROOT, "..", "final_docs"))
+if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+    DOCS = os.path.dirname(ROOT)
+README = "README_aktogay.md" if os.path.basename(DOCS) == "final_docs" else "README.md"
 STATIC = os.path.join(ROOT, "web", "static")
 SINGLE = ("crusher:1", "grid", "hard:1", "reline:1", "water", "hpgr_fire")
 _CACHE: dict = {}
