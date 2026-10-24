@@ -25,7 +25,7 @@
 ### Требования
 
 - Ubuntu 24.04 (или Windows 11 с WSL2 и Ubuntu 24.04 — `OPENEGIZ.ru.md`, раздел «Windows (WSL2)»).
-- Docker Engine с Compose v2.20+ (`docker version`, `docker compose version`), `git`, `make`.
+- Docker Engine с Compose v2.20+ (`docker version`, `docker compose version`), `git`, `make`, `curl` (для `make akt-check`).
 - Память для Docker: шаблон рекомендует 6 ГБ. Работающий стенд занимает ≈ 3,5 ГиБ (замер
   22.10.2026: 17 контейнеров, 3,48 ГиБ; из них сервисы `akt-*` — около 0,1 ГиБ). При 5–6 ГБ
   `make up` печатает WARNING — это не ошибка.
@@ -41,6 +41,7 @@
 Все команды — из корня репозитория.
 
 ```bash
+git clone https://github.com/openegiz-contest/team-100.git && cd team-100   # если репозиторий ещё не склонирован
 sudo apt-get update && sudo apt-get install -y make   # в чистой Ubuntu make нет; меньше минуты
 make up            # платформа + стенд; в конце печатает адреса и пароли
 make akt-check     # «ok / FAIL + доказательство» по каждой строке; ≈ 15 с
