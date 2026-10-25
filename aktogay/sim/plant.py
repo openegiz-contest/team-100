@@ -564,7 +564,7 @@ class Plant:
         if kind == "piezo":
             self._piezo_call(t)               # S0 of the dam: the water technologist goes to the dam and checks it
             return None
-        if kind in ("hpgr_fire", "road", "pitstop", "leachcold"):
+        if kind in ("hpgr_fire", "road", "pitstop", "leachcold", "drill", "dozer"):
             return None                       # decisions of a person: de-energise, evacuate, reroute, plan the stock
         if kind in DECISION_CAUSES:
             self._energy_call(n, t, kind)
@@ -821,6 +821,12 @@ class Plant:
         elif e.kind == "road":
             hours = e.duration_h if e.duration_h > 0 else p["pit_road_close_h"]
             pt.close_road(st, n, t0 + hours * MIN_PER_H)
+        elif e.kind == "drill":
+            hours = e.duration_h if e.duration_h > 0 else p["scen_drill_h"]
+            pt.stop_drills(st, n, t0 + hours * MIN_PER_H, p["scen_drill_left_h"] * p["pit_exc_max_tph"])
+        elif e.kind == "dozer":
+            hours = e.duration_h if e.duration_h > 0 else p["scen_dozer_h"]
+            st.flags["dozer_until"] = t0 + hours * MIN_PER_H
         elif e.kind == "conveyor":
             cv = st.line(n).conveyor
             cv.fault = "scenario"

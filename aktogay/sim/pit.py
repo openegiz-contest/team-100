@@ -140,7 +140,8 @@ def pit_step(st: PlantState, prm: ParamSet, t_min: float) -> None:
 
 
 def drill_step(st: PlantState, prm: ParamSet, t_min: float, dt_min: float) -> None:
-    """Drill rigs and dozers (names only: the blasted stock of a face does not limit the dig).
+    """Drill rigs and dozers. The blasted stock of a face limits the dig only in the scenario drill:N (sim/ore.py);
+    the dozer of the waste dump lengthens the waste truck cycle only in the scenario dozer (sim/ore.py, route_mult).
 
     A rig is ready when u01(seed, model hour, "drill", k) < pit_drill_kio; a ready rig drills
     pit_drill_holes_shift holes per shift on its face, each hole a cycle of shift / holes minutes that
@@ -162,7 +163,9 @@ def drill_step(st: PlantState, prm: ParamSet, t_min: float, dt_min: float) -> No
         if d.shift_idx != s_idx:
             d.shift_idx, d.holes_shift = s_idx, 0.0
         face = st.faces.get(d.face)
-        if not d.ready:
+        until = st.flags.get("drill_until", NO_VALUE)
+        held = until != NO_VALUE and t_min < until and d.face == f"face-{int(st.flags.get('drill_line', 0))}"
+        if not d.ready or held:
             d.state = "DOWN"
         elif face is not None and face.blasted_t >= prm["pit_face_blasted_max_t"]:
             d.state = "IDLE"
@@ -173,15 +176,38 @@ def drill_step(st: PlantState, prm: ParamSet, t_min: float, dt_min: float) -> No
             d.holes_shift += rate
             if face is not None:
                 face.blasted_t += rate * prm["pit_drill_t_hole"]
+    until = st.flags.get("dozer_until", NO_VALUE)
+    dozer_held = until != NO_VALUE and t_min < until
     for z in st.dozers:
         if z.ready_hour != hour:
             z.ready, z.ready_hour = u01(st.seed, hour, "dozer", z.k) < kio, hour
-        z.state = "WORK" if z.ready else "DOWN"
+        z.state = "DOWN" if dozer_held and z.place == "road-dump" else ("WORK" if z.ready else "DOWN")
 
 
 def waste_tph(st: PlantState) -> float:
     """Stripping rate now, t/h."""
     return sum(e.tph for e in st.waste_excavators)
+
+
+def stop_drills(st: PlantState, line: int, until_min: float, left_t: float) -> str:
+    """Scenario drill:N: the rigs of the ore face of `line` stand until until_min, the face keeps at most left_t of
+    blasted rock, and while the scenario holds its excavator digs only blasted rock (sim/ore.py, dig step)."""
+    face = f"face-{line}"
+    if face not in st.faces:
+        return ""
+    st.faces[face].blasted_t = min(st.faces[face].blasted_t, left_t)
+    st.flags["drill_line"] = float(line)
+    st.flags["drill_until"] = float(until_min)
+    return face
+
+
+def blast_limited(st: PlantState, exc_name: str) -> bool:
+    """True when the excavator stands on the face of the scenario drill:N and its blasted rock is used up."""
+    until = st.flags.get("drill_until", NO_VALUE)
+    if until == NO_VALUE or st.clock.t_min >= until:
+        return False
+    f = st.faces.get(f"face-{int(st.flags.get('drill_line', 0))}")
+    return f is not None and f.excavator == exc_name and f.blasted_t <= _EPS
 
 
 def close_road(st: PlantState, line: int, until_min: float) -> str:

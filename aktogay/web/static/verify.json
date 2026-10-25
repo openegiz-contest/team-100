@@ -1,5 +1,5 @@
 {
- "code_hash": "8bae9adc6a78",
+ "code_hash": "62d31e385090",
  "command": "python -I aktogay/run.py verify --write aktogay/web/static/verify.json",
  "copy_ru": {
   "base": "база",

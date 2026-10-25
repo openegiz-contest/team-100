@@ -25,7 +25,7 @@
    "sim": 35,
    "modules": 32,
    "total": 67,
-   "pct": 8.3
+   "pct": 8.2
   },
   {
    "key": "project",
@@ -49,16 +49,16 @@
    "key": "assumption",
    "ru": "допущение",
    "meaning": "источника нет: число выбрано нами, диапазон правдоподобия записан в таблице",
-   "sim": 389,
+   "sim": 393,
    "modules": 181,
-   "total": 570,
-   "pct": 70.2
+   "total": 574,
+   "pct": 70.3
   }
  ],
- "sim_rows": 559,
+ "sim_rows": 563,
  "modules_rows": 253,
- "rows": 812,
- "assumption_pct": 70.2,
+ "rows": 816,
+ "assumption_pct": 70.3,
  "fitted_rows": 5,
  "tier_s": {
   "rows": 78,

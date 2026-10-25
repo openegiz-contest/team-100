@@ -42,6 +42,35 @@ class PitCausalTest(unittest.TestCase):
         self.assertLess(f.state.lines[0].sag.feed_tph, b.state.lines[0].sag.feed_tph)
         self.assertLess(f.state.lines[0].cum_cu_t, b.state.lines[0].cum_cu_t)
 
+    def test_drill_stop_runs_the_face_out_and_stops_its_excavator(self):
+        cs = CopySet(None, 42, "drill:1", preset="", kip=1)
+        f, b = cs.copies["fact"], cs.copies["base"]
+        t0 = f.t_min
+        run_to(cs, t0 + 30)
+        self.assertTrue(all(d.state == "DOWN" for d in f.state.drills if d.face == "face-1"))
+        run_to(cs, t0 + 6 * 60)                                  # 4 h of blasted rock left: used up by now
+        self.assertLessEqual(f.state.faces["face-1"].blasted_t, 1e-6)
+        exc1 = next(e for e in f.state.excavators if e.name == "exc-1")
+        self.assertEqual(exc1.tph, 0.0)
+        run_to(cs, t0 + 12 * 60)
+        self.assertLess(f.state.lines[0].stockpile.level_t, b.state.lines[0].stockpile.level_t - 1000.0)
+
+    def test_dump_dozer_slows_the_stripping_only(self):
+        from sim import pit
+        cs = CopySet(None, 42, "dozer", preset="", kip=1)
+        f, b = cs.copies["fact"], cs.copies["base"]
+        run_to(cs, f.t_min + 60)
+        self.assertEqual(next(z for z in f.state.dozers if z.place == "road-dump").state, "DOWN")
+        self.assertLess(pit.waste_tph(f.state), pit.waste_tph(b.state))
+        self.assertAlmostEqual(f.state.lines[0].cum_cu_t, b.state.lines[0].cum_cu_t, places=6)   # the ore is not touched
+
+    def test_outside_the_scenarios_the_blasted_stock_does_not_limit(self):
+        from sim import pit
+        cs = CopySet(None, 42, "", preset="", kip=1)
+        st = cs.copies["fact"].state
+        st.faces["face-1"].blasted_t = 0.0
+        self.assertFalse(pit.blast_limited(st, "exc-1"))
+
 
 if __name__ == "__main__":
     unittest.main()

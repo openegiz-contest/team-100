@@ -294,10 +294,14 @@ def fleet_step(st: PlantState, prm: ParamSet) -> None:
 def route_mult(st: PlantState, line: int, prm: ParamSet) -> float:
     """Cycle multiplier of the route to the crusher of `line` (0: waste dump): pit_road_detour while
     a road of that route is CLOSED, else 1; times the weather / restriction multiplier of the haul roads (st.pit.cycle_mult)."""
+    mult = st.pit.cycle_mult
+    until = st.flags.get("dozer_until", NO_VALUE)
+    if line == 0 and until != NO_VALUE and st.clock.t_min < until:
+        mult *= prm["pit_dump_no_dozer_mult"]          # scenario dozer: the dump is not levelled
     for rd in st.roads.values():
         if rd.line == line and rd.state == "CLOSED":
-            return prm["pit_road_detour"] * st.pit.cycle_mult
-    return st.pit.cycle_mult
+            return prm["pit_road_detour"] * mult
+    return mult
 
 
 def mining_targets(st: PlantState, prm: ParamSet) -> dict[int, float]:
@@ -368,8 +372,9 @@ def dig_step(st: PlantState, targets: dict[int, float], dt_min: float, prm: Para
     rate: dict[str, dict[int, float]] = {e.name: {} for e in st.excavators}
     got = {n: 0.0 for n in lines}
     swing = []
+    from .pit import blast_limited                     # here: sim.pit imports this module
     for e in st.excavators:
-        if e.state == "DOWN":
+        if e.state == "DOWN" or blast_limited(st, e.name):
             continue
         home = _home_line(e, lines)
         if home is None:

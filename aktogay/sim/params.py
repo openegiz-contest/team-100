@@ -488,6 +488,15 @@ _ROWS = [
     _p("pit_road_detour", 1.4, 1.1, 2.0, "-", S_D4, "assumption",
        "truck cycle multiplier while the ramp of a line is closed (detour); haul length is not published"),
     _p("pit_road_close_h", 2, 0.5, 8, "h", S_D4, "assumption", "scenario road:N, ramp of line N closed"),
+    _p("scen_drill_h", 12, 4, 24, "h", S_D4, "assumption",
+       "scenario drill:N: the drill rigs of the ore face of line N stand this long (DOWN)"),
+    _p("scen_drill_left_h", 4, 1, 12, "h", S_D4, "assumption",
+       "scenario drill:N: blasted rock left at that face, in hours of digging at pit_exc_max_tph; while the scenario holds "
+       "the excavator of the face digs only blasted rock (outside the scenario the blasted stock does not limit the dig: "
+       "the drill rate of the table is not matched to the dig, see SUBMISSION, Mine)"),
+    _p("scen_dozer_h", 6, 1, 12, "h", S_D4, "assumption", "scenario dozer: the dozer of the waste dump stands this long"),
+    _p("pit_dump_no_dozer_mult", 1.3, 1.1, 1.6, "-", S_D4, "assumption",
+       "waste truck cycle multiplier while the dump has no dozer (the tip is not levelled: trucks wait and back up longer)"),
     _p("scen_pitstop_h", 8, 2, 24, "h", S_D4 + "; " + S_PEK + ", p. 10 (ore stockpile 163 kt = 2 days of grinding)",
        "assumption",
        "scenario pitstop: every ore excavator stands this long (blast clearance, weather or a fault; the cause and the "

@@ -59,8 +59,8 @@ LINES = (1, 2)
 #   hpgr_fire  fire at the HPGR of concentrator 1 during maintenance (event of 09.08.2026, scen_fire_line)
 #   road:N     ramp to crusher N closed, trucks take a detour
 SITE_KINDS = ("grid", "water", "hpgr_fire", "leak", "winter", "dust", "pitstop", "icy", "fatigue", "oil", "leachcold",
-              "brake", "track", "ewtrip", "sxcrud")
-LINE_KINDS = ("crusher", "hard", "reline", "trip", "road", "conveyor") + HIDDEN + ("energy", "reagent") + EXTRA + (
+              "brake", "track", "ewtrip", "sxcrud", "dozer")
+LINE_KINDS = ("crusher", "hard", "reline", "trip", "road", "conveyor", "drill") + HIDDEN + ("energy", "reagent") + EXTRA + (
     "startup", "hpgr", "mantle", "sample", "gmd", "idler", "froth", "rake", "cloth", "slurry")
 HPGR_LINES = (2,)           # the HPGR is in the model on line 2 only (thyssenkrupp POLYCOM, vendor)
 
@@ -74,6 +74,7 @@ _NODE = {
     "crusher": "crusher-{n}", "trip": "crusher-{n}", "hard": "pit", "reline": "sag-{n}",
     "dose": "flot-{n}", "cyclone": "cyclones-{n}", "liner": "sag-{n}", "oxide": "flot-{n}",
     "grid": "power", "safety": "water", "water": "water", "hpgr_fire": "pebble-{n}", "road": "ramp-{n}",
+    "drill": "face-{n}", "dozer": "road-dump",
     "energy": "sag-{n}", "reagent": "rougher-{n}", "leak": "water", "balls": "ball-{n}a", "conc": "flot-{n}",
     "startup": "ball-{n}a", "winter": "water", "dust": "water", "conveyor": "conveyor-{n}", "pitstop": "pit",
     "icy": "pit", "fatigue": "fleet", "oil": "exc-1", "roping": "cyclones-{n}", "phdrift": "ph-{n}",
@@ -103,6 +104,7 @@ MAGNITUDE = {
     "icy": ("hours", "scen_icy_h"), "fatigue": ("hours", "scen_fatigue_h"), "dust": ("hours", "scen_dust_h"),
     "leachcold": ("hours", "scen_leach_h"),
     "road": ("hours", "pit_road_close_h"), "hpgr_fire": ("hours", "scen_fire_h"),
+    "drill": ("hours", "scen_drill_h"), "dozer": ("hours", "scen_dozer_h"),
     "grid": ("limit_mw", "pow_c2_limit_mw"), "hard": ("axb", "ore_axb_hard"), "water": ("leak_frac", "water_leak_frac"),
     "dose": ("drop", "hc_dose_drop"), "cyclone": ("n", "hc_cyclone_n"), "liner": ("loss", "hc_liner_eta_loss"),
     "oxide": ("ascu_pp", "hc_oxide_ascu_pp"), "energy": ("e_frac", "hc_energy_frac"), "reagent": ("over", "hc_reagent_over"),
@@ -206,6 +208,10 @@ def _event(kind: str, line: int, t_min: float, prm: ParamSet, mag: float | None 
         data["leak_frac"] = prm["water_leak_frac"]
     elif kind == "road":
         dur = prm["pit_road_close_h"]
+    elif kind == "drill":
+        dur = prm["scen_drill_h"]
+    elif kind == "dozer":
+        dur = prm["scen_dozer_h"]
     elif kind == "pitstop":
         dur = prm["scen_pitstop_h"]
     elif kind == "conveyor":
@@ -271,6 +277,9 @@ def parse_scenario(text: str, t0_min: float, prm: ParamSet, preset: str = "",
     hpgr_fire -> ScenarioEvent("hpgr_fire", scen_fire_line, t0, scen_fire_h,
                                {"people": scen_fire_people, "safety_h": scen_fire_safety_h})
     road:N    -> ScenarioEvent("road", N, t0, pit_road_close_h)
+    drill:N   -> ScenarioEvent("drill", N, t0, scen_drill_h): the rigs of the ore face of line N stand, the face keeps
+                 scen_drill_left_h of digging; its excavator digs only blasted rock, then waits
+    dozer     -> ScenarioEvent("dozer", 0, t0, scen_dozer_h): the dozer of the waste dump stands, waste trucks cycle longer
     conveyor:N -> ScenarioEvent("conveyor", N, t0, conv_repair_h): the main belt of line N trips, the crew of the
                  crusher repairs it; the stockpile carries the SAG meanwhile
     pitstop   -> ScenarioEvent("pitstop", 0, t0, scen_pitstop_h): every ore excavator stands (DOWN) for that long

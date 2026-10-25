@@ -580,7 +580,7 @@ class ParamSummaryTest(unittest.TestCase):
         # the label counts are quoted by the submission and the presentation as well (the presentation still said 537 of 757 after the tables moved)
         pct = str(d["assumption_pct"]).replace(".", ",")
         sub = read(FINAL, "SUBMISSION.md")
-        self.assertIn(f"В таблицах модели и модулей {d['rows']} {plural(d['rows'], 'число', 'числа', 'чисел')}: {lab['assumption']} допущений ({pct} %), {lab['fact']} фактов, {lab['vendor']} вендор, "
+        self.assertIn(f"В таблицах модели и модулей {d['rows']} {plural(d['rows'], 'число', 'числа', 'чисел')}: {lab['assumption']} {plural(lab['assumption'], 'допущение', 'допущения', 'допущений')} ({pct} %), {lab['fact']} фактов, {lab['vendor']} вендор, "
                       f"{lab['analog']} аналог, {lab['project']} проект, {lab['calc']} расчёт", sub)
         stage = os.path.dirname(ROOT)
         pres = next((p for p in (os.environ.get("AKT_PRES"), os.path.join(stage, "pres", "index.html"),

@@ -15,14 +15,14 @@
  "base": "twin_human same, asis_hard dig (VALIDATION 8.17)",
  "base_gain": 0.47126878655849397,
  "summary": {
-  "total": 812,
+  "total": 816,
   "assumption": {
-   "n": 570,
+   "n": 574,
    "matters": 19,
    "read_small": 196,
    "read": 12,
    "read_fixed": 23,
-   "not_read": 320
+   "not_read": 324
   },
   "fact": {
    "n": 47,
@@ -68,8 +68,8 @@
   "read_small": 237,
   "read": 19,
   "read_fixed": 57,
-  "not_read": 469,
-  "assumptions_total": 570,
+  "not_read": 473,
+  "assumptions_total": 574,
   "screened": 267,
   "refit_removes": [
    "blk_ascu_mean_pct",
@@ -6136,6 +6136,34 @@
    "label": "assumption",
    "cls": "read",
    "dev": null
+  },
+  {
+   "table": "model",
+   "key": "scen_drill_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "scen_drill_left_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "scen_dozer_h",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "pit_dump_no_dozer_mult",
+   "label": "assumption",
+   "cls": "not_read",
+   "dev": 0.0
   }
  ],
  "seconds": 2891.5
