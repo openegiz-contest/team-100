@@ -1,5 +1,5 @@
 {
- "code_hash": "62d31e385090",
+ "code_hash": "46319fa97b05",
  "command": "python -I aktogay/run.py verify --write aktogay/web/static/verify.json",
  "copy_ru": {
   "base": "база",
@@ -448,18 +448,18 @@
     },
     "fact": {
      "cu_t": 291.3794,
-     "energy_mwh": 3012.157,
+     "energy_mwh": 3011.73,
      "ore_t": 80395.02,
-     "usd": 3934982.0,
+     "usd": 3934996.0,
      "water_m3": 47859.0
     }
    },
    "diff": {
     "fact": {
      "cu_t": -13.3793,
-     "energy_mwh": -100.415,
+     "energy_mwh": -100.841,
      "ore_t": -3744.57,
-     "usd": -182206.0,
+     "usd": -182193.0,
      "water_m3": -1163.3
     }
    },
@@ -482,18 +482,18 @@
     },
     "fact": {
      "cu_t": 285.4166,
-     "energy_mwh": 2994.559,
+     "energy_mwh": 2993.959,
      "ore_t": 78481.67,
-     "usd": 3852931.0,
+     "usd": 3852950.0,
      "water_m3": 47263.9
     }
    },
    "diff": {
     "fact": {
      "cu_t": -19.3422,
-     "energy_mwh": -118.012,
+     "energy_mwh": -118.612,
      "ore_t": -5657.91,
-     "usd": -264257.0,
+     "usd": -264238.0,
      "water_m3": -1758.4
     }
    },
@@ -776,18 +776,18 @@
     },
     "fact": {
      "cu_t": 291.4006,
-     "energy_mwh": 3012.453,
+     "energy_mwh": 3012.026,
      "ore_t": 80331.86,
-     "usd": 3935273.0,
+     "usd": 3935286.0,
      "water_m3": 47839.2
     }
    },
    "diff": {
     "fact": {
      "cu_t": -13.3582,
-     "energy_mwh": -100.119,
+     "energy_mwh": -100.545,
      "ore_t": -3807.73,
-     "usd": -181916.0,
+     "usd": -181902.0,
      "water_m3": -1183.1
     }
    },

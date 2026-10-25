@@ -477,7 +477,8 @@ def sag_step(sag: SagState, peb: PebbleState, feed_avail_tph: float, ore: OrePro
     sag.speed_pct = speed
     sag.load_pct = j_target + (sag.load_pct - j_target) * keep
     power = p0_kw * sag_power_ratio(sag.load_pct, speed, prm) * (1.0 + prm["sag_power_sigma"] * z_power)
-    sag.power_kw = min(max(power, 0.0), rated_kw)
+    # the drive never draws above the grid cap: the load drains with sag_tau_min, the drive limits the power at once
+    sag.power_kw = min(max(power, 0.0), rated_kw, max(power_cap_kw, 0.0))
     sag.feed_tph = q
     sag.e_kwh_t = sag.power_kw / q if q > 0.0 else NO_VALUE
     sag.axb_soft = axb_from_energy(sag.e_kwh_t, prm) if q > 0.0 and state != SAG_STARVED else NO_VALUE

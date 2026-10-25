@@ -360,7 +360,9 @@ class TestUnitDetails(unittest.TestCase):
         e = cm.sag_specific_energy(self.base, self.p)
         q = self.step(cap=2650 * e)
         self.assertAlmostEqual(q, 2650, delta=1)
-        self.assertGreater(self.ln.sag.power_kw, 2650 * e * 1.3)   # load still high after 1 min
+        # load still high after 1 min, but the drive does not draw above the cap (sim/audit.py found it did, 25.10.2026)
+        self.assertLessEqual(self.ln.sag.power_kw, 2650 * e + 1e-6)
+        self.assertAlmostEqual(self.ln.sag.power_kw, 2650 * e, delta=20)
         self.run_sag(60, cap=2650 * e)
         self.assertAlmostEqual(self.ln.sag.power_kw, 2650 * e, delta=20)
         # cap below the ball-charge draw (one ball mill): the slowed mill reaches the cap

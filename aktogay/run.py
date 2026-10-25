@@ -18,6 +18,7 @@
   python -I aktogay/run.py cusum_eval --write PATH  false alarms of the CUSUM against the stated 0.95 a week, threshold curve (sim/cusum_eval.py)
   python -I aktogay/run.py stock_sens --write PATH  two readings of the PEK ore stockpile volume: scenarios under live 40 kt and 163 kt (sim/stock_sens.py)
   python -I aktogay/run.py verify --write PATH  expected shift result of every catalog scenario, computed beforehand (sim/verify.py)
+  python -I aktogay/run.py audit --write PATH   independent audit of ore, copper, energy and water balances of every scenario (sim/audit.py)
   python -I aktogay/run.py paramstat [--write PATH]  labels of the parameter tables: fact / vendor / analog / project / calc / assumption
 """
 import os
@@ -92,6 +93,9 @@ def main(argv: list[str]) -> int:
     if cmd == "verify":
         from sim import verify
         return verify.main(rest)
+    if cmd == "audit":
+        from sim import audit
+        return audit.main(rest)
     print(__doc__)
     return 2
 

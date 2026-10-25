@@ -1,0 +1,431 @@
+{
+ "kind": "akt-audit",
+ "seed": 42,
+ "command": "python -I aktogay/run.py audit --write aktogay/web/static/audit.json",
+ "tolerance_pct": {
+  "ore": 0.5,
+  "copper": 0.5,
+  "copper_rt": 1.0,
+  "energy": 1.0,
+  "water": 1.0,
+  "empty": 15.0
+ },
+ "worst_pct": {
+  "ore": 0.0,
+  "copper": 0.0,
+  "copper_rt": 0.0,
+  "energy": 0.0,
+  "water": 0.0,
+  "empty": 1.65
+ },
+ "ok": {
+  "ore": true,
+  "copper": true,
+  "copper_rt": true,
+  "energy": true,
+  "water": true,
+  "empty": true
+ },
+ "violations": 0,
+ "runs": [
+  {
+   "id": "обычная смена",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "crusher:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0,
+   "empty_h": {
+    "hand": 3.0,
+    "model": null
+   }
+  },
+  {
+   "id": "conveyor:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0,
+    "empty": 1.65
+   },
+   "violations": [],
+   "n_violations": 0,
+   "empty_h": {
+    "hand": 3.0,
+    "model": 2.95
+   }
+  },
+  {
+   "id": "reline:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "mantle:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "hpgr_fire",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "hpgr:2",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "roping:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "phdrift:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "sample:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "icy+dust+grid",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "startup:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "dust",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "leachcold",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "icy",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "fatigue",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "pitstop",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0,
+    "empty": 1.41
+   },
+   "violations": [],
+   "n_violations": 0,
+   "empty_h": {
+    "hand": 3.5,
+    "model": 3.45
+   }
+  },
+  {
+   "id": "oil",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "hard:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "grid",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "water",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "winter",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "gmd:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "idler:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "froth:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "rake:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "cloth:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "slurry:1",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "brake",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "track",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "ewtrip",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  },
+  {
+   "id": "sxcrud",
+   "residual_pct": {
+    "ore": 0.0,
+    "copper": 0.0,
+    "copper_rt": 0.0,
+    "energy": 0.0,
+    "water": 0.0
+   },
+   "violations": [],
+   "n_violations": 0
+  }
+ ],
+ "seconds": 23
+}
