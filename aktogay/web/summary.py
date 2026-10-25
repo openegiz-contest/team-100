@@ -58,7 +58,7 @@ API = [
 
 # «Достоверность одним взглядом»: числа взяты из VALIDATION.md (разделы в последней колонке); живая только проверка правдоподобия.
 CREDIBILITY = [
-    ("Медь в концентрате по 28 кварталам 2018–2024, без подгонки", "средняя ошибка 2,35 %", "отчёты KAZ Minerals",
+    ("Медь в концентрате по 28 кварталам 2018–2024, без подгонки", "средняя ошибка около 2,3 %", "отчёты KAZ Minerals",
      "в допуске 22 квартала из 28; две фабрики 2023–2024: 0,74 %, 8 из 8", "6.1"),
     ("Пять реальных перефутеровок SAG: падение руды линии", "−5,47 % в среднем", "−4,85 % в отчётах",
      "средняя разница 0,91 п.п.; тест слабый: интервалы отчётов шириной 6–8 п.п.", "6.3"),
@@ -75,9 +75,18 @@ CREDIBILITY = [
 ]
 CRED_LIMITS = [
     "Выигрыш двойника (+0,61 т Cu за смену [95 % ДИ +0,23; +2,18], 100 парных смен) получен на модели против модели; на фабрике он не проверен.",
-    "Формула извлечения не лучше константы 87,2 %: ошибка 1,76 п.п. против 1,40 п.п. по 28 кварталам; в допуске ±0,5 п.п. только 4 квартала из 28.",
+    "Формула извлечения не лучше константы 87,2 %: ошибка около 1,8 п.п. против 1,40 п.п. по 28 кварталам; в допуске ±0,5 п.п. только 4 квартала из 28.",
     "Вне допуска два числа: извлечение 2024 г. (−0,68 п.п.) и извлечение III кв. 2025 г.; промах не подгоняли.",
 ]
+
+
+COPY_NAMES = {"base": "база (смена без сценария)", "fact": "факт (со сценарием)", "loud": "очередь «кто громче»", "no_twin": "без двойника"}
+COPY_NAMES_FORK = {"base": "база (смена без бед)", "fact": "с двойником («по $»)", "loud": "по громкости", "no_twin": "без двойника, как сейчас"}
+
+
+def _sg(v) -> str:
+    """Signed number with a decimal comma and a true minus."""
+    return ("−" + _num(-v, 2)) if v < 0 else ("+" + _num(v, 2))
 
 
 def _v(thing, feature, default=None):
@@ -218,6 +227,8 @@ def build(state: dict, static: str) -> dict:
     for key, title, last in (("mod-losses", "Где теряется медь", "top_text"), ("mod-ore", "Какая руда идёт", "fc_text"), ("mod-priority", "Очередь бед", "order_text")):
         p = _v(th.get(key), "processed_sim_time")
         lag = (float(t_now) - float(p)) if isinstance(p, (int, float)) and p >= 0 and isinstance(t_now, (int, float)) else None
+        if lag is not None and lag < 0:                      # a value left from the previous run: this run has not counted yet
+            lag = None
         mods.append({"module": key, "title": title, "processed_at": _clock(p) if lag is not None else None, "lag_min": lag,
                      "last_decision": _v(th.get(key), last, "")})
     out["modules"] = mods
@@ -317,7 +328,7 @@ def render_html(d: dict) -> str:
     a("<h2>Беда № 1</h2>")
     f = d["first_trouble"]
     if f:
-        a("<p><b>%s</b> — %s (%s)</p><ul><li>Цена: теряем %s в час; час промедления вызова ≈ %s</li><li>Кого звать: %s</li><li>Почему первая: %s</li>%s</ul>" % (
+        a("<p><b>%s</b> — %s (%s)</p><ul><li>Цена: теряем %s в час; час промедления вызова ≈ %s</li><li>Кого звать: %s</li><li>Что видно по измерениям: %s</li>%s</ul>" % (
             _e(f["node"] or f["kind"]), _e(f["text"]), _e(f["status"]), _e(_usd(f["loss_usd_h"]) if isinstance(f["loss_usd_h"], (int, float)) and f["loss_usd_h"] >= 0 else "в деньгах не считаем"),
             _e(_usd(f["delay_cost_usd_h"]) if isinstance(f["delay_cost_usd_h"], (int, float)) and f["delay_cost_usd_h"] >= 0 else "—"), _e(f["call"]),
             _e(f["why"] or d["order_text"] or "порядок по классу беды и ожидаемым потерям за 12 ч"), ("<li>%s</li>" % _e(f["closure"])) if f["closure"] else ""))
@@ -349,20 +360,22 @@ def render_html(d: dict) -> str:
     a("<h2>Сценарий и его эффект</h2><p>Активный сценарий: <b>%s</b>. Отмена: %s.</p>" % (_e(sc["active"] or "нет"), _e(sc["cancel"])))
     e = sc["base_to_fact"]
     if e:
-        a("<p>«База → факт» на %s модели, т Cu: %s. Разница с базой: %s.</p>" % (_e(e["at"]), _e(", ".join("%s %s" % (k, _num(v, 1)) for k, v in e["copies_cu_t"].items())),
-                                                                                 _e(", ".join("%s %+.1f" % (k, v) for k, v in e["diff_cu_t"].items() if isinstance(v, (int, float))))))
+        nm = COPY_NAMES_FORK if e.get("fork") else COPY_NAMES
+        a("<p>«База → факт» на %s модели, медь в концентрате с 08:00, т Cu: %s.</p><p>Эффект (копия минус база): %s.</p>" % (
+            _e(e["at"]), _e("; ".join("%s %s" % (nm.get(k, k), _num(v, 2)) for k, v in e["copies_cu_t"].items())),
+            _e("; ".join("%s %s т Cu" % (nm.get(k, k), _sg(v)) for k, v in e["diff_cu_t"].items() if isinstance(v, (int, float))))))
         p = e.get("policy") or {}
         if p.get("mode") in ("module", "fallback"):
             a("<p>Копия «по $» шла по вызовам модуля: %s из %s вызовов — модуля (режим: %s).</p>" % (_e(_num(p.get("n_module"))), _e(_num(p.get("n_calls"))), _e(p["mode"])))
     else:
         a("<p>Копий «база → факт» сейчас нет: идёт обычная смена.</p>")
-    a("<h2>Все сценарии</h2><p>Запуск — по адресу или командой; отмена — <code>POST /api/cancel</code>. «Ожидаемо» — посчитано заранее тем же кодом "
+    a("<h2>Все сценарии</h2><p>Запуск: адрес открывается в браузере с JavaScript; без него (curl) — командой <code>POST</code> из колонки «Запуск»; через 1–2 минуты сценарий виден в блоках «Беда № 1», «Очередь бед» и «Сценарий и его эффект» этой страницы (1 минута = 1 час модели). Отмена — <code>POST /api/cancel</code>. «Ожидаемо» — посчитано заранее тем же кодом "
       "(seed 42, к 20:00, т Cu и $: факт − база), оценка на модели.</p><table><tr><th>Сценарий</th><th>Что происходит</th><th>Запуск</th><th>Ожидаемо</th></tr>")
     for s in d["scenarios"]:
         ex = s["expected_by_20_00"]
-        extext = ("%+.2f т Cu, %s" % (ex["cu_t"], _usd(ex["usd"]))) if ex else "—"
+        extext = ("%s т Cu, %s" % (_sg(ex["cu_t"]), ("−" + _usd(-ex["usd"])) if ex["usd"] < 0 else ("+" + _usd(ex["usd"])) if ex["usd"] > 0 else "0")) if ex else "—"
         if ex and ex.get("twin_minus_no_twin_cu_t") is not None:
-            extext += "; двойник против «без двойника» %+.2f т Cu" % ex["twin_minus_no_twin_cu_t"]
+            extext += "; двойник против «без двойника» %s т Cu" % _sg(ex["twin_minus_no_twin_cu_t"])
         a('<tr><td>%s<br><code>%s</code></td><td>%s</td><td><a href="%s">%s</a><br><code>%s</code></td><td>%s</td></tr>' % (
             _e(s["name"]), _e(s["id"]), _e(s["what"]), _e(s["start"]), _e(s["start"]), _e(s["start_api"]), _e(extext)))
     a("</table><h2>Все страницы интерфейса</h2><ul>")
@@ -374,7 +387,7 @@ def render_html(d: dict) -> str:
         a("<li>Калибровка по отчётам KAZ Minerals 2025 и проверка 2023–2024 (состояние: %s): %s строк, в допуске %s, вне допуска %s, без допуска %s</li>" % (_e(c["state"]), _e(c["rows"]), _e(c["in_tolerance"]), _e(c["out_of_tolerance"]), _e(c["no_tolerance"])))
     b = c.get("backtest")
     if b:
-        a("<li>Проверка по кварталам 2018–2025 без подгонки: %s кварталов; медь в допуске в %s, извлечение в допуске в %s; ошибка извлечения %s п.п. (константа 87,2 %% — %s п.п.)</li>" % (
+        a("<li>Проверка по кварталам 2018–2024 без подгонки: %s кварталов; медь в допуске в %s, извлечение в допуске в %s; ошибка извлечения %s п.п. (константа 87,2 %% — %s п.п.)</li>" % (
             _e(b["quarters"]), _e(b["copper_in_tolerance"]), _e(b["recovery_in_tolerance"]), _e(_num(b["recovery_mae_pp"], 2)), _e(_num(b["constant_mae_pp"], 2))))
     p = c["plausibility"]
     a("<li>Проверка правдоподобия (балансы меди, воды, массы, энергии, пределы оборудования) на живых значениях: выполнено %s из %s, нарушено %s, нет данных %s</li></ul>" % (_e(p["ok"]), _e(p["total"]), _e(p["bad"]), _e(p["no_data"])))
