@@ -139,7 +139,7 @@ AKT.unc = (gap, sigma, unitFmt) => {
 /* ISA-101: grey = works as it should, colour only for the abnormal. Level 1 (P1) — stopped or dangerous,
    level 2 (P2) — deviation or losing now, level 3 (P3) — soon (the buffer still holds). */
 const RED = new Set(['STOP', 'DOWN', 'ALARM', 'EMPTY', 'FULL', 'OFF', 'FAILED', 'FIRE', 'FAULT', 'LEAK', 'BROKEN', 'TRIP', 'FLOOD', 'FLOODED', 'CLOSED']);
-const YELLOW = new Set(['COLD', 'SLOW', 'STARVED', 'LIMITED', 'LIMITED_GRID', 'UPSET', 'LOW', 'HIGH', 'LIMIT', 'SHORT', 'ONE', 'WARN', 'WARNING', 'STALE', 'REPAIR']);
+const YELLOW = new Set(['COLD', 'CRUD', 'SLOW', 'STARVED', 'LIMITED', 'LIMITED_GRID', 'UPSET', 'LOW', 'HIGH', 'LIMIT', 'SHORT', 'ONE', 'WARN', 'WARNING', 'STALE', 'REPAIR']);
 AKT.cls = s => RED.has(s) ? 'st-red' : (YELLOW.has(s) ? 'st-yellow' : 'st-grey');
 AKT.LV_CLS = { 0: 'st-grey', 1: 'st-red', 2: 'st-yellow', 3: 'st-soon' };
 AKT.LV_GLYPH = { 0: '', 1: '◆', 2: '▲', 3: '△' };
@@ -147,6 +147,7 @@ AKT.lvCls = lv => AKT.LV_CLS[lv || 0];
 AKT.glyph = lv => lv ? `<span class="lv lv-${lv}" aria-hidden="true">${AKT.LV_GLYPH[lv]}</span>` : '';
 const ST_RU = {
   RUN: 'работает', STOP: 'стоит', SLOW: 'медленно', STARVED: 'нет питания', LIMITED_GRID: 'лимит сети', RELINE: 'перефутеровка',
+  CRUD: 'краб в отстойнике',
   NORMAL: 'норма', LOW: 'мало', EMPTY: 'пуст', FULL: 'полон', HIGH: 'высокий', UPSET: 'сбой', LIMIT: 'на пределе', LIMITED: 'ограничена',
   DIG: 'копает', MOVE: 'переезд', IDLE: 'ждёт', DOWN: 'в ремонте', SHORT: 'не хватает', ONE: 'один пресс', FREE: 'свободен',
   TRAVEL: 'в пути', WORK: 'работает', OFF: 'нет', PAUSED: 'пауза', WARMUP: 'прогрев', ALARM: 'тревога',

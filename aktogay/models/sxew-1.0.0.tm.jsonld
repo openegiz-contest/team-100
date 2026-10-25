@@ -1,12 +1,12 @@
 {
   "@context": "https://www.w3.org/2022/wot/td/v1.1",
   "@type": "tm:ThingModel",
-  "title": "SX-EW plant (cathode copper)",
+  "title": "Oxide chain: cathode against the reports",
   "titles": {
-    "en": "SX-EW plant (cathode copper)",
-    "ru": "Экстракция и электролиз (катодная медь)"
+    "en": "Oxide chain: cathode against the reports",
+    "ru": "Окисленная цепочка: катод против отчётов"
   },
-  "description": "Oxide line: cathode t/h as a quarterly figure of the production reports (not a measurement), integrated since the start of the run. States: NORMAL, LOW.",
+  "description": "Summary of the oxide chain: cathode of the tankhouse now against the level of the quarter of the production reports and the model error of the day. States: NORMAL, LOW.",
   "version": {
     "model": "1.0.0"
   },
@@ -52,6 +52,12 @@
       "href": "http://akt-models/tm/q-n-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "quarter"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "model_dev_pct"
     },
     {
       "rel": "tm:submodel",

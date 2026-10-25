@@ -550,7 +550,7 @@
    }
   }
  },
- "code_hash": "5a5a0d17f2da",
+ "code_hash": "e01a17c37449",
  "command": "python -I aktogay/run.py detect_eval --seeds 25 --jobs 4 --write aktogay/web/static/detect_eval.json",
  "control": {
   "by_node_loss": {

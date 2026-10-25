@@ -102,10 +102,11 @@ ISSUE_NODE = {"piezo": "water", "crusher": "crusher-{}", "trip": "crusher-{}", "
               "conveyor": "conveyor-{}", "pitstop": "pit",
               "energy": "sag-{}", "reagent": "rougher-{}", "leak": "water", "balls": "ball-{}a", "conc": "flot-{}",
               "startup": "ball-{}a", "icy": "pit", "fatigue": "fleet", "oil": "exc-1", "roping": "cyclones-{}", "leachcold": "leach-1",
+              "ewtrip": "ew-1", "sxcrud": "sx-1",
               "phdrift": "ph-{}", "hpgr": "pebble-{}", "mantle": "crusher-{}", "sample": "analyzer-{}",
               "gmd": "sag-{}", "idler": "conveyor-{}", "froth": "flot-{}", "rake": "thick-{}", "cloth": "filter-{}",
               "slurry": "cyclones-{}", "brake": "fleet", "track": "exc-1"}
-SITE_ISSUES = ("grid", "water", "piezo", "hpgr_fire", "leak", "pitstop", "icy", "fatigue", "oil", "leachcold", "brake", "track")   # issue keys without a line number
+SITE_ISSUES = ("grid", "water", "piezo", "hpgr_fire", "leak", "pitstop", "icy", "fatigue", "oil", "leachcold", "brake", "track", "ewtrip", "sxcrud")   # issue keys without a line number
 _CREW_KEY = {"trip": "lube_trip", "cyclones": "cyclone"}   # issue / node kind -> state.CREW_FOR key
 # Russian words of the truth log (validation-sim.truth_log is shown in the interface)
 CAUSE_RU = {"dose": "дрейф расходомера собирателя", "cyclone": "засор циклона", "liner": "износ футеровки SAG",
@@ -485,6 +486,7 @@ class Plant:
         self._hpgr_tripped.clear()
         self._rope_flot.clear()
         wear.clear(self)
+        oxide.fault_clear(st)
         st.pit.restrict_until_min = NO_VALUE
         for ex in st.excavators:
             ex.oil_pct, ex.oil_event_min, ex.oil_fix_min = self.prm["pit_oil_start_pct"], NO_VALUE, NO_VALUE
@@ -555,6 +557,9 @@ class Plant:
             return None
         if kind in wear.KINDS:
             wear.call(self, kind, n, t)       # tier T: the person comes, the unit is fixed after the work
+            return None
+        if kind in oxide.FAULT_KINDS:
+            oxide.fault_call(self, kind, t)   # oxide chain: the electrician restarts the rectifier / the metallurgist has the crud removed
             return None
         if kind == "piezo":
             self._piezo_call(t)               # S0 of the dam: the water technologist goes to the dam and checks it
@@ -835,6 +840,8 @@ class Plant:
             self._fatigue_until = t0 + hours * MIN_PER_H
         elif e.kind in wear.KINDS:
             wear.start(self, e.kind, n, t0, e.data.get("fix_h"))
+        elif e.kind in oxide.FAULT_KINDS:
+            oxide.fault_start(st, e.kind, t0, e.data.get("fix_h"))
         elif e.kind == "oil":
             exc1 = next((x for x in st.excavators if x.name in site().OIL_SENSOR), None)
             if exc1 is not None:
@@ -1328,6 +1335,8 @@ class Plant:
             return any(x.oil_event_min != NO_VALUE for x in st.excavators)
         if kind in wear.KINDS:
             return wear.active(st, kind, n)
+        if kind in oxide.FAULT_KINDS:
+            return kind in st.oxf
         if not 1 <= n <= len(st.lines):
             return False
         if kind == "hpgr":
@@ -1464,6 +1473,10 @@ class Plant:
             hit = wear.issue_at(st, node)
             if hit is not None:
                 return hit
+        if st.oxf:
+            kind_ox = oxide.fault_issue_at(st, node)
+            if kind_ox is not None:
+                return kind_ox, 0
         if nk == "power":
             return "grid", 0
         if nk in ("water", "piezometer", "piezo") and st.flags.get("piezo"):
@@ -1702,7 +1715,8 @@ class Plant:
                                                               self._dust_until != NO_VALUE, p,
                                                               self._icy_until != NO_VALUE)
         w.winter = 1.0 if self.winter_on else 0.0
-        oxide.oxide_step(st, self._leach_until != NO_VALUE, dt, p, self.ox_date)   # reported cathode level of the quarter; no effect on the sulphide plant
+        rect_trip, crud_cm = oxide.faults_now(st, p, st.clock.t_min) if st.oxf else (False, None)
+        oxide.oxide_step(st, self._leach_until != NO_VALUE, dt, p, self.ox_date, rect_trip, crud_cm)   # oxide chain; no effect on the sulphide plant
         ut.water_step(w, wf, dt, p, normal(st.seed, k, "piezo"))
         # totalizers: the intake flowmeter (its noise each step) and the water that leaves the circuit
         w.intake_m3_total += w.intake_m3h * (1.0 + p["sens_flow_sigma"] * normal(st.seed, k, "water-intake-tot")) \

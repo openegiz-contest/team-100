@@ -7,7 +7,7 @@
    "sim": 38,
    "modules": 9,
    "total": 47,
-   "pct": 6.2
+   "pct": 5.8
   },
   {
    "key": "vendor",
@@ -16,49 +16,49 @@
    "sim": 34,
    "modules": 11,
    "total": 45,
-   "pct": 5.9
+   "pct": 5.5
   },
   {
    "key": "analog",
    "ru": "аналог",
    "meaning": "число другой фабрики или рудника, взято как ориентир",
-   "sim": 33,
-   "modules": 31,
-   "total": 64,
-   "pct": 8.4
+   "sim": 35,
+   "modules": 32,
+   "total": 67,
+   "pct": 8.3
   },
   {
    "key": "project",
    "ru": "проект",
    "meaning": "проектный документ (ОВОС 2018, ПЭК)",
-   "sim": 22,
+   "sim": 24,
    "modules": 6,
-   "total": 28,
+   "total": 30,
    "pct": 3.7
   },
   {
    "key": "calc",
    "ru": "расчёт",
    "meaning": "посчитано из других чисел таблицы или отчётов",
-   "sim": 34,
-   "modules": 13,
-   "total": 47,
-   "pct": 6.2
+   "sim": 39,
+   "modules": 14,
+   "total": 53,
+   "pct": 6.5
   },
   {
    "key": "assumption",
    "ru": "допущение",
    "meaning": "источника нет: число выбрано нами, диапазон правдоподобия записан в таблице",
-   "sim": 357,
-   "modules": 176,
-   "total": 533,
-   "pct": 69.8
+   "sim": 389,
+   "modules": 181,
+   "total": 570,
+   "pct": 70.2
   }
  ],
- "sim_rows": 518,
- "modules_rows": 246,
- "rows": 764,
- "assumption_pct": 69.8,
+ "sim_rows": 559,
+ "modules_rows": 253,
+ "rows": 812,
+ "assumption_pct": 70.2,
  "fitted_rows": 5,
  "tier_s": {
   "rows": 78,

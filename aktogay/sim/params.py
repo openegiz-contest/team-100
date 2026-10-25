@@ -186,6 +186,16 @@ S_CYC = ("Multotec cyclones at Ngezi, 12 units with 9 on: "
          "CiDRA BI0455, Copperton 10 units, clogging effect qualitative: https://cidra.com/wp-content/uploads/2024/02/BI0455.pdf")
 S_VINNETT = ("Vinnett 2022, PPMP 58(5), table 3 (k 0.24-0.35 1/min, tau 25-38 min, k tau 9-13): "
              "https://www.journalssystem.com/ppmp/pdf-152420-77419?filename=A-sensitivity-analysis-of.pdf")
+S_LPELAMBRES = ("Los Pelambres (Chile, industrial rougher banks), RTD by tracer, Vinnett 2022 PPMP 58(5), p. 2, 5-6: bank A 9 x 130 m3 Wemco, "
+                "about 600 t/h, 4.1 +- 0.19 min per cell (about 37 min per bank); bank B 6 x 250 m3 DOE, about 700 t/h, 6.4 +- 0.25 min per cell "
+                "(about 38 min per bank): https://www.journalssystem.com/ppmp/pdf-152420-77419?filename=A-sensitivity-analysis-of.pdf (checked 25.10.2026)")
+S_SCHLESINGER = ("Schlesinger 2011 via Bilal 2022, table 1 (industrial copper concentrators, tails): Cerro Verde 0.075 % Cu at 88 % recovery, Ray 0.035 %, "
+                 "Sierrita 0.041 %, Los Bronces 0.133 %: https://pdfs.semanticscholar.org/dab6/1569572cb7e04c623f82d80a96066ae04875.pdf, p. 4 (checked 25.10.2026)")
+S_KAZ17 = ("KAZ Minerals investor presentation April 2017, section Aktogay, Key Statistics: '0.2 strip ratio' (project; the unit is not stated): "
+           "https://www.kazminerals.com/media/1724/kaz-minerals-investor-presentation-april-2017.pdf; Aktogay first copper 13.02.2017, p. 1: "
+           "life-of-mine average grade 0.33 % (sulphide) and 0.37 % (oxide): https://www.kazminerals.com/media/3405/aktogay-first-copper-rus-13022017.pdf (checked 25.10.2026)")
+S_KUMTOR = ("Centerra, Kumtor (gold, Kyrgyzstan), im-mining.com 24.02.2021: Hitachi EX3600 'expected average productivity of 47,000 t/d' (analog, another mine); "
+            "Bozshakol (neighbour mine of KAZ Minerals): main excavators Hitachi EX3600, bucket 21 m3, EIA p. 25: https://ecoportal.kz/Public/PubHearings/LoadFile/45236 (checked 25.10.2026)")
 S_AKHM = ("Akhmetova 2024, master thesis, Satbayev University (Aktogay ore, lab): mass pull 7-13 %, oxidised Cu "
           "0-2.94 % of total Cu (p. 25), collector dose table 16: "
           "https://official.satbayev.university/download/document/39545/2024 МАГ Ахметова А.С..pdf")
@@ -407,7 +417,9 @@ _ROWS = [
 
     # ---------------- pit, blocks, fleet ----------------
     _p("pit_block_t", 15000, 10000, 30000, "t", S_D3 + "; " + S_OVOS_RK + ", p. 35", "assumption",
-       "one block = one ore batch; 3.3-3.9 h of one crusher at its OVOS rate"),
+       "one block = one ore batch; 3.3-3.9 h of one crusher at its OVOS rate; check 25.10.2026: an EX3600 at Kumtor is expected at 47 000 t/d "
+       "(1 960 t/h on average, analog, gold mine), so a block of 15 000 t is about 8 h of one excavator, the same order as the model; "
+       "the size of a block is our choice, no source gives it: label kept (" + S_KUMTOR + ")"),
     _p("pit_plan_h", 12, 8, 24, "h", S_D3, "assumption", "batch created when its block enters the plan"),
     _p("pit_exc_count", 3, 3, 4, "-", S_VESTI + "; " + S_SITE15, "assumption",
        "excavators on ore: 3 of the 5 Hitachi of the pit (5 is fact, the split is ours; Bozshakol 2015 had 4)"),
@@ -436,7 +448,10 @@ _ROWS = [
     _p("fleet_ore_785", 6, 0, 18, "-", S_D4, "assumption",
        "CAT 785 on ore (3 per line), the rest on waste: with the 17 CAT 793 the ore haul per cycle is "
        "17 x 240 + 6 x 136 = 4 896 t, the former aggregate of 36 x 136 t"),
-    _p("fleet_ore_793", 17, 0, 17, "-", S_D4, "assumption", "all CAT 793 on ore (9 line 1, 8 line 2)"),
+    _p("fleet_ore_793", 17, 0, 17, "-", S_D4 + "; " + S_KAZ17, "assumption",
+       "all CAT 793 on ore (9 line 1, 8 line 2); check 25.10.2026: strip ratio 0.2 of the project (unit not stated) gives an ore share of the "
+       "moved rock of 1/1.2 = 83 % if it is t/t; the model fleet puts 4 896 of 6 528 t of cycle payload on ore (75 %): the same order, but it is not "
+       "a derivation of the count 17 (trucks of other models and the stripping of 2025 are not in the project figure): label kept"),
     _p("fleet_load_min", 3, 2, 5, "min", S_D4, "assumption", "truck cycle: loading at the face"),
     _p("fleet_queue_min", 2, 0, 5, "min", S_D4, "assumption", "truck cycle: queue at the crusher or dump; Bozshakol (neighbour mine of KAZ Minerals, Hexagon, im-mining.com 28.03.2025): waiting at the shovel 3-5 min fell to 1-1.5 min, below 2: label kept"),
     _p("fleet_body_raise_s", 20.25, 20.25, 20.25, "s", S_SPECALOG, "vendor", "793D body raise, high idle, p. 20"),
@@ -501,9 +516,9 @@ _ROWS = [
     _p("blk_axb_cv", 0.10, 0.05, 0.20, "-", S_D4, "assumption", "block-to-block spread of the estimate"),
     _p("blk_axb_lo", 24, 24, 27, "-", S_D7, "assumption", "clamp"),
     _p("blk_axb_hi", 45, 40, 47, "-", S_D7, "assumption", "clamp"),
-    _p("blk_cu_mean_pct", 0.41, 0.32, 0.50, "% Cu", S_KAZ25 + "; " + S_KAZ24 + "; " + S_KAZ23, "fact",
-       "feed grade: 0.50 (2023), 0.43 (2024), 0.41 % (2025) by the reports; resource grade 0.32 % (Q2-24, p. 3); "
-       "set per year in calib"),
+    _p("blk_cu_mean_pct", 0.41, 0.32, 0.50, "% Cu", S_KAZ25 + "; " + S_KAZ24 + "; " + S_KAZ23 + "; " + S_KAZ17, "fact",
+       "feed grade: 0.50 (2023), 0.43 (2024), 0.41 % (2025) by the reports; resource grade 0.32 % (Q2-24, p. 3); life-of-mine average of the "
+       "project 0.33 % sulphide (2017, fact of the project: the low edge of the range); set per year in calib"),
     _p("blk_cu_cv", 0.10, 0.05, 0.15, "-", S_D4, "assumption", "feed 0.32-0.50 % Cu"),
     _p("blk_cu_lo_frac", 0.33 / 0.41, 0.33 / 0.41, 0.33 / 0.41, "-", S_D4, "assumption",
        "clamp as a share of blk_cu_mean_pct: 0.33 % Cu at 0.41 %; scales with the year grade"),
@@ -742,10 +757,12 @@ _ROWS = [
     _p("flot_grade_ref_pct", 0.41, 0.41, 0.41, "% Cu", S_KAZ25, "fact", "g0"),
     _p("flot_ascu_ref_pct", 5.0, 2.0, 10.0, "% of Cu", S_D4 + "; " + S_AKHM, "assumption",
        "ASCu0; Aktogay lab samples: oxidised Cu 0-2.94 % of total Cu"),
-    _p("flot_ktau0", 3.5, 2.5, 4.5, "-", S_D4 + "; " + S_VINNETT, "assumption",
-       "k tau at base residence; Vinnett 2022 gives k tau 9-13 for roughers, so 3.5 is a cautious value"),
-    _p("flot_tau0_min", 30, 20, 40, "min", S_D4 + "; " + S_VINNETT, "assumption",
-       "residence at cal_line_tph; literature 25-38 min"),
+    _p("flot_ktau0", 3.5, 2.5, 4.5, "-", S_D4 + "; " + S_VINNETT + "; " + S_LPELAMBRES, "assumption",
+       "k tau at base residence; Vinnett 2022 gives k tau 9-13 for roughers, so 3.5 is a cautious value; the Los Pelambres tracer tests "
+       "give residence time, not k tau, so they do not support this value: label kept (25.10.2026)"),
+    _p("flot_tau0_min", 30, 20, 40, "min", S_D4 + "; " + S_VINNETT + "; " + S_LPELAMBRES, "analog",
+       "residence at cal_line_tph; the value 30 lies inside the 25-38 min of Vinnett 2022 and the 37-38 min per bank of the industrial "
+       "tracer tests at Los Pelambres (another plant, not Aktogay); the range 20-40 is wider than both: label analog since 25.10.2026"),
     _p("flot_p80_ref_um", 180, 180, 180, "um", S_BRAD, "vendor"),
     _p("flot_p80_pp_10um", 0.3, 0.1, 1.95, "pp", S_D4, "assumption",
        "per 10 um above 180; the value is an assumption (no source for the slope at Aktogay); the analog Bozshakol gives 0.79-1.95 (laboratory 0.79-1.22, plant regression 1.95), see modules grind_pp_10um; the range reaches the analog"),
@@ -1107,10 +1124,11 @@ _ROWS = [
     _p("sens_power_sigma", 0.003, 0.001, 0.005, "-", S_D4 + "; " + S_IEC, "assumption", "relative; meter class 0.2S-0.5S"),
     _p("sens_p80_sigma_um", 5, 3, 8, "um", S_D4 + "; " + S_PSI, "assumption"),
     _p("sens_dose_sigma", 0.02, 0.01, 0.04, "-", S_D4, "assumption", "dose flowmeter, relative"),
-    _p("acs_tail_sp_pct", 0.075, 0.065, 0.090, "% Cu", S_D4 + "; " + S_OVOS_RK + ", p. 57", "assumption",
+    _p("acs_tail_sp_pct", 0.075, 0.065, 0.090, "% Cu", S_D4 + "; " + S_OVOS_RK + ", p. 57; " + S_SCHLESINGER, "assumption",
        "constant tails alarm setpoint; base tails 0.052-0.053 % (2024 balance), design 0.059 %; calib tunes to "
        "<= 1 false alarm per week. Philex (industrial, Jameson, 1996): tails 0.046-0.055 % Cu, in line with our 0.053 % for Aktogay 2025 [calc]; "
-       "the source gives normal tails, not an alarm setpoint: label kept"),
+       "the source gives normal tails, not an alarm setpoint: label kept. Industrial tails of copper concentrators 0.035-0.133 % Cu "
+       "(Schlesinger 2011 via Bilal 2022, 25.10.2026) contain the range 0.065-0.090, but they are tails, not alarm limits: label kept"),
     _p("acs_cycles", 2, 2, 2, "-", S_D4 + "; " + S_NIST, "assumption",
        "consecutive analyser cycles above setpoint; stricter than the WECO 2-of-3 rule"),
 
@@ -1193,6 +1211,8 @@ _ROWS = [
 
 from . import params_t  # noqa: E402  (tier T rows, 24.10.2026)
 _ROWS.extend(_p(*_r) for _r in params_t.ROWS)
+from . import params_ox  # noqa: E402  (oxide chain rows, 25.10.2026)
+_ROWS.extend(_p(*_r) for _r in params_ox.ROWS)
 
 from . import params_lev as _params_lev  # noqa: E402  - rows of the what-if levers (after Param and _p exist)
 _ROWS.extend(_params_lev.ROWS)
@@ -1433,6 +1453,8 @@ FEATURE_RULES: dict[str, dict[str, str]] = {
 }
 for _t, _fe in params_t.FEATURES.items():
     FEATURE_RULES[_t].update(_fe)
+for _t, _fe in params_ox.FEATURES.items():          # oxide chain (25.10.2026): new types oxfeed, plspond, sx, ew, catstore
+    FEATURE_RULES.setdefault(_t, {}).update(_fe)
 # Every type also carries its state as a Russian word for display (the machine code stays in "state").
 for _rules in FEATURE_RULES.values():
     _rules["state_ru"] = "state in Russian words (display)"

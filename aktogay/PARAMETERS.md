@@ -61,7 +61,7 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | `tol_water_frac` | 0.05 | 0.05 | 0.05 | - | assumption |  | calib | design section 4 |  |
 | `tol_reline_pp` | 1.5 | 1.5 | 1.5 | pp | assumption |  | calib | design section 4 |  |
 | `tol_balance_pct` | 0.5 | 0.5 | 0.5 | % | assumption |  | calib | design section 10 | balance residual limit |
-| `pit_block_t` | 15000 | 10000 | 30000 | t | assumption |  | ore | design section 3; OVOS 'Reconstruction of concentrators 1 and 2, stage 1' (ecoportal.kz): https://ecoportal.kz/Rubric/RubService/LoadFile/9406, p. 35 | one block = one ore batch; 3.3-3.9 h of one crusher at its OVOS rate |
+| `pit_block_t` | 15000 | 10000 | 30000 | t | assumption |  | ore | design section 3; OVOS 'Reconstruction of concentrators 1 and 2, stage 1' (ecoportal.kz): https://ecoportal.kz/Rubric/RubService/LoadFile/9406, p. 35 | one block = one ore batch; 3.3-3.9 h of one crusher at its OVOS rate; check 25.10.2026: an EX3600 at Kumtor is expected at 47 000 t/d (1 960 t/h on average, analog, gold mine), so a block of 15 000 t is about 8 h of one excavator, the same order as the model; the size of a block is our choice, no source gives it: label kept (Centerra, Kumtor (gold, Kyrgyzstan), im-mining.com 24.02.2021: Hitachi EX3600 'expected average productivity of 47,000 t/d' (analog, another mine); Bozshakol (neighbour mine of KAZ Minerals): main excavators Hitachi EX3600, bucket 21 m3, EIA p. 25: https://ecoportal.kz/Public/PubHearings/LoadFile/45236 (checked 25.10.2026)) |
 | `pit_plan_h` | 12 | 8 | 24 | h | assumption |  | ore | design section 3 | batch created when its block enters the plan |
 | `pit_exc_count` | 3 | 3 | 4 | - | assumption |  | ore | Vesti Semey 06.06.2024, press tour of Aktogay, words of the head of the pit (2 CAT 777, 18 CAT 785, 17 CAT 793; CAT 793 'more than 240 t'; 5 Hitachi excavators 2 700-3 700 t/h; over 500 people and 100 machines per shift in the pit; pit depth up to 230 m): https://vestisemey.kz/15404/kaz-minerals-aktogay-tsifrovye-i-innovatsionnye-vozmozhnosti-industrialnogo-proizvodstva.html; KAZ Minerals site visit presentation 01.06.2015, slide 28 (Bozshakol fleet, analog): https://www.kazminerals.com/media/2834/site-visit-presentation-vfinal-010615.pdf | excavators on ore: 3 of the 5 Hitachi of the pit (5 is fact, the split is ours; Bozshakol 2015 had 4) |
 | `pit_exc_bucket_m3` | 21 | 21 | 23 | m3 | vendor |  | ore | Hitachi EX3600-6 shovel, bucket 21-23 m3 (ritchiespecs): https://www.ritchiespecs.com/model/hitachi-ex3600-6-shovel | Hitachi EX3600-6, 21-23 m3 |
@@ -79,7 +79,7 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | `fleet_payload_777_t` | 90 | 85 | 95 | t | vendor |  | ore | Caterpillar rated payloads (vendor data, spec sheets not opened in this work): 777 about 90 t, 785 136 t | CAT 777 rated payload; not verified here |
 | `fleet_payload_793_t` | 236 | 218 | 240 | t | fact |  | ore | KAZ Minerals annual report 2020, p. 61 (PDF p. 63), photo caption: 'Aktogay 793D haul truck with lightweight tray, 236 t payload': https://www.kazminerals.com/media/22033/kaz-minerals-ar-2020.pdf | Aktogay 793D with lightweight tray, 236 t payload (annual report 2020, p. 61); the press tour's 'more than 240 t' is the 240 short tons (218 t) of the Specalog rating; 240 t was used before 24.10.2026 |
 | `fleet_ore_785` | 6 | 0 | 18 | - | assumption |  | ore | design section 4 | CAT 785 on ore (3 per line), the rest on waste: with the 17 CAT 793 the ore haul per cycle is 17 x 240 + 6 x 136 = 4 896 t, the former aggregate of 36 x 136 t |
-| `fleet_ore_793` | 17 | 0 | 17 | - | assumption |  | ore | design section 4 | all CAT 793 on ore (9 line 1, 8 line 2) |
+| `fleet_ore_793` | 17 | 0 | 17 | - | assumption |  | ore | design section 4; KAZ Minerals investor presentation April 2017, section Aktogay, Key Statistics: '0.2 strip ratio' (project; the unit is not stated): https://www.kazminerals.com/media/1724/kaz-minerals-investor-presentation-april-2017.pdf; Aktogay first copper 13.02.2017, p. 1: life-of-mine average grade 0.33 % (sulphide) and 0.37 % (oxide): https://www.kazminerals.com/media/3405/aktogay-first-copper-rus-13022017.pdf (checked 25.10.2026) | all CAT 793 on ore (9 line 1, 8 line 2); check 25.10.2026: strip ratio 0.2 of the project (unit not stated) gives an ore share of the moved rock of 1/1.2 = 83 % if it is t/t; the model fleet puts 4 896 of 6 528 t of cycle payload on ore (75 %): the same order, but it is not a derivation of the count 17 (trucks of other models and the stripping of 2025 are not in the project figure): label kept |
 | `fleet_load_min` | 3 | 2 | 5 | min | assumption |  | ore | design section 4 | truck cycle: loading at the face |
 | `fleet_queue_min` | 2 | 0 | 5 | min | assumption |  | ore | design section 4 | truck cycle: queue at the crusher or dump; Bozshakol (neighbour mine of KAZ Minerals, Hexagon, im-mining.com 28.03.2025): waiting at the shovel 3-5 min fell to 1-1.5 min, below 2: label kept |
 | `fleet_body_raise_s` | 20.25 | 20.25 | 20.25 | s | vendor |  | ore | Caterpillar 793D Specalog AEHQ5600-01, p. 1 and 20 (engine 3516B 1 801 kW gross, gross machine operating weight 383 749 kg, nominal payload 218 t, body raise 20.25 s, power down 17.51 s, float 19.26 s, top speed 54.3 km/h; the retarding charts on pp. 23-24 are images): https://www.vost-tech.ru/files/catalog/OHT/793d_specalog.pdf | 793D body raise, high idle, p. 20 |
@@ -115,7 +115,7 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | `blk_axb_cv` | 0.1 | 0.05 | 0.2 | - | assumption |  | ore | design section 4 | block-to-block spread of the estimate |
 | `blk_axb_lo` | 24 | 24 | 27 | - | assumption |  | ore | design section 7 | clamp |
 | `blk_axb_hi` | 45 | 40 | 47 | - | assumption |  | ore | design section 7 | clamp |
-| `blk_cu_mean_pct` | 0.41 | 0.32 | 0.5 | % Cu | fact |  | ore | KAZ Minerals Q4 2025 production report (FY2025), p. 3: https://www.kazminerals.com/app/uploads/2026/02/Q4-2025-Production-report_FINAL_ENG.pdf; KAZ Minerals Q4 2024 production report (FY2024), p. 3: https://www.kazminerals.com/media/23240/q4-2024-production-report_final.pdf; KAZ Minerals Q4 2023 production report (FY2023), p. 3: https://www.kazminerals.com/media/23062/q4-2023-production-report-final.pdf | feed grade: 0.50 (2023), 0.43 (2024), 0.41 % (2025) by the reports; resource grade 0.32 % (Q2-24, p. 3); set per year in calib |
+| `blk_cu_mean_pct` | 0.41 | 0.32 | 0.5 | % Cu | fact |  | ore | KAZ Minerals Q4 2025 production report (FY2025), p. 3: https://www.kazminerals.com/app/uploads/2026/02/Q4-2025-Production-report_FINAL_ENG.pdf; KAZ Minerals Q4 2024 production report (FY2024), p. 3: https://www.kazminerals.com/media/23240/q4-2024-production-report_final.pdf; KAZ Minerals Q4 2023 production report (FY2023), p. 3: https://www.kazminerals.com/media/23062/q4-2023-production-report-final.pdf; KAZ Minerals investor presentation April 2017, section Aktogay, Key Statistics: '0.2 strip ratio' (project; the unit is not stated): https://www.kazminerals.com/media/1724/kaz-minerals-investor-presentation-april-2017.pdf; Aktogay first copper 13.02.2017, p. 1: life-of-mine average grade 0.33 % (sulphide) and 0.37 % (oxide): https://www.kazminerals.com/media/3405/aktogay-first-copper-rus-13022017.pdf (checked 25.10.2026) | feed grade: 0.50 (2023), 0.43 (2024), 0.41 % (2025) by the reports; resource grade 0.32 % (Q2-24, p. 3); life-of-mine average of the project 0.33 % sulphide (2017, fact of the project: the low edge of the range); set per year in calib |
 | `blk_cu_cv` | 0.1 | 0.05 | 0.15 | - | assumption |  | ore | design section 4 | feed 0.32-0.50 % Cu |
 | `blk_cu_lo_frac` | 0.804878 | 0.804878 | 0.804878 | - | assumption |  | ore | design section 4 | clamp as a share of blk_cu_mean_pct: 0.33 % Cu at 0.41 %; scales with the year grade |
 | `blk_cu_hi_frac` | 1.21951 | 1.21951 | 1.21951 | - | assumption |  | ore | design section 4 | clamp as a share of blk_cu_mean_pct: 0.50 % Cu at 0.41 %; scales with the year grade |
@@ -228,8 +228,8 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | `flot_jose_ascu` | 1.043 | 0.5 | 1.5 | pp/pp | assumption |  | flotation | Josemaria FS 2020 (SRK/Fluor, ALS tests), section 13.6.1 p. 82: https://minedocs.com/20/Josemaria-Resources-Inc-TR-FS-11052020.pdf | total R -= 1.043 (ASCu - ASCu0) per pp of ASCu as a share of total Cu; the unit of ASCu in the Josemaria regression (share of ore mass or share of total Cu) is not confirmed (report > 10 MB not opened), so moving the coefficient here is an assumption; applied on R_inf / (k_base c_base); sensitivity 0.5-1.5 |
 | `flot_grade_ref_pct` | 0.41 | 0.41 | 0.41 | % Cu | fact |  | flotation | KAZ Minerals Q4 2025 production report (FY2025), p. 3: https://www.kazminerals.com/app/uploads/2026/02/Q4-2025-Production-report_FINAL_ENG.pdf | g0 |
 | `flot_ascu_ref_pct` | 5 | 2 | 10 | % of Cu | assumption |  | flotation | design section 4; Akhmetova 2024, master thesis, Satbayev University (Aktogay ore, lab): mass pull 7-13 %, oxidised Cu 0-2.94 % of total Cu (p. 25), collector dose table 16: https://official.satbayev.university/download/document/39545/2024 МАГ Ахметова А.С..pdf | ASCu0; Aktogay lab samples: oxidised Cu 0-2.94 % of total Cu |
-| `flot_ktau0` | 3.5 | 2.5 | 4.5 | - | assumption |  | flotation | design section 4; Vinnett 2022, PPMP 58(5), table 3 (k 0.24-0.35 1/min, tau 25-38 min, k tau 9-13): https://www.journalssystem.com/ppmp/pdf-152420-77419?filename=A-sensitivity-analysis-of.pdf | k tau at base residence; Vinnett 2022 gives k tau 9-13 for roughers, so 3.5 is a cautious value |
-| `flot_tau0_min` | 30 | 20 | 40 | min | assumption |  | flotation | design section 4; Vinnett 2022, PPMP 58(5), table 3 (k 0.24-0.35 1/min, tau 25-38 min, k tau 9-13): https://www.journalssystem.com/ppmp/pdf-152420-77419?filename=A-sensitivity-analysis-of.pdf | residence at cal_line_tph; literature 25-38 min |
+| `flot_ktau0` | 3.5 | 2.5 | 4.5 | - | assumption |  | flotation | design section 4; Vinnett 2022, PPMP 58(5), table 3 (k 0.24-0.35 1/min, tau 25-38 min, k tau 9-13): https://www.journalssystem.com/ppmp/pdf-152420-77419?filename=A-sensitivity-analysis-of.pdf; Los Pelambres (Chile, industrial rougher banks), RTD by tracer, Vinnett 2022 PPMP 58(5), p. 2, 5-6: bank A 9 x 130 m3 Wemco, about 600 t/h, 4.1 +- 0.19 min per cell (about 37 min per bank); bank B 6 x 250 m3 DOE, about 700 t/h, 6.4 +- 0.25 min per cell (about 38 min per bank): https://www.journalssystem.com/ppmp/pdf-152420-77419?filename=A-sensitivity-analysis-of.pdf (checked 25.10.2026) | k tau at base residence; Vinnett 2022 gives k tau 9-13 for roughers, so 3.5 is a cautious value; the Los Pelambres tracer tests give residence time, not k tau, so they do not support this value: label kept (25.10.2026) |
+| `flot_tau0_min` | 30 | 20 | 40 | min | analog |  | flotation | design section 4; Vinnett 2022, PPMP 58(5), table 3 (k 0.24-0.35 1/min, tau 25-38 min, k tau 9-13): https://www.journalssystem.com/ppmp/pdf-152420-77419?filename=A-sensitivity-analysis-of.pdf; Los Pelambres (Chile, industrial rougher banks), RTD by tracer, Vinnett 2022 PPMP 58(5), p. 2, 5-6: bank A 9 x 130 m3 Wemco, about 600 t/h, 4.1 +- 0.19 min per cell (about 37 min per bank); bank B 6 x 250 m3 DOE, about 700 t/h, 6.4 +- 0.25 min per cell (about 38 min per bank): https://www.journalssystem.com/ppmp/pdf-152420-77419?filename=A-sensitivity-analysis-of.pdf (checked 25.10.2026) | residence at cal_line_tph; the value 30 lies inside the 25-38 min of Vinnett 2022 and the 37-38 min per bank of the industrial tracer tests at Los Pelambres (another plant, not Aktogay); the range 20-40 is wider than both: label analog since 25.10.2026 |
 | `flot_p80_ref_um` | 180 | 180 | 180 | um | vendor |  | flotation | Bradken + KAZ Minerals Aktogay mill optimisation whitepaper, Oct 2021 (line 1): https://assets.ctfassets.net/ge6w0nvcjafk/1yRwupkiNkxXwbgGj4fjbN/8ab61ff573592af415efecfe05912a04/Mill_Optimisation_Whitepaper.pdf |  |
 | `flot_p80_pp_10um` | 0.3 | 0.1 | 1.95 | pp | assumption |  | flotation | design section 4 | per 10 um above 180; the value is an assumption (no source for the slope at Aktogay); the analog Bozshakol gives 0.79-1.95 (laboratory 0.79-1.22, plant regression 1.95), see modules grind_pp_10um; the range reaches the analog |
 | `flot_dose_sp_gt` | 25 | 20 | 30 | g/t | project |  | flotation | Aktogay line 2 EIA (OVOS) 2018: https://minedocs.com/19/Aktogai-Sulphide-Concentrator-Expansion-Project-Environmental-Impact-Assessment-2018.pdf | xanthate 0.025 kg/t |
@@ -417,7 +417,7 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | `sens_power_sigma` | 0.003 | 0.001 | 0.005 | - | assumption |  | sensors | design section 4; IEC 62053-22 (electricity meters, class 0.2S / 0.5S) | relative; meter class 0.2S-0.5S |
 | `sens_p80_sigma_um` | 5 | 3 | 8 | um | assumption |  | sensors | design section 4; Metso PSI 500i particle size analyser (vendor accuracy) |  |
 | `sens_dose_sigma` | 0.02 | 0.01 | 0.04 | - | assumption |  | sensors | design section 4 | dose flowmeter, relative |
-| `acs_tail_sp_pct` | 0.075 | 0.065 | 0.09 | % Cu | assumption |  | sensors | design section 4; OVOS 'Reconstruction of concentrators 1 and 2, stage 1' (ecoportal.kz): https://ecoportal.kz/Rubric/RubService/LoadFile/9406, p. 57 | constant tails alarm setpoint; base tails 0.052-0.053 % (2024 balance), design 0.059 %; calib tunes to <= 1 false alarm per week. Philex (industrial, Jameson, 1996): tails 0.046-0.055 % Cu, in line with our 0.053 % for Aktogay 2025 [calc]; the source gives normal tails, not an alarm setpoint: label kept |
+| `acs_tail_sp_pct` | 0.075 | 0.065 | 0.09 | % Cu | assumption |  | sensors | design section 4; OVOS 'Reconstruction of concentrators 1 and 2, stage 1' (ecoportal.kz): https://ecoportal.kz/Rubric/RubService/LoadFile/9406, p. 57; Schlesinger 2011 via Bilal 2022, table 1 (industrial copper concentrators, tails): Cerro Verde 0.075 % Cu at 88 % recovery, Ray 0.035 %, Sierrita 0.041 %, Los Bronces 0.133 %: https://pdfs.semanticscholar.org/dab6/1569572cb7e04c623f82d80a96066ae04875.pdf, p. 4 (checked 25.10.2026) | constant tails alarm setpoint; base tails 0.052-0.053 % (2024 balance), design 0.059 %; calib tunes to <= 1 false alarm per week. Philex (industrial, Jameson, 1996): tails 0.046-0.055 % Cu, in line with our 0.053 % for Aktogay 2025 [calc]; the source gives normal tails, not an alarm setpoint: label kept. Industrial tails of copper concentrators 0.035-0.133 % Cu (Schlesinger 2011 via Bilal 2022, 25.10.2026) contain the range 0.065-0.090, but they are tails, not alarm limits: label kept |
 | `acs_cycles` | 2 | 2 | 2 | - | assumption |  | sensors | design section 4; NIST e-Handbook 6.3.2 (control chart rules; 2 consecutive cycles is stricter than WECO 2 of 3): https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc32.htm | consecutive analyser cycles above setpoint; stricter than the WECO 2-of-3 rule |
 | `scen_end_h` | 20 | 20 | 20 | h | assumption |  | events, plant | design section 2 | auto pause at shift end |
 | `scen_fork_dose_h` | 8 | 8 | 8 | h | assumption |  | events, plant | design section 7 | silent issue start |
@@ -516,6 +516,47 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | `w_track_fail_h` | 3 | 1 | 12 | h | assumption |  | wear (tier T), modules | Hitachi EX3600-6 brochure KS-EN056T, p. 7: track tension by nitrogen accumulators, 'Travel is automatically stopped if accumulator pressure exceeds a preset level' (the preset level is not published): https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf | hours from the alert limit to the auto-stop of the travel |
 | `w_track_fix_h` | 2 | 0.5 | 6 | h | assumption |  | wear (tier T), modules | Hitachi EX3600-6 brochure KS-EN056T, p. 7: track tension by nitrogen accumulators, 'Travel is automatically stopped if accumulator pressure exceeds a preset level' (the preset level is not published): https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf | release and setting of the track tension after arrival |
 | `w_track_repair_h` | 6 | 1 | 24 | h | assumption |  | wear (tier T), modules | Hitachi EX3600-6 brochure KS-EN056T, p. 7: track tension by nitrogen accumulators, 'Travel is automatically stopped if accumulator pressure exceeds a preset level' (the preset level is not published): https://hitachicm.com.au/wp-content/uploads/2021/05/EX3600-6_KS-EN056T-small.pdf | the shovel stands (cannot walk to the next face) this long after the auto-stop if nobody was called before |
+| `ox_idle_ore_tph` | 100 | 20 | 400 | t/h | assumption |  | oxide line (sim/oxide.py) | KAZ Minerals quarterly production reports 2018-2026, rows 'Oxide ore to leach pads', 'Grade', 'Copper cathode' of the Aktogay table (sim/data/kaz_oxide_quarterly.csv, URL of each report in the file); Q4 2024 p. 3 and Q4 2025 p. 3 on cold and seasonal efficiency | the stacker counts as idle below this placing rate (2020 Q2: 36 kt in a quarter = 17 t/h); only sets the state of oxfeed-1 |
+| `ox_rmax` | 0.435 | 0.2 | 0.9 | - | calc |  | oxide line (sim/oxide.py) | KAZ Minerals quarterly production reports 2018-2026, rows 'Oxide ore to leach pads', 'Grade', 'Copper cathode' of the Aktogay table (sim/data/kaz_oxide_quarterly.csv, URL of each report in the file); Q4 2024 p. 3 and Q4 2025 p. 3 on cold and seasonal efficiency | leachable share of the contained copper (what dissolves on the scale of years; the rest is not leached by the pad); fitted |
+| `ox_th_d` | 548 | 30 | 1500 | d | calc |  | oxide line (sim/oxide.py) | KAZ Minerals quarterly production reports 2018-2026, rows 'Oxide ore to leach pads', 'Grade', 'Copper cathode' of the Aktogay table (sim/data/kaz_oxide_quarterly.csv, URL of each report in the file); Q4 2024 p. 3 and Q4 2025 p. 3 on cold and seasonal efficiency | time constant of the leaching of a cohort in days at 20 degC (thermal days); fitted. 2020 Q2: 36 kt of fresh ore and 5.4 kt of cathode from the ore placed earlier (re-irrigation, report of Q2 2020, p. 3) show that most of the cathode comes from old ore |
+| `ox_ea_app_jmol` | 6320 | 3000 | 35000 | J/mol | calc |  | oxide line (sim/oxide.py) | KAZ Minerals quarterly production reports 2018-2026, rows 'Oxide ore to leach pads', 'Grade', 'Copper cathode' of the Aktogay table (sim/data/kaz_oxide_quarterly.csv, URL of each report in the file); Q4 2024 p. 3 and Q4 2025 p. 3 on cold and seasonal efficiency; Activation energy of leaching of copper oxide ore and malachite in acid, 26.7 kJ/mol (Scientia Iranica, article 20161) and 33.2 kJ/mol (Int. J. Miner. Metall. Mater. 2015, 10.1007/s12613-015-1067-1), abstracts read 25.10.2026 (analog, laboratory) | apparent activation energy against the AIR temperature; fitted. The laboratory value is 27-33 kJ/mol (analog); the fit gives about a fifth of it, because the pad is much warmer than the air in winter (raffinate, snow, mass): this is the damping of the pad, not the chemistry |
+| `ox_heap_tau_d` | 8 | 2 | 40 | d | assumption |  | oxide line (sim/oxide.py) | our rounding | lag of the pad temperature behind the air temperature, days |
+| `ox_m0_t` | 40400 | 20000 | 200000 | t | calc |  | oxide line (sim/oxide.py) | KAZ Minerals quarterly production reports 2018-2026, rows 'Oxide ore to leach pads', 'Grade', 'Copper cathode' of the Aktogay table (sim/data/kaz_oxide_quarterly.csv, URL of each report in the file); Q4 2024 p. 3 and Q4 2025 p. 3 on cold and seasonal efficiency | leachable copper in the pad on 01.01.2018 (placed before 2018, nothing is published); fitted |
+| `ox_irr_m3h` | 1500 | 1200 | 1800 | m3/h | project |  | oxide line (sim/oxide.py) | EIA conclusions KZ19VWF00069171 (24.06.2022) and of 26.10.2023, ecoportal.kz LoadFile/18392 p. 2 and LoadFile/35802 pp. 2, 5-6: heap pad 1 486 861 m2, five lifts (13 m each from the second), cathode 'up to 25 thousand t a year', raffinate circulation 1 500 m3/h: https://ecoportal.kz/Rubric/RubService/LoadFile/35802 | raffinate circulation of the pads (EIA: 'recycling of raffinate 1 500 m3/h') |
+| `ox_pad_tau_h` | 2 | 0.5 | 6 | h | assumption |  | oxide line (sim/oxide.py) | our rounding | delay of the solution between the dissolution and the drain of the pad to the PLS pond |
+| `ox_pls_v_m3` | 12000 | 6000 | 20000 | m3 | assumption |  | oxide line (sim/oxide.py) | our rounding | volume of the PLS pond at the level set point (8 h of the flow) |
+| `ox_pls_vmax_m3` | 20000 | 15000 | 30000 | m3 | assumption |  | oxide line (sim/oxide.py) | our rounding | volume at which the PLS pond spills; irrigation is then cut to the SX flow |
+| `ox_raff_v_m3` | 6000 | 3000 | 12000 | m3 | assumption |  | oxide line (sim/oxide.py) | our rounding | volume of the raffinate pond (kept constant, make-up water is not modelled) |
+| `ox_pond_tau_h` | 4 | 1 | 12 | h | assumption |  | oxide line (sim/oxide.py) | our rounding | time constant of the level control of the PLS pond (the SX feed follows the level) |
+| `ox_sx_q_cap` | 1.25 | 1 | 1.6 | - | assumption |  | oxide line (sim/oxide.py) | our rounding | maximum SX feed flow as a multiple of the irrigation flow |
+| `ox_sx_eta` | 0.95 | 0.9 | 0.98 | - | assumption |  | oxide line (sim/oxide.py) | extraction of copper from PLS in two or three stages is usually 90-98 % (not verified against an open source: label assumption) | share of the copper of the PLS taken by the organic phase; the rest goes back to the pad with the raffinate |
+| `ox_ew_gpah` | 1.18549 | 1.18 | 1.19 | g/Ah | calc |  | oxide line (sim/oxide.py) | Faraday's law: m = M I t CE / (z F), M(Cu) = 63.546 g/mol, z = 2, F = 26.8015 Ah/mol (physics, textbook) | copper deposited per ampere-hour at 100 % current efficiency |
+| `ox_ew_cells` | 72 | 40 | 120 | - | assumption |  | oxide line (sim/oxide.py) | PSI Group, project list: 'Aktogay 25 000 TPA SX/EW plant' (2014-2015): https://minedocs.com/19/Aktogay-PSI-Group-Projects-web-site-03122023.pdf | cells of the tankhouse in series; the number is not published, chosen so that 25 kt a year need about 300 A/m2 |
+| `ox_ew_cath_n` | 60 | 40 | 80 | - | assumption |  | oxide line (sim/oxide.py) | our rounding | cathodes per cell |
+| `ox_ew_cath_m2` | 1 | 0.8 | 1.3 | m2 | assumption |  | oxide line (sim/oxide.py) | our rounding | area of one face of a cathode; the plate has two faces |
+| `ox_ew_ce` | 0.92 | 0.88 | 0.95 | - | analog |  | oxide line (sim/oxide.py) | Tenke Fungurume electrowinning, SAIMM 2016 (scielo.org.za/scielo.php?script=sci_arttext&pid=S2225-62532016000600004): stainless cathodes at 430 A/m2, current efficiency 92 % in the plant (analog, another copper-cobalt plant); Cerro Verde SX-EW, 911Metallurgist (solvent-extraction-and-electrowinning-sx-ew): design 184 A/m2 at 88 % current efficiency, expansion 250 A/m2 at 90 %, operation up to 370 A/m2 (analog) | current efficiency of the tankhouse (Tenke 92 % plant, Cerro Verde 88-90 %) |
+| `ox_ew_design_kty` | 25 | 15 | 26 | kt/y | project |  | oxide line (sim/oxide.py) | EIA conclusions KZ19VWF00069171 (24.06.2022) and of 26.10.2023, ecoportal.kz LoadFile/18392 p. 2 and LoadFile/35802 pp. 2, 5-6: heap pad 1 486 861 m2, five lifts (13 m each from the second), cathode 'up to 25 thousand t a year', raffinate circulation 1 500 m3/h: https://ecoportal.kz/Rubric/RubService/LoadFile/35802; PSI Group, project list: 'Aktogay 25 000 TPA SX/EW plant' (2014-2015): https://minedocs.com/19/Aktogay-PSI-Group-Projects-web-site-03122023.pdf; KAZ Minerals annual report 2018, PDF p. 36: 'Copper cathode production from oxide material was 25.7 kt in 2018', oxide grade 0.33 %: https://www.kazminerals.com/media/12383/ka173_book_web_version.pdf | design cathode of the tankhouse; the EIA says 'up to 25 thousand t a year', 25.7 kt were made in 2018 |
+| `ox_ew_overload` | 1.32 | 1 | 1.5 | - | assumption |  | oxide line (sim/oxide.py) | Tenke Fungurume electrowinning, SAIMM 2016 (scielo.org.za/scielo.php?script=sci_arttext&pid=S2225-62532016000600004): stainless cathodes at 430 A/m2, current efficiency 92 % in the plant (analog, another copper-cobalt plant); Cerro Verde SX-EW, 911Metallurgist (solvent-extraction-and-electrowinning-sx-ew): design 184 A/m2 at 88 % current efficiency, expansion 250 A/m2 at 90 %, operation up to 370 A/m2 (analog) | rectifier limit as a multiple of the design current; the reports show quarters above the design (7.6 kt in Q3 2021 = 30 kt a year) |
+| `ox_ew_v_cell` | 2 | 1.8 | 2.4 | V | assumption |  | oxide line (sim/oxide.py) | cell voltage of copper electrowinning 1.9-2.2 V (not verified against an open source) | voltage per cell; with the current efficiency it gives the energy per tonne of cathode |
+| `ox_ew_el_m3` | 400 | 150 | 800 | m3 | assumption |  | oxide line (sim/oxide.py) | our rounding | volume of the electrolyte of the tankhouse |
+| `ox_ew_el_gl` | 45 | 35 | 55 | g/L | assumption |  | oxide line (sim/oxide.py) | our rounding | copper in the rich electrolyte at the set point |
+| `ox_ew_emax_frac` | 1.3 | 1.1 | 1.6 | - | assumption |  | oxide line (sim/oxide.py) | our rounding | copper in the electrolyte at which the strip stops, as a multiple of the set point |
+| `ox_ew_tau_h` | 1 | 0.25 | 4 | h | assumption |  | oxide line (sim/oxide.py) | our rounding | time constant of the current control (electrolyte inventory back to the set point) |
+| `ox_store_cap_t` | 300 | 100 | 1000 | t | assumption |  | oxide line (sim/oxide.py) | our rounding | cathode store |
+| `ox_store_high_frac` | 0.8 | 0.5 | 0.95 | - | assumption |  | oxide line (sim/oxide.py) | our rounding | store is HIGH above this share |
+| `ox_ship_batch_t` | 60 | 20 | 120 | t | assumption |  | oxide line (sim/oxide.py) | our rounding | cathode in a convoy or a wagon load; shipped when the store holds a load (about a day of output) |
+| `ox_store_t0` | 90 | 0 | 300 | t | assumption |  | oxide line (sim/oxide.py) | our rounding | cathode in the store at the start of a run |
+| `ox_low_frac` | 0.1 | 0.05 | 0.2 | - | assumption |  | oxide line (sim/oxide.py) | our rounding | sxew-1 is LOW when the cathode is below the expected one by more than this share |
+| `ox_rect_fix_h` | 2 | 0.5 | 8 | h | assumption |  | oxide line (sim/oxide.py) | our rounding | restart of a tripped rectifier by the electrician after the arrival |
+| `ox_rect_auto_h` | 8 | 2 | 24 | h | assumption |  | oxide line (sim/oxide.py) | our rounding | the rectifier is found and restarted by itself this long after the trip if nobody is called |
+| `ox_crud_ok_cm` | 0.5 | 0.2 | 1 | cm | assumption |  | oxide line (sim/oxide.py) | our rounding | crud layer in the settler with the plant in order |
+| `ox_crud_alert_cm` | 3 | 1.5 | 6 | cm | assumption |  | oxide line (sim/oxide.py) | our rounding | crud layer at which the operator is told |
+| `ox_crud_crit_cm` | 8 | 4 | 15 | cm | assumption |  | oxide line (sim/oxide.py) | our rounding | crud layer at which the extraction is at its worst |
+| `ox_crud_rise_h` | 5 | 1 | 12 | h | assumption |  | oxide line (sim/oxide.py) | our rounding | hours from the normal layer to the alert |
+| `ox_crud_fail_h` | 6 | 1 | 12 | h | assumption |  | oxide line (sim/oxide.py) | our rounding | hours from the alert to the worst layer |
+| `ox_crud_fix_h` | 3 | 1 | 8 | h | assumption |  | oxide line (sim/oxide.py) | our rounding | removal of crud (treatment of the organic phase) after the arrival |
+| `ox_crud_eta_frac` | 0.6 | 0.3 | 0.9 | - | assumption |  | oxide line (sim/oxide.py) | our rounding | extraction as a share of the normal one at the worst layer |
+| `ox_crud_q_frac` | 0.5 | 0.2 | 0.9 | - | assumption |  | oxide line (sim/oxide.py) | our rounding | SX feed flow that the settler can take, as a share of the normal one, at the worst layer |
 | `lev_feed_min_pct` | 80 | 80 | 80 | % | assumption |  | levers (plant, service) | stand lever (what-if control of the model, not of the plant); bounds are a design choice of the stand | lever: lowest feed rate of a SAG line, % of the nominal line rate |
 | `lev_feed_max_pct` | 120 | 120 | 120 | % | assumption |  | levers (plant, service) | stand lever (what-if control of the model, not of the plant); bounds are a design choice of the stand | lever: highest feed rate of a SAG line, % of the nominal line rate (the power limit, liner wear and the pebble circuit still bind) |
 | `lev_p80_min_um` | 160 | 160 | 160 | um | assumption |  | levers (plant, service) | stand lever (what-if control of the model, not of the plant); bounds are a design choice of the stand; Satbayev University repository (Bozshakol plant, daily data 2022-04.2025, regression), table 2 p. 61 and tables 4-6 p. 62: -1.95 pp Cu recovery per +10 um P80 (plant model); lab -1.2 pp per 10 um (about -7.3 pp over 60 um): https://repository.satbayev.university/api/files/ep83fzrdl7c6ztx7jeo3dj51w.pdf | lever: lowest grind P80 target |
@@ -805,17 +846,27 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | filter | `limit_tph` | presses_on x 35 |
 | filter | `cycle_pct` | filtration cycle time, % of a new cloth (100 = new; blinding raises it) |
 | filter | `state_ru` | state in Russian words (display) |
-| leach | `state` | NORMAL/COLD: COLD while the scenario leachcold lasts (cold spell on the heap leach pad) |
+| leach | `state` | NORMAL/COLD: COLD while the scenario leachcold lasts (frozen irrigation lines, cold pad) |
 | leach | `quarter_cathode_kt` | cathode of the model quarter, kt, from the reports (kaz_quarterly.csv); a date after 2025 takes the same quarter of 2025 |
-| leach | `level_tph` | quarter cathode / hours of the quarter; the reported quarters already hold the season |
-| leach | `cold_frac` | 0 in NORMAL, ox_cold_frac in COLD |
+| leach | `level_tph` | quarter cathode / hours of the quarter (reported level, for the comparison with the model) |
+| leach | `cold_frac` | share of the irrigation lost while COLD (ox_cold_frac) |
+| leach | `irrigation_m3h` | raffinate on the pads, m3/h |
+| leach | `irrigation_pct` | irrigation as % of ox_irr_m3h |
+| leach | `heap_temp_c` | temperature of the pad, degC (lagged air temperature) |
+| leach | `k_factor` | Arrhenius factor of the rate against 20 degC at the apparent activation energy |
+| leach | `leach_cu_tph` | copper dissolved in the pad now, t/h |
+| leach | `leach_exp_tph` | the same with full irrigation (expected) |
+| leach | `inventory_cu_t` | leachable copper left in the pad, t |
+| leach | `recovery_pct` | share of the leachable copper placed since 2018 that is already dissolved, % |
+| leach | `pls_gl` | copper of the solution leaving the pad, g/L |
 | leach | `state_ru` | state in Russian words (display) |
-| sxew | `state` | NORMAL/LOW: LOW while the leach pad is COLD |
-| sxew | `cathode_tph` | level_tph x (1 - cold_frac); a quarterly figure of the reports, not a measurement |
-| sxew | `cathode_level_tph` | level_tph of the quarter |
+| sxew | `state` | NORMAL/LOW: LOW while the cathode is below the expected one by ox_alarm_frac |
+| sxew | `cathode_tph` | cathode of the tankhouse now, t/h (model, Faraday) |
+| sxew | `cathode_level_tph` | reported level of the quarter, t/h = quarter cathode of the reports / hours |
 | sxew | `cathode_t_total` | integrated since the start of the run |
-| sxew | `year` | year of the quarter used |
-| sxew | `quarter` | quarter 1..4 |
+| sxew | `year` | year of the model quarter |
+| sxew | `quarter` | quarter (1-4) |
+| sxew | `model_dev_pct` | expected cathode against the reported level of the quarter, % (the back-test error of the day) |
 | sxew | `state_ru` | state in Russian words (display) |
 | conc-stock | `state` | NORMAL/HIGH/FULL: HIGH at cstock_high_frac of cstock_cap_t, FULL at the capacity |
 | conc-stock | `stock_t` | integrated, wet |
@@ -824,6 +875,47 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | conc-stock | `wagons_shift` | wagons loaded |
 | conc-stock | `hours_to_full` | (cap - stock) / net in |
 | conc-stock | `state_ru` | state in Russian words (display) |
+| oxfeed | `state` | NORMAL/IDLE: IDLE while the placing rate is below ox_idle_ore_tph |
+| oxfeed | `ore_tph` | oxide ore placed on the pads now, t/h = quarter ore of the reports / hours of the quarter |
+| oxfeed | `grade_pct` | copper grade of the placed ore, % (reports) |
+| oxfeed | `cu_tph` | contained copper placed, t/h |
+| oxfeed | `quarter_ore_kt` | oxide ore placed in the quarter, kt (reports, kaz_oxide_quarterly.csv) |
+| oxfeed | `placed_t_total` | ore placed since the start of the run, t |
+| oxfeed | `state_ru` | state in Russian words (display) |
+| plspond | `state` | NORMAL/HIGH/FULL/LOW by the volume of the PLS pond |
+| plspond | `volume_m3` | volume |
+| plspond | `level_pct` | volume / ox_pls_vmax_m3, % |
+| plspond | `pls_gl` | copper in the pond, g/L |
+| plspond | `in_m3h` | flow from the pad |
+| plspond | `out_m3h` | flow to SX |
+| plspond | `raff_gl` | copper of the raffinate pond (irrigation solution), g/L |
+| plspond | `hours_to_full` | (vmax - volume) / (in - out), -1 when it does not fill |
+| plspond | `state_ru` | state in Russian words (display) |
+| sx | `state` | NORMAL/CRUD/DOWN: CRUD above the alert layer of the settler |
+| sx | `feed_m3h` | PLS to SX, m3/h |
+| sx | `extraction_pct` | copper taken from the PLS, % (ox_sx_eta x crud and strip limits) |
+| sx | `transfer_cu_tph` | copper moved to the electrolyte, t/h |
+| sx | `raff_cu_gl` | copper in the raffinate leaving SX, g/L |
+| sx | `crud_cm` | crud layer in the settler, cm |
+| sx | `state_ru` | state in Russian words (display) |
+| ew | `state` | NORMAL/LIMIT/TRIP: LIMIT at the rectifier limit, TRIP when the rectifier is out |
+| ew | `current_ka` | line current, kA |
+| ew | `current_set_ka` | current asked by the control, kA |
+| ew | `voltage_v` | cell voltage, V |
+| ew | `current_density_am2` | current density on the cathode faces, A/m2 |
+| ew | `cathode_tph` | copper deposited now, t/h (Faraday) |
+| ew | `cathode_exp_tph` | expected cathode with the chain in order, t/h |
+| ew | `power_mw` | tankhouse power, MW (inside pow_other_mw) |
+| ew | `kwh_t` | energy per tonne of cathode, kWh/t |
+| ew | `electrolyte_cu_t` | copper in the electrolyte, t |
+| ew | `state_ru` | state in Russian words (display) |
+| catstore | `state` | NORMAL/HIGH/FULL |
+| catstore | `stock_t` | cathode in the store, t |
+| catstore | `in_tph` | cathode in |
+| catstore | `shipped_t_total` | shipped since the start, t |
+| catstore | `shipments_n` | loads shipped since the start |
+| catstore | `hours_to_full` | (capacity - stock) / in, -1 when it does not fill |
+| catstore | `state_ru` | state in Russian words (display) |
 
 ## Analysis modules (modules/params.py: akt-losses, akt-ore, akt-priority)
 
@@ -855,7 +947,7 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | `p80_ref_um` | 180 | 180 | 180 | um | vendor | Bradken + KAZ Minerals Aktogay mill optimisation whitepaper, Oct 2021 (line 1) | flotation feed P80 target |
 | `lev_adv_feed_pct` | 95 | 80 | 120 | % | assumption | stand lever (control of the model, not of the plant) | advice 'reduce the feed' (SAG energy overspend, liner wear, overload): suggested feed rate, % of the nominal line rate |
 | `lev_adv_rope_feed_pct` | 90 | 80 | 120 | % | assumption | stand lever (control of the model, not of the plant) | advice for cyclone roping: suggested feed rate of the line, % of the nominal line rate |
-| `flot_tau0_min` | 30 | 20 | 40 | min | assumption | design file 17, section 4 | rougher residence at base t/h |
+| `flot_tau0_min` | 30 | 20 | 40 | min | analog | design file 17, section 4; Vinnett 2022 PPMP 58(5): residence 25-38 min; Los Pelambres tracer tests: 37-38 min per bank (another plant) | rougher residence at base t/h |
 | `flot_ktau0` | 3.5 | 2.5 | 4.5 | - | assumption | design file 17, section 4 | k tau at base residence |
 | `flot_rinf0_pct` | 92.6961 | 88 | 96 | % | calc | design file 17, section 4 | R_inf giving 87.2 % total at base |
 | `flot_grade_pp_ln` | 4.093 | 0 | 6 | pp | analog | Josemaria FS 2020, section 13.6.1 p. 82 (grade and ASCu slopes on total recovery) | total R per ln(g / g0) |
@@ -865,6 +957,13 @@ Labels: fact (company reports), vendor, project (OVOS 2018), analog, assumption,
 | `flot_p80_pp_10um` | 0.3 | 0.1 | 0.5 | pp | assumption | design file 17, section 4 | R loss per 10 um above 180 |
 | `ox_alarm_frac` | 0.1 | 0.05 | 0.2 | - | assumption | design file 17, section 4 | oxide line: the trouble "cold leaching" opens when the cathode output is below the level of the quarter by more than this share |
 | `cathode_payable_frac` | 1 | 0.95 | 1 | - | assumption | design file 17, section 4 | oxide line: share of the LME price paid for cathode copper; cathode is sold as metal, no concentrate deductions (not published) |
+| `ox_rect_floor_frac` | 0.2 | 0.05 | 0.5 | - | assumption | design file 17, section 4 | oxide line: the rectifier is out when the line current is below this share of the current the control asks for |
+| `ox_ew_emax_frac` | 1.3 | 1.1 | 1.6 | - | assumption | design file 17, section 4 | oxide line: copper in the electrolyte at which the strip stops, as a multiple of the set point (the same row as the simulator) |
+| `ox_ew_e_t` | 18 | 6 | 44 | t | calc | design file 17, section 4 | oxide line: copper in the electrolyte at the set point = 400 m3 x 45 g/L (the same numbers as the simulator rows) |
+| `ox_sx_eta` | 0.95 | 0.9 | 0.98 | - | assumption | design file 17, section 4 | oxide line: normal extraction of SX (the same row as the simulator) |
+| `ox_crud_alert_cm` | 3 | 1.5 | 6 | cm | assumption | design file 17, section 4 | oxide line: crud layer of the SX settler at which the trouble opens |
+| `rep_ew_h` | 2 | 0.5 | 8 | h | assumption | design file 17, section 5 | oxide line: restart of a tripped rectifier by the electrician |
+| `rep_crud_h` | 3 | 1 | 8 | h | assumption | design file 17, section 5 | oxide line: removal of crud from the SX settler |
 | `grind_pp_10um` | 1.2 | 0.79 | 1.95 | pp | analog | Bozshakol concentrator (the same operator), regression on daily plant data 2022 - Apr 2025 and laboratory composites, Satbayev University repository, table 2 p. 61, tables 4-6 p. 62: https://repository.satbayev.university/api/files/ep83fzrdl7c6ztx7jeo3dj51w.pdf (opened 24.10.2026; P80 of Aktogay 180 um from the Bradken whitepaper p. 3) | price of the trouble "coarse grind": R loss per +10 um of P80 above 180; the laboratory composite 1 (85.85 -> 78.55 % over 60 um = 1.22 pp per 10 um), the lower end of the plant slope; the stand keeps flot_p80_pp_10um (0.3, assumption) in its physics, so the card shows a larger loss than the model books |
 | `grind_pp_10um_lo` | 0.79 | 0.79 | 0.79 | pp | analog | Bozshakol concentrator (the same operator), regression on daily plant data 2022 - Apr 2025 and laboratory composites, Satbayev University repository, table 2 p. 61, tables 4-6 p. 62: https://repository.satbayev.university/api/files/ep83fzrdl7c6ztx7jeo3dj51w.pdf (opened 24.10.2026; P80 of Aktogay 180 um from the Bradken whitepaper p. 3) | laboratory composite 2: 71.10 -> 66.34 % over 60 um = 0.79 pp per 10 um (calculation from table 6) |
 | `grind_pp_10um_hi` | 1.95 | 1.95 | 1.95 | pp | analog | Bozshakol concentrator (the same operator), regression on daily plant data 2022 - Apr 2025 and laboratory composites, Satbayev University repository, table 2 p. 61, tables 4-6 p. 62: https://repository.satbayev.university/api/files/ep83fzrdl7c6ztx7jeo3dj51w.pdf (opened 24.10.2026; P80 of Aktogay 180 um from the Bradken whitepaper p. 3) | regression of the plant daily data: -1.95 pp of Cu recovery per +10 um (linear model, not a direct measurement) |

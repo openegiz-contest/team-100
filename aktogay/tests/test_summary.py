@@ -60,7 +60,7 @@ class SummaryBuildTest(unittest.TestCase):
         with open(os.path.join(STATIC, "scenarios.json"), encoding="utf-8") as f:
             ids = [s["id"] for s in json.load(f)["scenarios"]]
         self.assertEqual([s["id"] for s in d["scenarios"]], ids)
-        self.assertEqual(len(ids), 30)
+        self.assertEqual(len(ids), 32)
         self.assertTrue(all(s["expected_by_20_00"] for s in d["scenarios"] if s["id"] in ("crusher:1", "grid", "fork")))
         fork = [s for s in d["scenarios"] if s["id"] == "fork"][0]
         self.assertIn("twin_minus_no_twin_cu_t", fork["expected_by_20_00"])

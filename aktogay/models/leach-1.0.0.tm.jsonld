@@ -6,7 +6,7 @@
     "en": "Heap leach pad of the oxide ore",
     "ru": "Куча выщелачивания окисленной руды"
   },
-  "description": "Oxide line: heap leach -> SX-EW -> cathode. One state and the cathode level of the quarter from the production reports; the ore on the pad, irrigation and solution grades are not published. States: NORMAL, COLD.",
+  "description": "Heap leach: cohorts of ore by month of placing, leaching by thermal age (temperature of the pad, irrigation); the dissolved copper goes to the PLS pond. Fitted on the quarterly cathode of the reports. States: NORMAL, COLD.",
   "version": {
     "model": "1.0.0"
   },
@@ -40,6 +40,60 @@
       "href": "http://akt-models/tm/q-n-1.0.0.tm.jsonld",
       "type": "application/tm+json",
       "instanceName": "cold_frac"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-m3h-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "irrigation_m3h"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "irrigation_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-degc-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "heap_temp_c"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-x-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "k_factor"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "leach_cu_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-tph-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "leach_exp_tph"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-t-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "inventory_cu_t"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-pct-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "recovery_pct"
+    },
+    {
+      "rel": "tm:submodel",
+      "href": "http://akt-models/tm/q-gl-1.0.0.tm.jsonld",
+      "type": "application/tm+json",
+      "instanceName": "pls_gl"
     },
     {
       "rel": "tm:submodel",

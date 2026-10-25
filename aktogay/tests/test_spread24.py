@@ -211,13 +211,13 @@ class StaticSpreadTest(unittest.TestCase):
     def test_one_number_of_things_in_all_documents(self):
         import twins
         n = len(twins.Model().things)
-        self.assertEqual(n, 136)
+        self.assertEqual(n, 141)
         for name in (README, "SUBMISSION.md"):
             t = read(DOCS, name)
             for m in re.finditer(r"(\d+)\s+(?:постоянн\w+\s+вещ\w+|постоянных\s+вещей)", t):
                 self.assertEqual(int(m.group(1)), n, f"{name}: {m.group(0)}")
             self.assertNotRegex(t, r"\b(?:127|133)\s+постоянн")
-        self.assertIn("создаёт 136", read(DOCS, README))
+        self.assertIn("создаёт 141", read(DOCS, README))
 
     def test_no_text_for_a_reader_outside_the_dispatcher(self):
         bad = re.compile(r"жюри|судь[яеи]|для\s+ИИ|нейросет|\bLLM\b", re.I)

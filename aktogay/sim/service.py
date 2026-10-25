@@ -153,7 +153,8 @@ BATCH_HEAL_MIN = 60.0            # every live batch once a model hour: a create 
 # Rate budget (publish.Publisher, 20 msg/s with a ramp): the site passport things go out less often.
 SLOW_TYPES = ("truck", "face", "road", "drill", "dozer")   # in rotation: each every SLOW_EVERY checkpoints
 SLOW_EVERY = 6
-CHECKPOINT_TYPES = ("person", "analyzer", "weigher", "flowmeter", "piezometer", "leach", "sxew")   # checkpoints only, not live
+CHECKPOINT_TYPES = ("person", "analyzer", "weigher", "flowmeter", "piezometer", "leach", "sxew",
+                    "oxfeed", "plspond", "sx", "ew", "catstore")   # checkpoints only, not live (the oxide chain moves on the scale of hours)
 FULL_REASONS = ("start", "cancel", "pause", "auto-pause")   # points that carry every thing
 
 

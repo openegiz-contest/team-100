@@ -25,9 +25,9 @@ class TwinModelTest(unittest.TestCase):
     def test_counts(self):
         m = self.m
         service = [t for t in m.things if t["type"] in m.service]
-        self.assertEqual(len(m.things), 136)                   # 52 (4 crews, leach pad and SX-EW) + 83 generated from the site passport (+4 people, +2 pH meters)
+        self.assertEqual(len(m.things), 141)                   # 57 (4 crews, the oxide chain of 7) + 84 generated from the site passport (+4 people, +2 pH meters)
         self.assertEqual(len(service), 9)
-        self.assertEqual(len(m.types) - len(m.service), 35)   # 33 own types incl. batch (+ phmeter, leach, sxew)
+        self.assertEqual(len(m.types) - len(m.service), 40)   # 33 own types incl. batch (+ phmeter, leach, sxew, oxfeed, plspond, sx, ew, catstore)
         by_type = {}
         for t in m.things:
             by_type[t["type"]] = by_type.get(t["type"], 0) + 1

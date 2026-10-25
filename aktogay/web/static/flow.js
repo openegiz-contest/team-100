@@ -126,6 +126,34 @@
     return g;
   };
 
+  /* ------------------------------------------------ oxide lane: ore -> heap -> PLS pond -> SX -> EW -> cathode store (all from Ditto) */
+  const OX_BOXES = [
+    ['oxfeed-1', 'Руда на кучу', t => [`${fmt(n0(t, 'ore_tph'))} т/ч`, `Cu ${f2(n0(t, 'grade_pct'))} %`, `${f2(n0(t, 'cu_tph'))} т Cu/ч`]],
+    ['leach-1', 'Куча', t => [`орошение ${fmt(n0(t, 'irrigation_pct'))} %`, `куча ${fmt(n0(t, 'heap_temp_c'))} °C`, `растворяет ${f2(n0(t, 'leach_cu_tph'))} т/ч`]],
+    ['pls-1', 'Пруд PLS', t => [`${fmt(n0(t, 'level_pct'))} % объёма`, `Cu ${f2(n0(t, 'pls_gl'))} г/л`, `рафинат ${f2(n0(t, 'raff_gl'))} г/л`]],
+    ['sx-1', 'Экстракция SX', t => [`извлечение ${fmt(n0(t, 'extraction_pct'))} %`, `краб ${f1(n0(t, 'crud_cm'))} см`, `перенос ${f2(n0(t, 'transfer_cu_tph'))} т/ч`]],
+    ['ew-1', 'Электролиз EW', t => [`ток ${f1(n0(t, 'current_ka'))} кА`, `${fmt(n0(t, 'current_density_am2'))} А/м²`, `катод ${f2(n0(t, 'cathode_tph'))} т/ч`]],
+    ['catstore-1', 'Склад катода', t => [`${fmt(n0(t, 'stock_t'))} т`, `приход ${f2(n0(t, 'in_tph'))} т/ч`, `отгружено ${fmt(n0(t, 'shipped_t_total'))} т`]],
+  ];
+  const OX_BAD = { 'oxfeed-1': /^IDLE$/, 'leach-1': /^COLD$/, 'pls-1': /^(HIGH|FULL)$/, 'sx-1': /^(CRUD|DOWN)$/, 'ew-1': /^(TRIP)$/, 'catstore-1': /^(FULL)$/ };
+  const oxLane = () => {
+    const bw = 112, gap = 28, y = 20, h = 78, W2 = OX_BOXES.length * bw + (OX_BOXES.length - 1) * gap + 8;
+    const loss = {};
+    for (const i of AKT.issues()) { const usd = AKT.num(i, 'loss_usd_h'); if (usd > 0 && AKT.lossNow(i)) { const nd = AKT.issueNode(i); loss[nd] = (loss[nd] || 0) + usd; } }
+    let g = '';
+    OX_BOXES.forEach(([t, title, lines], k) => {
+      const x = 4 + k * (bw + gap), st = AKT.st(t) || '';
+      const bad = (OX_BAD[t] || /^$/).test(st);
+      g += `<g class="fl-box ${bad ? 'bad' : ''}"><title>${esc(AKT.nameRu(t) || t)}: ${esc(AKT.stRu(st, t))}</title><rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="3"/><text class="fl-t" x="${x + bw / 2}" y="${y + 15}" text-anchor="middle">${esc(title)}</text>`
+        + lines(t).map((l, i) => `<text class="fl-s" x="${x + bw / 2}" y="${y + 31 + 14 * i}" text-anchor="middle">${esc(l)}</text>`).join('') + '</g>';
+      if (loss[t] > 0) g += tag(x, y + h + 18, `−${AKT.approx(loss[t])}/ч`, 'loss');
+      if (k < OX_BOXES.length - 1) g += `<path d="M${x + bw} ${y + h / 2} L${x + bw + gap - 2} ${y + h / 2}" stroke="currentColor" stroke-width="2.5" fill="none" marker-end="url(#ox-arr)"/>`;
+    });
+    const xs = 4 + 3 * (bw + gap) + bw / 2, xl = 4 + 1 * (bw + gap) + bw / 2, yb = y + h + 46;
+    g += `<path class="fl-loop" d="M${xs} ${y + h} L${xs} ${yb} L${xl} ${yb} L${xl} ${y + h}" stroke-dasharray="5 4" fill="none"/><text class="fl-s" x="${(xs + xl) / 2}" y="${yb - 4}" text-anchor="middle">рафинат на кучу · ${f2(n0('pls-1', 'raff_gl'))} г/л Cu · ${fmt(n0('leach-1', 'irrigation_m3h'))} м³/ч</text>`;
+    return `<svg class="fl-svg" viewBox="0 0 ${W2} ${yb + 14}" width="100%" role="img" aria-label="Окисленная цепочка: руда на кучу, куча, пруд PLS, экстракция, электролиз, склад катода; рафинат возвращается на кучу"><defs><marker id="ox-arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="currentColor"/></marker></defs>${g}</svg>`;
+  };
+
   AKT.views.copper = {
     build(stage) {
       const d = doc(stage, 'copper');
@@ -133,7 +161,7 @@
 <p class="lead">От карьера до концентрата и хвостов. Ширина серой полосы — т руды в час; красным — где медь теряется по открытым бедам; хвосты серые: это неизбежная часть извлечения, не отклонение. Числа — живые данные двойника, обновляются раз в 2 с.</p>
 <div id="cp-flow"></div>
 <div id="cp-legend"></div>
-<h3>Окисленная руда: куча → SX-EW → катод</h3><div id="cp-ox"></div>
+<h3>Окисленная цепочка: руда → куча → SX → электролиз → катод</h3><div id="cp-oxsvg"></div><div id="cp-ox"></div>
 <h3>Баланс меди: питание = концентрат + хвосты</h3><div id="cp-cu"></div>
 <h3>Баланс воды</h3><div id="cp-water"></div>`;
     },
@@ -147,11 +175,11 @@
       setHtml('cp-flow', svg);
       const tot = loss.list.reduce((s, x) => s + x.cu, 0);
       setHtml('cp-legend', `<p class="fl-key"><span class="k band"></span> руда, ширина ∝ т/ч · <span class="k conc"></span> концентрат · <span class="k tails"></span> хвосты · <b class="redtxt">▲</b> красным — потери меди по открытым бедам (${loss.list.length ? '≈ ' + f2(tot) + ' т Cu/ч, ' + esc(AKT.approx(AKT.usdPerH(tot))) + '/ч' : 'нет'}). В хвосты уходит ${f2(pos(L[0].tailsCu) + pos(L[1].tailsCu))} т Cu/ч на двух линиях — неизбежная часть извлечения, серым. Потери по бедам — расчёт модуля очереди бед (≈), хвосты — измерение анализатора и расходомеров (с шумом).</p>`);
-      /* oxide line: one small branch, a quarterly figure of the reports (not a measurement) */
+      /* oxide chain: twins linked by the flow; the quarterly figure of the reports only for the comparison */
+      if (AKT.things['ew-1']) setHtml('cp-oxsvg', oxLane());
       const ox = k => AKT.num('sxew-1', k), cold = AKT.st('leach-1') === 'COLD';
-      setHtml('cp-ox', ox('cathode_tph') == null ? '<p class="empty dash">Окисленная линия ещё не опубликована.</p>' : `<p class="fl-key"><b>окисленная руда</b> → <b>${cold ? '▲ ' : ''}куча выщелачивания</b> (${esc(AKT.stRu(AKT.st('leach-1'), 'leach-1'))}) → <b>SX-EW</b> → <b>катод ${f2(ox('cathode_tph'))} т/ч</b></p>
-<table class="kv"><tr><th>Квартал отчёта</th><th>Катод за квартал</th><th>Уровень квартала</th><th>Сейчас</th></tr><tr><td class="n">${fmt(ox('quarter'))} кв. ${fmt(ox('year'), 0).replace(/\s/g, '')} г.</td><td class="n">${f2(n0('leach-1', 'quarter_cathode_kt'))} кт</td><td class="n">${f2(ox('cathode_level_tph'))} т/ч</td><td class="n">${f2(ox('cathode_tph'))} т/ч${cold ? ` (−${fmt(100 * n0('leach-1', 'cold_frac'))} %)` : ''}</td></tr></table>
-<p class="note">Квартальный выпуск по отчётам KAZ Minerals, не измерение: руда на площадке, орошение и содержание в растворе не публикуются. Зимний спад уже в цифре квартала (4 кв. 2024: −25 % к 3 кв.) [факт]. Дата — дата стенда; после 2025 г. берётся тот же квартал 2025 г. Холодное выщелачивание — сценарий «Холодное выщелачивание на куче».</p>`);
+      setHtml('cp-ox', ox('cathode_tph') == null ? '<p class="empty dash">Окисленная цепочка ещё не опубликована.</p>' : `<table class="kv"><tr><th>Квартал отчёта</th><th>Катод за квартал (отчёт)</th><th>Уровень квартала</th><th>Ожидает модель</th><th>Сейчас</th><th>Модель против отчёта</th></tr><tr><td class="n">${fmt(ox('quarter'))} кв. ${fmt(ox('year'), 0).replace(/\s/g, '')} г.</td><td class="n">${f2(n0('leach-1', 'quarter_cathode_kt'))} кт</td><td class="n">${f2(ox('cathode_level_tph'))} т/ч</td><td class="n">${f2(n0('ew-1', 'cathode_exp_tph'))} т/ч</td><td class="n">${f2(ox('cathode_tph'))} т/ч${cold ? ` (орошение ${fmt(n0('leach-1', 'irrigation_pct'))} %)` : ''}</td><td class="n">${ox('model_dev_pct') == null ? '—' : (ox('model_dev_pct') > 0 ? '+' : '−') + fmt(Math.abs(ox('model_dev_pct'))) + ' %'}</td></tr></table>
+<p class="note">Катод сейчас — расчёт цепочки по закону Фарадея (ток × ванны × выход по току), а не замер; уровень квартала — число отчётов KAZ Minerals (катод ÷ часы квартала), не измерение. Кинетика кучи подогнана на катоде 32 кварталов 2018–2025 гг.: средняя ошибка по кварталу ≈ 10 %, график — на странице «Калибровка». Раствор, ёмкости прудов, число ванн и выход по току — допущения или аналоги (см. «Изнутри»). Дата — дата стенда; после 2025 г. берётся тот же день 2025 г. Беды цепочки — сценарии «Холодное выщелачивание на куче», «Отключение выпрямителя электролиза», «Краб в отстойнике SX».</p>`);
       /* copper balance table */
       const cell = (v, d = 2) => v == null ? '—' : fmt(Math.abs(v) < 0.5 * Math.pow(10, -d) ? 0 : v, d);
       const sum = f => (L[0][f] != null && L[1][f] != null) ? L[0][f] + L[1][f] : null;

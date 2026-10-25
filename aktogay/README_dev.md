@@ -34,6 +34,11 @@ aktogay/
                       money, CO2
     wear.py           tier T of 24.10.2026: eight equipment troubles (gmd, idler, froth, rake, cloth, slurry, brake, track), scenario only;
                       rows in params_t.py (module rows in modules/params_t.py); cards in modules/readiness_t.py, scenarios_t.py, inside_t.py, tiers_t.py
+    oxide.py          oxide chain of 25.10.2026: ore to the heap -> heap leach pad (cohorts by month, thermal age, Arrhenius on the lagged air temperature)
+                      -> PLS pond -> SX -> EW (Faraday: g/Ah x current x cells x current efficiency) -> cathode store; scenarios ewtrip (rectifier trip),
+                      sxcrud (crud in the settler) and leachcold; backtest() and calibrate() on the cathode of the quarters
+                      (data/kaz_oxide_quarterly.csv: ore to the pads, grade, cathode of the reports 2018Q1-2026Q2) -> web/static/backtest_ox.json
+    params_ox.py      rows ox_* and the features of the types oxfeed, plspond, sx, ew, catstore (leach, sxew extended)
     params_lev.py     rows of the what-if levers (lev_*); the levers themselves live in plant.py (set_levers), service.py (control.lever)
     events.py         scenario parsing and presets, hidden causes, random stops,
                       calib downtime, crews, copy call policies; tier S tokens (icy, fatigue, oil, roping:N,
@@ -68,6 +73,8 @@ aktogay/
                       and the evidence list with the age of every measurement of an issue card
     inside.py         the page «Изнутри»: nodes, signals with the place where each is seen, failures with sources, depth A/B/C;
                       writes web/static/inside.json (a test keeps it equal)
+    oxide.py          the three troubles of the oxide chain (leach_cold, ew_rect, sx_crud); readiness_ox.py (cards), scenarios_ox.py (catalog rows and
+                      the numbers of the expected outcome), inside_ox.py (six nodes of «Изнутри»)
     readiness.py      the nine points of every new trouble; writes web/static/readiness.json and READINESS.md (the repository root; final_docs/ in the team's working tree)
     scenarios.py      catalog of scenarios (what should happen, how to check) and the constructor of a trouble; writes web/static/scenarios.json
     apidoc.py         web/API.md (HTTP API and, per module, inputs, outputs, tests) and web/static/modules.json (live table of «Как проверить»)
@@ -145,6 +152,7 @@ python -I aktogay/run.py stock_sens --jobs 4 --write aktogay/sim/data/stock_sens
 python -I aktogay/scripts/check_numbers.py [--list]   # every headline number of README, SUBMISSION and the presentation is in web/static/claims.json
 python -I aktogay/scripts/measure_scenarios.py --out FILE.json   # on a running stand: time to the first trouble and whom to call, all catalog scenarios
 python -I aktogay/run.py replay --write aktogay/web/static/replay.json        # replay of the trial shifts (no new trial)
+python -I aktogay/run.py oxide --write aktogay/web/static/backtest_ox.json   # back-test of the oxide pad on the cathode of the quarters (about 15 s); --calibrate [--strict] refits the four numbers
 python -I aktogay/run.py paramstat --write aktogay/web/static/params_summary.json   # labels of the parameter tables
 python -I aktogay/run.py plausibility --write aktogay/web/static/plausibility.json   # invariants of the live check
 python -I aktogay/run.py haul --calibrate      # parts of the truck cycle of every route and fleet_speed_eff for the 30 min reference

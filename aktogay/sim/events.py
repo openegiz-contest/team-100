@@ -59,7 +59,7 @@ LINES = (1, 2)
 #   hpgr_fire  fire at the HPGR of concentrator 1 during maintenance (event of 09.08.2026, scen_fire_line)
 #   road:N     ramp to crusher N closed, trucks take a detour
 SITE_KINDS = ("grid", "water", "hpgr_fire", "leak", "winter", "dust", "pitstop", "icy", "fatigue", "oil", "leachcold",
-              "brake", "track")
+              "brake", "track", "ewtrip", "sxcrud")
 LINE_KINDS = ("crusher", "hard", "reline", "trip", "road", "conveyor") + HIDDEN + ("energy", "reagent") + EXTRA + (
     "startup", "hpgr", "mantle", "sample", "gmd", "idler", "froth", "rake", "cloth", "slurry")
 HPGR_LINES = (2,)           # the HPGR is in the model on line 2 only (thyssenkrupp POLYCOM, vendor)
@@ -79,7 +79,7 @@ _NODE = {
     "icy": "pit", "fatigue": "fleet", "oil": "exc-1", "roping": "cyclones-{n}", "phdrift": "ph-{n}",
     "hpgr": "pebble-{n}", "mantle": "crusher-{n}", "sample": "analyzer-{n}", "leachcold": "leach-1",
     "gmd": "sag-{n}", "idler": "conveyor-{n}", "froth": "flot-{n}", "rake": "thick-{n}", "cloth": "filter-{n}",
-    "slurry": "cyclones-{n}", "brake": "fleet", "track": "exc-1",
+    "slurry": "cyclones-{n}", "brake": "fleet", "track": "exc-1", "ewtrip": "ew-1", "sxcrud": "sx-1",
 }
 # Key of the magnitude in ScenarioEvent.data and the parameter that sets it.
 _MAG_KEY = {"dose": "drop", "cyclone": "n", "liner": "loss", "oxide": "ascu_pp",
@@ -112,6 +112,8 @@ MAGNITUDE = {
     "gmd": ("fix_h", "w_gmd_fix_h"), "idler": ("fix_h", "w_idler_fix_h"), "froth": ("fix_h", "w_froth_fix_h"),
     "rake": ("fix_h", "w_rake_fix_h"), "cloth": ("fix_h", "w_cloth_fix_h"), "slurry": ("fix_h", "w_slurry_fix_h"),
     "brake": ("fix_h", "w_brake_fix_h"), "track": ("fix_h", "w_track_fix_h"),
+    # oxide chain: the work of the person after the arrival, hours (data["fix_h"])
+    "ewtrip": ("fix_h", "ox_rect_fix_h"), "sxcrud": ("fix_h", "ox_crud_fix_h"),
 }
 _RE_TOKEN = re.compile(r"^([a-z_]+(?::\d+)?)(?:@(\d+(?:\.\d+)?))?(?:=(-?\d+(?:\.\d+)?))?$")
 

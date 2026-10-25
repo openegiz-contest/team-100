@@ -117,7 +117,7 @@ class TestTopology(unittest.TestCase):
     def test_graph(self):
         t = topology()
         # 41 plant things (4 crews) + 8 people + 2 stripping excavators + 5 faces + 3 roads + 37 trucks + 9 instruments
-        self.assertEqual(len(t), 127)                     # + 6 drill rigs + 7 dozers + 4 people of the pit and the grinding control room + 2 pH meters + leach pad and SX-EW
+        self.assertEqual(len(t), 132)                     # + 6 drill rigs + 7 dozers + 4 people of the pit and the grinding control room + 2 pH meters + the oxide chain of 7
         for info in t.values():
             for p in info.parents:
                 self.assertIn(p, t, info.thing_id)

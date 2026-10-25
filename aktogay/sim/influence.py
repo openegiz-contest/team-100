@@ -273,6 +273,18 @@ def refresh_labels(doc: dict) -> dict:
     lab.update({("modules", p.key): p.label for p in mparams.PARAMS})
     for r in doc["rows"]:
         r["label"] = lab[(r["table"], r["key"])]
+    # rows added after the run: the oxide chain (ox_*, 25.10.2026) does not enter the copper, ore, energy, water or money of the sulphide plant
+    # (tests/test_oxide.py: the shift summary is equal with the whole oxide step removed), so its model rows move the gain by 0.0 by construction;
+    # the new rows of the modules table are read by modules/oxide.py
+    have = {(r["table"], r["key"]) for r in doc["rows"]}
+    for p in sparams.TABLE.values():
+        if ("model", p.key) not in have:
+            fixed = p.max <= p.min
+            doc["rows"].append({"table": "model", "key": p.key, "label": p.label, "cls": "read_fixed" if fixed else "read_small",
+                                "dev": None if fixed else 0.0})
+    for p in mparams.PARAMS:
+        if ("modules", p.key) not in have:
+            doc["rows"].append({"table": "modules", "key": p.key, "label": p.label, "cls": "read", "dev": None})
     doc["summary"] = summary(doc["rows"])
     doc["top"] = sorted([x for x in doc["rows"] if x["dev"] is not None], key=lambda x: -x["dev"])[:30]
     return doc

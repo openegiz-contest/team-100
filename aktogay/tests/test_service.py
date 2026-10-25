@@ -105,7 +105,7 @@ class TestRunner(unittest.TestCase):
         slow = [k for k in names if r.cat.things.get(k) in service.SLOW_TYPES]
         # 41 plant things (4 crews) + 2 stripping excavators + 12 people + 11 instruments at every checkpoint;
         # trucks, faces, roads, drill rigs and dozers (58) in rotation, one sixth per checkpoint
-        self.assertEqual(len(names) - len(slow), 69)
+        self.assertEqual(len(names) - len(slow), 74)
         self.assertEqual(len(slow), 10)
         self.assertEqual(snap["site"]["state_ru"], "работает")
         n_slow = sum(1 for typ in r.cat.things.values() if typ in service.SLOW_TYPES)

@@ -6,6 +6,7 @@
   python -I aktogay/run.py service [...]     simulator service akt-sim (sim/service.py)
   python -I aktogay/run.py trial [--n 100]   on/off trial of the issue queue (sim/trial.py)
   python -I aktogay/run.py backtest [--quick] quarterly back-test on the KAZ Minerals reports (sim/backtest.py)
+  python -I aktogay/run.py oxide [--calibrate [--strict]] [--write PATH]  oxide chain: back-test of the heap on the cathode of the reports, calibration (sim/oxide.py)
   python -I aktogay/run.py replay --write PATH  replay file «с двойником / без» from the stored trial rows (sim/replay.py)
   python -I aktogay/run.py fidelity [--only ...]  availability, relines, forward test 2026, recovery refit, ore spread (sim/fidelity.py)
   python -I aktogay/run.py influence [--screen-n 8]  which parameters can change the conclusions (sim/influence.py)
@@ -52,6 +53,9 @@ def main(argv: list[str]) -> int:
     if cmd == "backtest":
         from sim import backtest
         return backtest.main(rest)
+    if cmd == "oxide":
+        from sim import oxide
+        return oxide.main(rest)
     if cmd == "paramstat":
         from sim import paramstat
         return paramstat.main(rest)

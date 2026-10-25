@@ -162,6 +162,7 @@
 <h3>Калибровка по годовым отчётам</h3><div id="cb-report"></div>
 <h3>Сверка с фактом KAZ Minerals: вода, энергия, CO₂</h3><div id="cb-facts"></div>
 <h3>Проверка по кварталам</h3><div id="cb-bt"></div>
+<h3>Окисленная цепочка: расчёт против отчётов по кварталам</h3><div id="cb-ox"></div>
 <h3>Правдоподобие по прогонам модели: доступность, реальные остановки, прогноз вперёд, извлечение, разброс руды</h3><div id="cb-fid"><p class="empty dash">Загружаю итоги прогонов…</p></div>
 <h3>На чём стоят числа модели</h3><div id="cb-params"><p class="empty dash">Загружаю сводку меток…</p></div>
 <h3>Допущения, влияющие на вывод, и остальные</h3><div id="cb-infl"><p class="empty dash">Загружаю классификацию…</p></div>
@@ -172,6 +173,7 @@
       AKT.exp23.load(() => this.update());
       if (AKT.plaus) AKT.plaus.load(() => this.update());
       if (AKT.fidelity) AKT.fidelity.load(() => this.update());
+      if (AKT.oxbt) AKT.oxbt.load(() => this.update());
       fetch('/params_summary.json', { cache: 'no-store' }).then(r => r.json()).then(j => { this.params = j; this.update(); }).catch(() => { /* optional */ });
     },
     update() {
@@ -204,6 +206,7 @@
       else if (bad) body = `<pre>${esc(bad)}</pre>`;
       setHtml('cb-report', body, false);
       setHtml('cb-facts', factsHtml(rep), false);
+      if (AKT.oxbt) setHtml('cb-ox', AKT.oxbt.render(), false);
       setHtml('cb-bt', AKT.backtest ? AKT.backtest.render(rep && rep.backtest) : '<p class="empty dash">Проверка по кварталам недоступна.</p>', false);
       const ml = k => AKT.num('mod-losses', k);
       const resid = v => v == null ? '<span class="note">мало точек</span>' : `<span class="${Math.abs(v) < 0.5 ? 'ok' : 'bad'}">${f2(v)} %</span>`;

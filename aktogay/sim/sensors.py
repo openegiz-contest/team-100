@@ -53,6 +53,7 @@ STATE_RU = {
     "DUMP": "разгрузка", "RETURN": "едет порожний", "OPEN": "открыта", "CLOSED": "закрыта",
     "ACTIVE": "в работе", "OK": "исправен", "DRIFT": "дрейф", "SUSPECT": "под подозрением",
     "DRILLING": "бурит", "MOVING": "переезд", "COLD": "холодное выщелачивание",
+    "TRIP": "выбило выпрямитель", "CRUD": "краб в отстойнике",
 }
 
 
@@ -344,8 +345,18 @@ class _Snap:
             return st.water
         if typ == "conc-stock":
             return st.conc_stock
+        if typ == "oxfeed":
+            return st.oxfeed
         if typ == "leach":
             return st.leach
+        if typ == "plspond":
+            return st.pls
+        if typ == "sx":
+            return st.sx
+        if typ == "ew":
+            return st.ew
+        if typ == "catstore":
+            return st.catstore
         if typ == "sxew":
             return st.sxew
         if typ == "water":
@@ -621,13 +632,42 @@ def _b_conc_stock(c: _Snap, tid, cs):
             "hours_to_full": cs.hours_to_full}
 
 
+def _b_oxfeed(c: _Snap, tid, o):
+    return {"state": o.state, "ore_tph": o.ore_tph, "grade_pct": o.grade_pct, "cu_tph": o.cu_tph,
+            "quarter_ore_kt": o.quarter_ore_kt, "placed_t_total": o.placed_t_total}
+
+
 def _b_leach(c: _Snap, tid, lc):
-    return {"state": lc.state, "quarter_cathode_kt": lc.quarter_cathode_kt, "level_tph": lc.level_tph, "cold_frac": lc.cold_frac}
+    return {"state": lc.state, "quarter_cathode_kt": lc.quarter_cathode_kt, "level_tph": lc.level_tph, "cold_frac": lc.cold_frac,
+            "irrigation_m3h": lc.irrigation_m3h, "irrigation_pct": lc.irrigation_pct, "heap_temp_c": lc.heap_temp_c,
+            "k_factor": lc.k_factor, "leach_cu_tph": lc.leach_cu_tph, "leach_exp_tph": lc.leach_exp_tph,
+            "inventory_cu_t": lc.inventory_cu_t, "recovery_pct": lc.recovery_pct, "pls_gl": lc.pls_gl}
+
+
+def _b_plspond(c: _Snap, tid, pl):
+    return {"state": pl.state, "volume_m3": pl.volume_m3, "level_pct": pl.level_pct, "pls_gl": pl.pls_gl,
+            "in_m3h": pl.in_m3h, "out_m3h": pl.out_m3h, "raff_gl": pl.raff_gl, "hours_to_full": pl.hours_to_full}
+
+
+def _b_sx(c: _Snap, tid, sx):
+    return {"state": sx.state, "feed_m3h": sx.feed_m3h, "extraction_pct": sx.extraction_pct,
+            "transfer_cu_tph": sx.transfer_cu_tph, "raff_cu_gl": sx.raff_cu_gl, "crud_cm": sx.crud_cm}
+
+
+def _b_ew(c: _Snap, tid, ew):
+    return {"state": ew.state, "current_ka": ew.current_ka, "current_set_ka": ew.current_set_ka, "voltage_v": ew.voltage_v,
+            "current_density_am2": ew.current_density_am2, "cathode_tph": ew.cathode_tph, "cathode_exp_tph": ew.cathode_exp_tph,
+            "power_mw": ew.power_mw, "kwh_t": ew.kwh_t, "electrolyte_cu_t": ew.electrolyte_cu_t}
+
+
+def _b_catstore(c: _Snap, tid, cs):
+    return {"state": cs.state, "stock_t": cs.stock_t, "in_tph": cs.in_tph, "shipped_t_total": cs.shipped_t_total,
+            "shipments_n": cs.shipments_n, "hours_to_full": cs.hours_to_full}
 
 
 def _b_sxew(c: _Snap, tid, sx):
     return {"state": sx.state, "cathode_tph": sx.cathode_tph, "cathode_level_tph": sx.cathode_level_tph,
-            "cathode_t_total": sx.cathode_t_total, "year": sx.year, "quarter": sx.quarter}
+            "cathode_t_total": sx.cathode_t_total, "year": sx.year, "quarter": sx.quarter, "model_dev_pct": sx.model_dev_pct}
 
 
 def _b_water(c: _Snap, tid, w):
@@ -773,7 +813,8 @@ _BUILDERS = {
     "conveyor": _b_conveyor, "stockpile": _b_stockpile, "line": _b_line, "sag": _b_sag,
     "pebble": _b_pebble, "ball": _b_ball, "cyclones": _b_cyclones, "flot": _b_flot,
     "rougher": _b_rougher, "cleaner": _b_cleaner, "thick": _b_thick, "filter": _b_filter,
-    "conc-stock": _b_conc_stock, "leach": _b_leach, "sxew": _b_sxew, "water": _b_water, "power": _b_power, "crew": _b_crew,
+    "conc-stock": _b_conc_stock, "oxfeed": _b_oxfeed, "leach": _b_leach, "plspond": _b_plspond, "sx": _b_sx, "ew": _b_ew,
+    "catstore": _b_catstore, "sxew": _b_sxew, "water": _b_water, "power": _b_power, "crew": _b_crew,
     "person": _b_person, "truck": _b_truck, "face": _b_face, "road": _b_road, "analyzer": _b_analyzer,
     "weigher": _b_weigher, "flowmeter": _b_flowmeter, "piezometer": _b_piezometer, "phmeter": _b_phmeter,
     "drill": _b_drill, "dozer": _b_dozer,

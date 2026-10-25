@@ -1,5 +1,5 @@
 {
- "code_hash": "d389d50d5b31",
+ "code_hash": "8bae9adc6a78",
  "command": "python -I aktogay/run.py verify --write aktogay/web/static/verify.json",
  "copy_ru": {
   "base": "база",
@@ -1157,6 +1157,74 @@
    },
    "fork": false,
    "id": "track",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 0.0,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": 0.0,
+     "water_m3": 0.0
+    }
+   },
+   "fork": false,
+   "id": "ewtrip",
+   "kip": 1,
+   "moments": {},
+   "seed": 42,
+   "t_end": "20:00",
+   "t_start": "08:00"
+  },
+  {
+   "copies": {
+    "base": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    },
+    "fact": {
+     "cu_t": 304.7587,
+     "energy_mwh": 3112.572,
+     "ore_t": 84139.59,
+     "usd": 4117189.0,
+     "water_m3": 49022.3
+    }
+   },
+   "diff": {
+    "fact": {
+     "cu_t": 0.0,
+     "energy_mwh": 0.0,
+     "ore_t": 0.0,
+     "usd": 0.0,
+     "water_m3": 0.0
+    }
+   },
+   "fork": false,
+   "id": "sxcrud",
    "kip": 1,
    "moments": {},
    "seed": 42,

@@ -148,6 +148,8 @@ DECISION_PERSON = {
     "gmd": "person-kip", "froth": "person-kip", "idler": "person-crusher-mech",
     "rake": "person-mill-mech", "cloth": "person-mill-mech", "slurry": "person-mill-mech",
     "brake": "person-pit-mech", "track": "person-pit-mech",
+    # oxide chain of 25.10.2026: the electrician restarts the rectifier, the metallurgist has the crud of the settler removed (assumption)
+    "ewtrip": "person-power", "sxcrud": "person-metallurgist",
 }
 # Person who answers for a node, by thing type (attribute responsible.person).
 TYPE_PERSON = {
@@ -162,6 +164,8 @@ TYPE_PERSON = {
     "ball": "person-mill-mech", "cyclones": "person-mill-mech", "filter": "person-mill-mech",
     "flowmeter": "person-kip", "water": "person-water", "piezometer": "person-water", "power": "person-power",
     "phmeter": "person-kip", "leach": "person-metallurgist", "sxew": "person-metallurgist",
+    "oxfeed": "person-metallurgist", "plspond": "person-metallurgist", "sx": "person-metallurgist", "ew": "person-power",
+    "catstore": "person-metallurgist",
 }
 CREW_PERSON = {"crew-kip": "person-kip", "crew-cpd": "person-crusher-mech", "crew-mill": "person-mill-mech",
                "crew-water": "person-water"}

@@ -622,6 +622,15 @@ except ImportError:          # run as a script: python -I modules/inside.py
     _inside_t = _iu.module_from_spec(_sp)
     _sp.loader.exec_module(_inside_t)
 _inside_t.apply(GROUPS)       # tier T of 24.10.2026: signals, failures and trouble kinds of eight more units
+try:
+    from . import inside_ox as _inside_ox
+except ImportError:          # run as a script: python -I modules/inside.py
+    import importlib.util as _iu3
+    import os as _os3
+    _sp3 = _iu3.spec_from_file_location("inside_ox", _os3.path.join(_os3.path.dirname(_os3.path.abspath(__file__)), "inside_ox.py"))
+    _inside_ox = _iu3.module_from_spec(_sp3)
+    _sp3.loader.exec_module(_inside_ox)
+_inside_ox.apply(GROUPS)       # oxide chain of 25.10.2026: six nodes of the group «Фабрика»
 
 
 def data() -> dict:

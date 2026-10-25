@@ -15,14 +15,14 @@
  "base": "twin_human same, asis_hard dig (VALIDATION 8.17)",
  "base_gain": 0.47126878655849397,
  "summary": {
-  "total": 764,
+  "total": 812,
   "assumption": {
-   "n": 533,
+   "n": 570,
    "matters": 19,
-   "read_small": 164,
-   "read": 6,
+   "read_small": 196,
+   "read": 12,
    "read_fixed": 23,
-   "not_read": 321
+   "not_read": 320
   },
   "fact": {
    "n": 47,
@@ -41,36 +41,36 @@
    "not_read": 18
   },
   "analog": {
-   "n": 64,
+   "n": 67,
    "matters": 3,
-   "read_small": 4,
+   "read_small": 6,
    "read": 3,
    "read_fixed": 7,
-   "not_read": 47
+   "not_read": 48
   },
   "project": {
-   "n": 28,
+   "n": 30,
    "matters": 0,
-   "read_small": 2,
+   "read_small": 4,
    "read": 0,
    "read_fixed": 4,
    "not_read": 22
   },
   "calc": {
-   "n": 47,
+   "n": 53,
    "matters": 4,
-   "read_small": 12,
-   "read": 0,
+   "read_small": 17,
+   "read": 1,
    "read_fixed": 3,
    "not_read": 28
   },
   "matters": 30,
-  "read_small": 196,
-  "read": 12,
+  "read_small": 237,
+  "read": 19,
   "read_fixed": 57,
   "not_read": 469,
-  "assumptions_total": 533,
-  "screened": 226,
+  "assumptions_total": 570,
+  "screened": 267,
   "refit_removes": [
    "blk_ascu_mean_pct",
    "clean_r0_pct",
@@ -2001,7 +2001,7 @@
   {
    "table": "model",
    "key": "flot_tau0_min",
-   "label": "assumption",
+   "label": "analog",
    "cls": "read_small",
    "dev": 0.0
   },
@@ -4264,7 +4264,7 @@
   {
    "table": "modules",
    "key": "flot_tau0_min",
-   "label": "assumption",
+   "label": "analog",
    "cls": "not_read",
    "dev": null
   },
@@ -5799,6 +5799,342 @@
    "key": "rep_track_h",
    "label": "assumption",
    "cls": "not_read",
+   "dev": null
+  },
+  {
+   "table": "model",
+   "key": "ox_idle_ore_tph",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_rmax",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_th_d",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ea_app_jmol",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_heap_tau_d",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_m0_t",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_irr_m3h",
+   "label": "project",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_pad_tau_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_pls_v_m3",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_pls_vmax_m3",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_raff_v_m3",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_pond_tau_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_sx_q_cap",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_sx_eta",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_gpah",
+   "label": "calc",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_cells",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_cath_n",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_cath_m2",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_ce",
+   "label": "analog",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_design_kty",
+   "label": "project",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_overload",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_v_cell",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_el_m3",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_el_gl",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_emax_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ew_tau_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_store_cap_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_store_high_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_ship_batch_t",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_store_t0",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_low_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_rect_fix_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_rect_auto_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_crud_ok_cm",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_crud_alert_cm",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_crud_crit_cm",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_crud_rise_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_crud_fail_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_crud_fix_h",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_crud_eta_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "model",
+   "key": "ox_crud_q_frac",
+   "label": "assumption",
+   "cls": "read_small",
+   "dev": 0.0
+  },
+  {
+   "table": "modules",
+   "key": "ox_rect_floor_frac",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ox_ew_emax_frac",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ox_ew_e_t",
+   "label": "calc",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ox_sx_eta",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "ox_crud_alert_cm",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_ew_h",
+   "label": "assumption",
+   "cls": "read",
+   "dev": null
+  },
+  {
+   "table": "modules",
+   "key": "rep_crud_h",
+   "label": "assumption",
+   "cls": "read",
    "dev": null
   }
  ],

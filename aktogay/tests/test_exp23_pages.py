@@ -273,12 +273,12 @@ class Toggle3dTest(unittest.TestCase):
 class DocsConsistencyTest(unittest.TestCase):
     def test_one_number_of_types(self):
         n = len(json.loads(read(ROOT, "setup", "things.json"))["types"])
-        self.assertEqual(n, 45)
+        self.assertEqual(n, 50)
         for name in (README, "SUBMISSION.md"):
             t = read(DOCS, name)
             for m in re.finditer(r"\b(\d+)\s+тип(?:а|ов)\b", t):
                 self.assertEqual(int(m.group(1)), n, f"{name}: {m.group(0)}")
-        self.assertIn("45 типов", read(DOCS, README))
+        self.assertIn("50 типов", read(DOCS, README))
 
     def test_readme_describes_the_live_menu(self):
         readme = read(DOCS, README)

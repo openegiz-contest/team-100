@@ -466,18 +466,106 @@ class FilterState:
 
 
 @dataclass
+class OxFeedState:
+    """Ore to the heap (oxide ore from the pit to the pads): the placing rate of the quarter of the reports (sim/oxide.py)."""
+    name: str = "oxfeed-1"
+    state: str = "NORMAL"     # NORMAL | IDLE
+    ore_tph: float = 0.0
+    grade_pct: float = 0.0
+    cu_tph: float = 0.0
+    quarter_ore_kt: float = 0.0
+    placed_t_total: float = 0.0
+
+
+@dataclass
 class LeachState:
-    """Heap leach pad of the oxide line (sim/oxide.py): one state, the cathode level of the quarter."""
+    """Heap leach pad of the oxide line: cohorts of ore by month of placing, each with its thermal age (sim/oxide.py)."""
     name: str = "leach-1"
     state: str = "NORMAL"     # NORMAL | COLD
     quarter_cathode_kt: float = 0.0
-    level_tph: float = 0.0
+    level_tph: float = 0.0    # reported level of the quarter (cathode of the reports / hours)
     cold_frac: float = 0.0
+    irrigation_m3h: float = 0.0
+    irrigation_pct: float = 0.0
+    heap_temp_c: float = 0.0
+    k_factor: float = 0.0
+    leach_cu_tph: float = 0.0
+    leach_exp_tph: float = 0.0
+    inventory_cu_t: float = 0.0
+    recovery_pct: float = 0.0
+    pls_gl: float = 0.0
+    # --- truth / internal (not published)
+    cu_c: list = field(default_factory=list)      # placed copper by cohort, t (index 0 = ore placed before 2018)
+    th_c: list = field(default_factory=list)      # thermal age by cohort, days at 20 degC
+    rc_c: list = field(default_factory=list)      # recovered share of the leachable part by cohort
+    hold_cu_t: float = 0.0                        # dissolved copper on its way to the PLS pond
+    acc_min: float = 0.0                          # model minutes since the last update of the cohorts
+    acc_leach_t: float = 0.0
+    init_key: tuple = ()
+    init_min: float = 0.0
+    acc_contact: float = 0.0
+    placed_cu_t: float = 0.0                      # copper placed since the start of the cohorts
+    ready: bool = False
+
+
+@dataclass
+class PlsPondState:
+    """PLS pond and raffinate pond of the oxide line."""
+    name: str = "pls-1"
+    state: str = "NORMAL"     # NORMAL | HIGH | FULL | LOW
+    volume_m3: float = 0.0
+    level_pct: float = 0.0
+    pls_gl: float = 0.0
+    in_m3h: float = 0.0
+    out_m3h: float = 0.0
+    raff_gl: float = 0.0
+    hours_to_full: float = -1.0
+    cu_t: float = 0.0         # copper in the PLS pond (truth)
+
+
+@dataclass
+class SxState:
+    """Solvent extraction: PLS in, copper to the electrolyte, raffinate back to the pad."""
+    name: str = "sx-1"
+    state: str = "NORMAL"     # NORMAL | CRUD | DOWN
+    feed_m3h: float = 0.0
+    extraction_pct: float = 0.0
+    transfer_cu_tph: float = 0.0
+    raff_cu_gl: float = 0.0
+    crud_cm: float = 0.0
+
+
+@dataclass
+class EwState:
+    """Electrowinning tankhouse: line current, current efficiency, cathode t/h by Faraday's law."""
+    name: str = "ew-1"
+    state: str = "NORMAL"     # NORMAL | LIMIT | TRIP
+    current_ka: float = 0.0
+    current_set_ka: float = 0.0
+    voltage_v: float = 0.0
+    current_density_am2: float = 0.0
+    cathode_tph: float = 0.0
+    cathode_exp_tph: float = 0.0
+    power_mw: float = 0.0
+    kwh_t: float = 0.0
+    electrolyte_cu_t: float = 0.0
+
+
+@dataclass
+class CatStoreState:
+    """Cathode store and shipping."""
+    name: str = "catstore-1"
+    state: str = "NORMAL"     # NORMAL | HIGH | FULL
+    stock_t: float = 0.0
+    in_tph: float = 0.0
+    shipped_t_total: float = 0.0
+    shipments_n: float = 0.0
+    hours_to_full: float = -1.0
 
 
 @dataclass
 class SxewState:
-    """SX-EW plant of the oxide line: cathode t/h (a quarterly figure of the reports, not a measurement)."""
+    """Summary of the oxide chain: cathode of the tankhouse against the level of the quarter of the reports."""
     name: str = "sxew-1"
     state: str = "NORMAL"     # NORMAL | LOW
     cathode_tph: float = 0.0
@@ -485,6 +573,7 @@ class SxewState:
     cathode_t_total: float = 0.0
     year: float = 0.0
     quarter: float = 0.0
+    model_dev_pct: float = 0.0
 
 
 @dataclass
@@ -786,8 +875,14 @@ class PlantState:
     next_batch_no: int = 1
     lines: list[LineState] = field(default_factory=list)   # index 0 -> line 1
     conc_stock: ConcStockState = field(default_factory=ConcStockState)
+    oxfeed: OxFeedState = field(default_factory=OxFeedState)
     leach: LeachState = field(default_factory=LeachState)
+    pls: PlsPondState = field(default_factory=PlsPondState)
+    sx: SxState = field(default_factory=SxState)
+    ew: EwState = field(default_factory=EwState)
+    catstore: CatStoreState = field(default_factory=CatStoreState)
     sxew: SxewState = field(default_factory=SxewState)
+    oxf: dict[str, dict] = field(default_factory=dict)    # oxide chain troubles (scenario only): key "ewtrip" -> {t0, fix, fix_h}
     water: WaterState = field(default_factory=WaterState)
     power: PowerState = field(default_factory=PowerState)
     crews: dict[str, CrewState] = field(default_factory=dict)
@@ -878,7 +973,12 @@ def topology() -> dict[str, ThingInfo]:
         add(f"thick-{n}", "thick", (f"line-{n}",), (f"filter-{n}", "water"), "plant_shift_manager")
         add(f"filter-{n}", "filter", (f"line-{n}",), ("conc-stock",), "plant_shift_manager")
     add("conc-stock", "conc-stock", ("site",), (), "plant_shift_manager")
-    add("leach-1", "leach", ("site",), ("sxew-1",), "shift_metallurgist")
+    add("oxfeed-1", "oxfeed", ("site",), ("leach-1",), "shift_metallurgist")
+    add("leach-1", "leach", ("site",), ("pls-1",), "shift_metallurgist")
+    add("pls-1", "plspond", ("site",), ("sx-1",), "shift_metallurgist")
+    add("sx-1", "sx", ("site",), ("ew-1",), "shift_metallurgist")       # loaded organic to EW; the raffinate goes back to the pad (a loop, not in the feeds)
+    add("ew-1", "ew", ("site",), ("catstore-1",), "power_engineer")
+    add("catstore-1", "catstore", ("site",), (), "shift_metallurgist")
     add("sxew-1", "sxew", ("site",), (), "shift_metallurgist")
     add("water", "water", ("site",), ("line-1", "line-2"), "tailings_engineer")
     add("power", "power", ("site",), (), "power_engineer")

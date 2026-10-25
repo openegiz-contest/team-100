@@ -69,13 +69,36 @@
     { id: 'exc-4', x: 5000, y: 3900, to: 'exc-4', text: () => excText('exc-4'), title: () => excTitle('exc-4'), st: 'exc-4', prio: 6 },
     { id: 'exc-5', x: 5000, y: 3150, to: 'exc-5', text: () => excText('exc-5'), title: () => excTitle('exc-5'), st: 'exc-5', prio: 6 },
     { id: 'conc-stock', x: 900, y: 60, to: 'conc-stock', text: () => `${G(AKT.levelOf('conc-stock'))}Концентрат · ${AKT.vsBase('conc-stock', 'stock_t', fmt, 50)}${NB}т`, title: () => `Склад концентрата (место — схема): ${AKT.stOf('conc-stock')} · ${fmt(AKT.num('conc-stock', 'stock_t'))} из ${fmt(AKT.pass('conc-stock', 'capacity_t'))} т · приход ${f1(AKT.num('conc-stock', 'in_tph'))} т/ч · отгрузка поездом в 06:00 и 18:00`, st: 'conc-stock', prio: 7 },
-    { id: 'leach-1', x: -1500, y: 700, anchor: 'middle', to: 'leach-1', text: () => oxText(), title: () => oxTitle(), st: 'leach-1', prio: 9 },
+    { id: 'leach-1', x: -2850, y: 640, anchor: 'middle', to: 'leach-1', text: () => oxText('leach-1'), title: () => oxTitle('leach-1'), st: 'leach-1', prio: 9 },
+    { id: 'oxfeed-1', x: -3300, y: 640, anchor: 'middle', to: 'oxfeed-1', text: () => oxText('oxfeed-1'), title: () => oxTitle('oxfeed-1'), st: 'oxfeed-1', prio: 9 },
+    { id: 'pls-1', x: -2400, y: 640, anchor: 'middle', to: 'pls-1', text: () => oxText('pls-1'), title: () => oxTitle('pls-1'), st: 'pls-1', prio: 9 },
+    { id: 'sx-1', x: -1950, y: 640, anchor: 'middle', to: 'sx-1', text: () => oxText('sx-1'), title: () => oxTitle('sx-1'), st: 'sx-1', prio: 9 },
+    { id: 'ew-1', x: -1500, y: 640, anchor: 'middle', to: 'ew-1', text: () => oxText('ew-1'), title: () => oxTitle('ew-1'), st: 'ew-1', prio: 9 },
+    { id: 'catstore-1', x: -1050, y: 640, anchor: 'middle', to: 'catstore-1', text: () => oxText('catstore-1'), title: () => oxTitle('catstore-1'), st: 'catstore-1', prio: 9 },
     { id: 'water', x: 600, y: -1300, to: [1215, -1024], text: () => waterText(), title: () => waterTitle(), st: 'water', prio: 8 },
     { id: 'intake', x: -250, y: 3150, anchor: 'end', layer: 'water', text: () => `водовод ≈ 27${NB}км → скважины · ${AKT.vsBase('water', 'intake_m3h', fmt, 50)}${NB}м³/ч`, title: () => `Водовод ≈ 27 км от скважин (схема): забор свежей воды ${fmt(AKT.num('water', 'intake_m3h'))} м³/ч`, href: '?view=unit&id=kz.aktogay:water', prio: 9 },
   ];
-  /* oxide line (heap leach -> SX-EW): the place is a scheme; the label appears only when the pad is cold (UI rule 1), the marker stays */
-  const oxText = () => AKT.thing('leach-1') && AKT.st('leach-1') === 'COLD' ? `${G(AKT.levelOf('leach-1'))}Куча: холодное выщелачивание · катод ${f2(AKT.num('sxew-1', 'cathode_tph'))}${NB}т/ч` : '';
-  const oxTitle = () => `Окисленная руда: куча выщелачивания → SX-EW → катод (место — схема): ${AKT.stOf('leach-1')} · катод ${f2(AKT.num('sxew-1', 'cathode_tph'))} т/ч при уровне квартала ${f2(AKT.num('sxew-1', 'cathode_level_tph'))} т/ч (квартальный выпуск по отчётам, не замер)`;
+  /* oxide chain (ore -> heap -> PLS pond -> SX -> EW -> cathode store): the place is a scheme west of the concentrator; a label appears only where a unit deviates
+     (UI rule 1: cold pad, tripped rectifier, crud, a full pond, a full store), the marker stays */
+  const OX_DEV = { 'oxfeed-1': /^IDLE$/, 'leach-1': /^COLD$/, 'pls-1': /^(HIGH|FULL)$/, 'sx-1': /^(CRUD|DOWN)$/, 'ew-1': /^TRIP$/, 'catstore-1': /^FULL$/ };
+  const oxWord = {
+    'leach-1': () => `Куча: орошение ${fmt(AKT.num('leach-1', 'irrigation_pct'))}${NB}% · катод ожидаем ${f2(AKT.num('ew-1', 'cathode_exp_tph'))}${NB}т/ч`,
+    'oxfeed-1': () => 'Руда на кучу почти не идёт',
+    'pls-1': () => `Пруд PLS ${fmt(AKT.num('pls-1', 'level_pct'))}${NB}%`,
+    'sx-1': () => `SX: краб ${f1(AKT.num('sx-1', 'crud_cm'))}${NB}см · извлечение ${fmt(AKT.num('sx-1', 'extraction_pct'))}${NB}%`,
+    'ew-1': () => `Электролиз: ток ${f1(AKT.num('ew-1', 'current_ka'))}${NB}кА · катод ${f2(AKT.num('ew-1', 'cathode_tph'))}${NB}т/ч`,
+    'catstore-1': () => 'Склад катода полон',
+  };
+  const oxText = n => AKT.thing(n) && OX_DEV[n].test(AKT.st(n) || '') ? `${G(AKT.levelOf(n))}${oxWord[n]()}` : '';
+  const OX_TITLE = {
+    'oxfeed-1': () => `Руда на кучу (место — схема): ${fmt(AKT.num('oxfeed-1', 'ore_tph'))} т/ч, Cu ${f2(AKT.num('oxfeed-1', 'grade_pct'))} % — темп квартала отчёта KAZ Minerals`,
+    'leach-1': () => `Куча выщелачивания (место — схема): ${AKT.stOf('leach-1')} · орошение ${fmt(AKT.num('leach-1', 'irrigation_pct'))} % · растворяет ${f2(AKT.num('leach-1', 'leach_cu_tph'))} т Cu/ч · температура кучи ${fmt(AKT.num('leach-1', 'heap_temp_c'))} °C`,
+    'pls-1': () => `Пруды PLS и рафината (место — схема): уровень ${fmt(AKT.num('pls-1', 'level_pct'))} % · Cu в PLS ${f2(AKT.num('pls-1', 'pls_gl'))} г/л`,
+    'sx-1': () => `Экстракция SX (место — схема): ${AKT.stOf('sx-1')} · извлечение ${fmt(AKT.num('sx-1', 'extraction_pct'))} % · краб ${f1(AKT.num('sx-1', 'crud_cm'))} см`,
+    'ew-1': () => `Цех электролиза (место — схема): ${AKT.stOf('ew-1')} · ток ${f1(AKT.num('ew-1', 'current_ka'))} кА · катод ${f2(AKT.num('ew-1', 'cathode_tph'))} т/ч при ожидаемом ${f2(AKT.num('ew-1', 'cathode_exp_tph'))} (расчёт по Фарадею, не замер)`,
+    'catstore-1': () => `Склад катода (место — схема): ${fmt(AKT.num('catstore-1', 'stock_t'))} т · отгружено ${fmt(AKT.num('catstore-1', 'shipped_t_total'))} т`,
+  };
+  const oxTitle = n => `Окисленная цепочка: ${OX_TITLE[n]()} · уровень квартала по отчёту ${f2(AKT.num('sxew-1', 'cathode_level_tph'))} т/ч (не измерение)`;
   const excText = n => AKT.thing(n) && AKT.deviates(n) ? `${G(AKT.levelOf(n))}Экскаватор ${n.slice(-1)} ${AKT.stOf(n)}` : '';
   const excTitle = n => { const b = AKT.val(n, 'block'); return `${AKT.nameRu(n)} (место — схема): ${AKT.stOf(n)} · ${fmt(AKT.num(n, 'tph'))} т/ч${b ? ' · партия ' + AKT.batchNo(String(b)) : ''}${AKT.val(n, 'bench') != null ? ' · уступ ' + fmt(AKT.num(n, 'bench')) : ''}`; };
   const beltText = n => AKT.stopped(AKT.st(n)) || AKT.levelOf(n) ? `${G(AKT.levelOf(n) || 1)}Конвейер ${n.slice(-1)} ${AKT.stOf(n)} · ${AKT.vsBase(n, 'tph', fmt, 50)}${NB}т/ч` : '';
@@ -338,7 +361,9 @@
         return rec;
       };
       marker('crusher-1', 16, 11); marker('crusher-2', 16, 11); marker('line-1', 22, 22); marker('line-2', 22, 22);
-      marker('conc-stock', 16, 11); marker('power', 12, 12); marker('leach-1', 11, 8); marker('sxew-1', 11, 8);
+      marker('conc-stock', 16, 11); marker('power', 12, 12); marker('sxew-1', 11, 8);
+      for (const n of ['oxfeed-1', 'leach-1', 'pls-1', 'sx-1', 'ew-1', 'catstore-1']) marker(n, 11, 8);
+      { const pts = ['oxfeed-1', 'leach-1', 'pls-1', 'sx-1', 'ew-1', 'catstore-1'].map(n => this.anchor(n)).filter(Boolean); if (pts.length > 1) E('polyline', { points: P(pts), class: 'ox-chain', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-dasharray': '6 5', opacity: 0.45 }, scheme); }
       for (const n of Array.from(new Set(['exc-1', 'exc-2', 'exc-3'].concat(AKT.ofType('exc')))))
         if (plan.anchors[n] || AKT.attr(n, 'ui.plan')) { const r = marker(n, 13, 11, 'tri'); if (r) r.layer = 'tech'; }
       this.gRoads = E('g', { class: 'xroads' }, svg);

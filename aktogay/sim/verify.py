@@ -29,7 +29,7 @@ KEYS = ("cu_t", "ore_t", "energy_mwh", "water_m3", "usd")
 ROUND = {"cu_t": 4, "ore_t": 2, "energy_mwh": 3, "water_m3": 1, "usd": 0}
 # files of the model: the hash of these tells whether the numbers were computed by the same code
 MODEL_FILES = ("comminution.py", "events.py", "flotation.py", "haul.py", "modloop.py", "ore.py", "oxide.py", "params.py",
-               "params_lev.py", "params_t.py", "people.py", "pit.py", "plant.py", "sensors.py",
+               "params_lev.py", "params_ox.py", "params_t.py", "people.py", "pit.py", "plant.py", "sensors.py",
                "site_aktogay.py", "state.py", "utilities.py", "wear.py")
 COMMAND = "python -I aktogay/run.py verify --write aktogay/web/static/verify.json"
 COPY_RU = {"base": "база", "fact": "факт", "loud": "по громкости", "no_twin": "без двойника"}

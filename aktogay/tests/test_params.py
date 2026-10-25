@@ -87,7 +87,7 @@ class TestTable(unittest.TestCase):
 
     def test_feature_rules_cover_topology(self):
         # 22 plant types + person, truck, face, road and four instruments of the site passport
-        self.assertEqual(len(FEATURE_RULES), 35)            # + drill rigs and dozers + pH meter
+        self.assertEqual(len(FEATURE_RULES), 40)            # + drill rigs and dozers + pH meter + the oxide chain (oxfeed, plspond, sx, ew, catstore)
         for typ, rules in FEATURE_RULES.items():
             self.assertIn("state_ru", rules, typ)
         types = {t.type for t in topology().values()}

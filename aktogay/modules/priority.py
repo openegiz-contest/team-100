@@ -111,7 +111,9 @@ WHO: dict[str, tuple[str, tuple[str, ...]]] = {
     "crusher_mantle": ("crew-cpd", ("crusher_mech", "plant_shift_manager")),       # planned mantle change
     "oil_contam": ("", ("shift_mechanic", "mine_dispatcher")),                     # hydraulic oil of an excavator
     "exc_down": ("", ("shift_mechanic", "mine_dispatcher")),                       # excavator failed, ore from the others
-    "leach_cold": ("", ("shift_metallurgist", "plant_shift_manager")),             # oxide line: cold leaching, cathode below the quarter level
+    "leach_cold": ("", ("shift_metallurgist", "plant_shift_manager")),             # oxide line: irrigation of the pad below the design flow
+    "ew_rect": ("", ("power_engineer", "shift_metallurgist")),                     # oxide line: rectifier of the tankhouse out
+    "sx_crud": ("", ("shift_metallurgist", "plant_shift_manager")),                # oxide line: crud in the SX settler
 }
 # Short name of a trouble kind: tells two issues of one node apart in the order lines
 # ("Дробление гали 1 (пожар) → Дробление гали 1 (останов)").
@@ -127,12 +129,12 @@ SHORT_RU = {"crusher_stop": "останов", "lube_trip": "защита по м
             "road_winter": "зимняя дорога", "driver_fatigue": "усталость водителя", "roping": "канатирование",
             "sensor_ph": "pH-метр под подозрением", "hpgr_uneven": "неравномерное питание ВВД",
             "crusher_mantle": "замена брони", "oil_contam": "загрязнение масла", "exc_down": "отказ",
-            "leach_cold": "холодное выщелачивание"}
+            "leach_cold": "холодное выщелачивание", "ew_rect": "выпрямитель электролиза", "sx_crud": "краб в SX"}
 # trouble kind -> card of readiness (checklist and closure shown on the issue card)
 KIND_READY = {"pit_stop": "pit_stop", "conveyor_stop": "conveyor_stop", "reline": "fc_liner",
               "road_winter": "winter_road", "driver_fatigue": "driver_fatigue", "roping": "cyclone_roping",
               "sensor_ph": "sensor_suspect", "hpgr_uneven": "hpgr_uneven", "crusher_mantle": "crusher_mantle",
-              "oil_contam": "oil_contam", "exc_down": "exc_down", "leach_cold": "leach_cold", "hard_ore": "ore_regime",
+              "oil_contam": "oil_contam", "exc_down": "exc_down", "leach_cold": "leach_cold", "ew_rect": "ew_rect", "sx_crud": "sx_crud", "hard_ore": "ore_regime",
               "loss_flot_oxide": "ore_regime"}
 # tier T of 24.10.2026 (modules/tiers_t.py): eight slow equipment troubles
 WHO.update(tiers_t.WHO)
