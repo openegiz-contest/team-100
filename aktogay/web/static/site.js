@@ -9,7 +9,7 @@
      and a context is never required to be "hardware" (failIfMajorPerformanceCaveat false). */
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const GL = AKT.gl = {
-    attrs(antialias) { return { antialias: !!antialias, alpha: false, depth: true, stencil: false, powerPreference: 'default', failIfMajorPerformanceCaveat: false, preserveDrawingBuffer: false }; },
+    attrs(antialias) { return { antialias: !!antialias, alpha: false, depth: true, stencil: false, powerPreference: 'default', failIfMajorPerformanceCaveat: false, preserveDrawingBuffer: true }; },
     make(canvas, antialias) {
       for (const k of ['webgl2', 'webgl', 'experimental-webgl']) {
         try { const g = canvas.getContext(k, GL.attrs(antialias)); if (g) return g; } catch (e) { /* the next kind */ }

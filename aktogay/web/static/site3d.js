@@ -42,7 +42,7 @@ export async function create(AKT, stage, opts, onFail) {
   let frameMs = AKT.gl.probe().soft ? 120 : 33;
   const glCtx = await AKT.gl.acquire(canvas, !AKT.gl.probe().soft);
   if (!glCtx) throw new Error('браузер не создал контекст WebGL');
-  const renderer = new THREE.WebGLRenderer({ canvas, context: glCtx, antialias: !AKT.gl.probe().soft, powerPreference: 'low-power', preserveDrawingBuffer: false });
+  const renderer = new THREE.WebGLRenderer({ canvas, context: glCtx, antialias: !AKT.gl.probe().soft, powerPreference: 'low-power', preserveDrawingBuffer: true });
   renderer.setPixelRatio(1);
   renderer.shadowMap.enabled = false;
   const scene = new THREE.Scene();

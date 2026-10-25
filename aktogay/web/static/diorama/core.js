@@ -116,7 +116,7 @@ export async function create(AKT, stage, opts, onFail) {
   canvas.width = Math.floor(Math.max(200, wrap.clientWidth) * pixelRatio); canvas.height = Math.floor(Math.max(200, wrap.clientHeight) * pixelRatio);
   const glCtx = await AKT.gl.acquire(canvas, !soft);
   if (!glCtx) throw new Error('браузер не создал контекст WebGL');
-  const renderer = new THREE.WebGLRenderer({ canvas, context: glCtx, antialias: !soft, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+  const renderer = new THREE.WebGLRenderer({ canvas, context: glCtx, antialias: !soft, powerPreference: 'high-performance', preserveDrawingBuffer: true })   // keep the frame: screenshots and remote views read it after the swap;
   /* плотность пикселей ведём сами: буфер холста = размер × pixelRatio, у three.js плотность 1 (одна смена буфера, не две) */
   renderer.shadowMap.enabled = false;
   const scene = new THREE.Scene();
