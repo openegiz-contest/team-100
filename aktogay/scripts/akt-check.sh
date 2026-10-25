@@ -74,8 +74,8 @@ for _ in $(seq 1 10); do
 done
 n_things="$(printf '%s' "$all" | grep -o '"thingId":"[^"]*"' | sort -u | wc -l | tr -d ' ')"
 by_type="$(printf '%s' "$all" | grep -o '"type":"[^"]*"' | cut -d'"' -f4 | sort | uniq -c | awk '{printf "%s=%s ", $2, $1}')"
-if [ "${n_things:-0}" -ge 136 ]; then pass "things: $n_things (design: 136 permanent + batches + issues)"
-else fail "things: ${n_things:-0} (expected at least 136)"; fi
+if [ "${n_things:-0}" -ge 141 ]; then pass "things: $n_things (design: 141 permanent + batches + issues)"
+else fail "things: ${n_things:-0} (expected at least 141)"; fi
 note "per type: ${by_type:-none}"
 policy="$(ditto_get "policies/$NS:policy" | grep -o '"policyId":"[^"]*"' | cut -d'"' -f4)"
 if [ -n "$policy" ]; then pass "policy $policy exists"; else fail "policy $NS:policy not found"; fi
