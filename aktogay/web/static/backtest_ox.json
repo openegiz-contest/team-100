@@ -309,9 +309,9 @@
  ],
  "fit": {
   "n": 32,
-  "mape_pct": 10.037741308057754,
+  "mape_pct": 10.037741308057752,
   "rmse_pct": 12.472649699615227,
-  "bias_pct": -1.5376249796909074,
+  "bias_pct": -1.537624979690907,
   "worst_pct": 34.56733595799288
  },
  "forward": {
@@ -323,10 +323,10 @@
  },
  "baseline_constant_forward": {
   "n": 2,
-  "mape_pct": 91.6159944581281,
-  "rmse_pct": 91.67764918795298,
-  "bias_pct": 91.6159944581281,
-  "worst_pct": 94.9776785714286
+  "mape_pct": 91.61599445812809,
+  "rmse_pct": 91.67764918795297,
+  "bias_pct": 91.61599445812809,
+  "worst_pct": 94.97767857142858
  },
  "baseline_previous_quarter_forward": {
   "n": 2,
@@ -696,23 +696,23 @@
   ],
   "fit": {
    "n": 28,
-   "mape_pct": 9.187472698922985,
-   "rmse_pct": 12.081081002342849,
-   "bias_pct": -1.4595252661585953,
-   "worst_pct": 38.39237160778062
+   "mape_pct": 9.187472700470991,
+   "rmse_pct": 12.081081002342852,
+   "bias_pct": -1.4595247917002663,
+   "worst_pct": 38.3923726484654
   },
   "forward": {
    "n": 6,
-   "mape_pct": 24.43074222038093,
-   "rmse_pct": 26.906158680290694,
-   "bias_pct": -24.43074222038093,
-   "worst_pct": -37.49898135198067
+   "mape_pct": 24.430742672013753,
+   "rmse_pct": 26.90615914968272,
+   "bias_pct": -24.430742672013753,
+   "worst_pct": -37.498981799167666
   },
   "baseline_constant_forward": {
    "n": 6,
-   "mape_pct": 66.82566367638846,
+   "mape_pct": 66.82566367638847,
    "rmse_pct": 71.85718251565456,
-   "bias_pct": 66.82566367638846,
+   "bias_pct": 66.82566367638847,
    "worst_pct": 103.31632653061224
   },
   "baseline_previous_quarter_forward": {
@@ -766,17 +766,17 @@
   },
   "r_all": 0.89,
   "kinetics": {
-   "ox_rmax": 0.4480978390212188,
-   "ox_th_d": 343.1327596749165,
-   "ox_ea_app_jmol": 6339.926570629799,
+   "ox_rmax": 0.4480978408695613,
+   "ox_th_d": 343.1327537279173,
+   "ox_ea_app_jmol": 6339.92648943868,
    "ox_heap_tau_d": 8.0,
-   "ox_m0_t": 25627.035500305275
+   "ox_m0_t": 25627.035442380115
   },
   "values": {
-   "ox_rmax": 0.4480978390212188,
-   "ox_th_d": 343.1327596749165,
-   "ox_ea_app_jmol": 6339.926570629799,
-   "ox_m0_t": 25627.035500305275
+   "ox_rmax": 0.4480978408695613,
+   "ox_th_d": 343.1327537279173,
+   "ox_ea_app_jmol": 6339.92648943868,
+   "ox_m0_t": 25627.035442380115
   }
  },
  "about": "Back-test of the oxide pad against the cathode of the KAZ Minerals reports: model = copper dissolved in the pad in the quarter (weekly step, same code as the stand); main: fit 2018Q1-2025Q4, forward test 2026Q1-2026Q2; strict: fit 2018Q1-2024Q4, forward 2025Q1-2026Q2; baselines for the forward quarters: the mean of the fit quarters and the previous quarter"

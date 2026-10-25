@@ -198,6 +198,15 @@ def build(state: dict, static: str) -> dict:
     out["now"] = {"model_time": _clock(t_now), "model_minute": t_now, "state": _v(site, "state_ru", ""), "speed": _v(site, "speed"),
                   "speed_fact": _v(site, "speed_fact"), "run": run, "seed": _v(site, "seed"), "scenario": _v(site, "scenario", ""),
                   "things_in_ditto": state.get("count", len(th)), "permanent_things": PERMANENT_THINGS, "thing_types": TYPES}
+    # oxide branch: ore -> heap -> PLS -> SX -> EW -> cathode store, live values of the chain of twins
+    ox = [("oxfeed-1", "Руда на кучу", "cu_tph", "т Cu/ч в руде", ("ore_tph", "т руды/ч")),
+          ("leach-1", "Куча выщелачивания", "leach_cu_tph", "т Cu/ч растворяется", ("inventory_cu_t", "т Cu лежит в куче")),
+          ("pls-1", "Пруд PLS", "pls_gl", "г/л Cu в растворе", ("level_pct", "% объёма")),
+          ("sx-1", "Экстракция SX", "transfer_cu_tph", "т Cu/ч перенесено", ("extraction_pct", "% извлечение")),
+          ("ew-1", "Электролиз EW", "cathode_tph", "т/ч катода (Фарадей)", ("current_ka", "кА ток")),
+          ("catstore-1", "Склад катода", "stock_t", "т катода на складе", ("in_tph", "т/ч приход"))]
+    out["oxide"] = [{"thing": n, "name": nm, "state": _v(th.get(n), "state_ru") or _v(th.get(n), "state", ""), "value": _v(th.get(n), f), "unit": u,
+                     "extra": _v(th.get(n), xf), "extra_unit": xu} for n, nm, f, u, (xf, xu) in ox if n in th]
     # issues of this run
     issues = []
     for n, t in th.items():
@@ -323,8 +332,21 @@ def render_html(d: dict) -> str:
     a("<li>Время модели: <b>%s</b>, состояние: %s, скорость ×%s (факт ×%s)</li>" % (_e(n["model_time"]), _e(n["state"]), _e(_num(n["speed"])), _e(_num(n["speed_fact"]))))
     a("<li>Прогон: %s, seed %s; сценарий: %s</li>" % (_e(n["run"]), _e(_num(n["seed"])), _e(n["scenario"] or "нет, обычная смена")))
     a("<li>В двойнике %s вещей сейчас (%s постоянных вещей %s типов, остальное — партии руды и беды)</li></ul>" % (_e(n["things_in_ditto"]), _e(n["permanent_things"]), _e(n["thing_types"])))
-    a("<h2>Достоверность одним взглядом</h2><p>Что проверено по реальным данным и насколько близко. Модель подогнана на 2025 г.; здесь то, что в подгонке не участвовало, и пределы. Подробности — <code>VALIDATION.md</code> (раздел в последней колонке), все строки калибровки — "
-      '<a href="/?view=calib">/?view=calib</a>.</p><table><tr><th>Что</th><th>Модель</th><th>Эталон</th><th>Итог</th><th>Раздел</th></tr>')
+    if d.get("oxide"):
+        a("<h2>Окисленная ветка сейчас: руда → куча → раствор → экстракция → электролиз → катод</h2><p>Живые значения цепочки двойников из Ditto; "
+          'схема — <a href="/?view=copper">/?view=copper</a> (раздел «Окисленная цепочка»). Катод — расчёт по закону Фарадея, не замер; кинетика кучи подогнана на катоде 32 кварталов 2018–2025 гг. (VALIDATION 6.11).</p>'
+          "<table><tr><th>Звено</th><th>Состояние</th><th>Главное</th><th>Ещё</th></tr>")
+        for x in d["oxide"]:
+            val = "—" if not isinstance(x["value"], (int, float)) else _num(x["value"], 2)
+            ext = "—" if not isinstance(x["extra"], (int, float)) else _num(x["extra"], 1)
+            a("<tr><td>%s</td><td>%s</td><td>%s %s</td><td>%s %s</td></tr>" % (_e(x["name"]), _e(x["state"]), _e(val), _e(x["unit"]), _e(ext), _e(x["extra_unit"])))
+        a("</table>")
+    a("<h2>Достоверность одним взглядом</h2><p>Что проверено по реальным данным и насколько близко. Модель подогнана на 2025 г.; здесь то, что в подгонке не участвовало, и пределы. Подробности — <code>VALIDATION.md</code> (раздел в последней колонке; сводная таблица — в начале раздела 1), все строки калибровки — "
+      '<a href="/?view=calib">/?view=calib</a>.</p>'
+      "<ul><li><b>Проверено на данных, которых модель не видела:</b> медь в концентрате по 28 кварталам 2018–2024 (около 2,3 %) и вперёд на I–II кв. 2026 г.; "
+      "вода 2023 г.; пять перефутеровок SAG (тест слабый); шум датчиков и ложные тревоги — на чужом открытом наборе (железная руда).</li>"
+      "<li><b>Подогнано, не проверка:</b> готовность линии, энергия SAG и предельное извлечение на 2025 г.; «прочая» нагрузка и испарение на 2024 г.; кинетика кучи окисленной ветки.</li>"
+      '<li><b>Не доказано:</b> формула извлечения не лучше константы; выигрыш двойника — оценка на модели; датчики стенда синтетические.</li></ul><table><tr><th>Что</th><th>Модель</th><th>Эталон</th><th>Итог</th><th>Раздел</th></tr>')
     for x in d["credibility"]["rows"]:
         a("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % (_e(x["what"]), _e(x["model"]), _e(x["reference"]), _e(x["verdict"]), _e(x["section"])))
     pl = d["credibility"]["plausibility_live"]

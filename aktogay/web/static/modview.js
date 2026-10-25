@@ -115,6 +115,16 @@
     }
     return out;
   }
+  /* the paired experiment of VALIDATION 8 (exp23.json, offline): same seeds, same troubles, the copy «с двойником» ranks by the code of
+     modules/policy.py, the copy «как сейчас» has no module; a model estimate */
+  function expHtml() {
+    const X = AKT.exp23;
+    if (!X || !X.data || !X.data.main) return X ? X.missing() : '';
+    return `<p>Одни и те же смены (seed, беды, руда, люди) прогнаны дважды: с модулем и без него, «как сейчас». Порядок вызова в копии «с двойником» считает тот же код <code>modules/policy.py</code>, что работает в контейнере akt-modules; тихие беды двойник находит с задержкой, измеренной у модуля «Где теряется медь» (VALIDATION 8.14, 8.17). Главное: <b>${esc(X.headline())}</b> — оценка на модели.</p>
+${X.mainTable()}${X.worse()}
+<p class="p-sub">Метод, пре-регистрация и разбор смен, где двойник хуже: VALIDATION, разделы 8.1–8.17. Повтор: <code>python3 -I aktogay/run.py trial</code> (раздел 2). Подробно — <a href="${AKT.href('?view=economics')}">Экономика</a>.</p>`;
+  }
+
   AKT.modEval = AKT.modEval || { detect: null, cusum: null, asked: false };
   function loadEval(cb) {
     if (AKT.modEval.asked) return;
@@ -130,15 +140,23 @@
       d.innerHTML = `<h2>Модули двойника</h2>
 <p class="lead">Три модуля работают отдельными службами и читают только данные двойника (Ditto) и историю в InfluxDB; симулятор они не вызывают. Решение формируют модули, а изменения в работе рудника проходят через вызов бригады и рычаги.</p>
 <h3>Эффект модуля в один клик</h3><div id="mod-eff"></div>
+<h3>Как решение модуля доходит до фабрики</h3>
+<ol class="mod-chain"><li><b>Модуль решает.</b> «Очередь бед» (<code>mod-priority</code>) читает беды и бригады из Ditto и пишет в свою вещь <code>kz.aktogay:mod-priority</code> признак <code>auto_call</code>: какую беду, кого звать, во сколько по модели.</li>
+<li><b>Двойник хранит.</b> Запись лежит в Ditto: <a href="/api/thing?id=kz.aktogay:mod-priority">/api/thing?id=kz.aktogay:mod-priority</a>.</li>
+<li><b>Симулятор читает.</b> akt-sim берёт <code>auto_call</code> из Ditto (<code>AKT_FACT_POLICY=module</code>) и отправляет бригаду в копии «с двойником»; в копии «без двойника» тихую беду находит лаборатория в 14:00.</li>
+<li><b>Фабрика меняется.</b> Бригада приезжает, узел возвращается в работу, медь копии «с двойником» растёт; разница копий — в таблице выше, вызовы модуля — в строке «Копия „с двойником“ шла по вызовам модуля».</li></ol>
+<h3>Опыт «до/после» на 100 парных сменах</h3><div id="mod-exp"><p class="empty dash">Загружаю итог опыта…</p></div>
 <h3>Что делает каждый модуль</h3><div id="mod-cards"></div>
 <h3 id="mod-eval-h">«Где теряется медь»: как часто находит, как быстро, как часто ошибается</h3><div id="mod-eval"><p class="empty dash">Загружаю проверку модуля…</p></div>
 <p class="note" id="mod-real"><b>Проверка на реальных рядах.</b> Детектор «Где теряется медь» (CUSUM, k 0,5, h 6,5) проверен на открытых 20-секундных данных флотации железной руды (OpenML 43311, CC0, одна фабрика, 2017 г.). Для расходомеров белый шум 1 % при публикации раз в минуту близок к реальному. Для реагентов, pH и плотности шум медленный, и цепочка с окном 45 мин даёт 24–40 ложных тревог в неделю на 6 узлов (двойник 29,8, теория для независимых отсчётов 2,8–5,4). Крупные ступени находятся за один–пять тактов. Это проверка датчиков и детектора на железной руде, а не доказательство для меди. Подробности и оговорки — <code>VALIDATION.md</code>, раздел 8.18.</p>
 <p class="note">Отставание — разница между временем модели и последней точкой, которую посчитал модуль. Если он отстаёт, он берёт последнюю готовую точку и пропускает старые.</p>`;
       loadEval(() => this.update());
+      if (AKT.exp23) AKT.exp23.load(() => this.update());
       this.update();
     },
     update() {
       setHtml('mod-eff', effectHtml());
+      setHtml('mod-exp', expHtml());
       setHtml('mod-eval', evalHtml());
       setHtml('mod-cards', MODS.map(card).join('') + leverCard());
       const b = document.getElementById('mod-run');

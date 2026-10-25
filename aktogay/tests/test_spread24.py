@@ -199,7 +199,10 @@ class StaticSpreadTest(unittest.TestCase):
         self.assertRegex(a, r'<div id="b-chain" class="b-chain" hidden>')     # inside the scenario banner, hidden by default
         self.assertIn("AKT.prop.grouped()", a)
         self.assertLess(a.index('id="p-banner"'), a.index('id="b-chain"'))
-        self.assertLess(a.index('id="b-chain"'), a.index('id="b-confirm"'))
+        # the stop buttons sit right under the title, above the text that changes with every refresh, so they do not move
+        self.assertLess(a.index('id="b-btns"'), a.index('id="b-watch"'))
+        self.assertLess(a.index('id="b-confirm"'), a.index('id="b-chain"'))
+        self.assertLess(a.index('id="b-chain"'), a.index('id="p-lever"'))      # the chain stays inside the scenario banner
 
     def test_base_copy_carries_the_pit_and_excavators(self):
         from sim import service

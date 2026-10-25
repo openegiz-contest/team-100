@@ -113,18 +113,33 @@ class BacktestTest(unittest.TestCase):
             self.assertLess(rows[f"{y}Q1"]["model_kt"], rows[f"{y}Q3"]["model_kt"], y)
         self.assertLess(rows["2024Q4"]["model_kt"], rows["2024Q3"]["model_kt"])
 
+    def assertClose(self, a, b, where=""):
+        """Equal up to the last digits of a float: the fit of the kinetics ends a few ulp apart on another CPU or libm."""
+        if isinstance(a, dict) and isinstance(b, dict):
+            self.assertEqual(sorted(a), sorted(b), where)
+            for k in a:
+                self.assertClose(a[k], b[k], f"{where}.{k}")
+        elif isinstance(a, list) and isinstance(b, list):
+            self.assertEqual(len(a), len(b), where)
+            for i, (x, y) in enumerate(zip(a, b)):
+                self.assertClose(x, y, f"{where}[{i}]")
+        elif isinstance(a, float) or isinstance(b, float):
+            self.assertAlmostEqual(a, b, delta=1e-6 * max(1.0, abs(a)), msg=where)
+        else:
+            self.assertEqual(a, b, where)
+
     def test_stored_file_equals_the_code(self):
         d = json.loads(read(STATIC, "backtest_ox.json"))
-        self.assertEqual(d["rows"], self.bt["rows"])
+        self.assertClose(d["rows"], self.bt["rows"], "rows")
         for k in ("fit", "forward", "annual", "baseline_constant_forward", "baseline_previous_quarter_forward"):
-            self.assertEqual(d[k], self.bt[k], k)
+            self.assertClose(d[k], self.bt[k], k)
         s = d["strict"]                                                  # fit to 2024 only, with the stored parameters
         prm = TABLE_DEFAULT()
         for k, v in s["values"].items():
             prm.set(k, v)
         again = oxide.backtest(prm, last=oxide.STRICT_LAST_QUARTER)
-        self.assertEqual(s["forward"], again["forward"])
-        self.assertEqual(s["fit"], again["fit"])
+        self.assertClose(s["forward"], again["forward"], "strict.forward")
+        self.assertClose(s["fit"], again["fit"], "strict.fit")
         self.assertGreater(s["forward"]["mape_pct"], d["forward"]["mape_pct"])     # the stricter test is honestly worse
 
     def test_table_values_are_the_optimum_of_the_fit(self):

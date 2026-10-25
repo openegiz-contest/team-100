@@ -1233,13 +1233,14 @@ const Panel = AKT.panel = {
     p.innerHTML = `
 <div id="p-banner" class="banner" hidden>
   <div class="b-h"><span class="tag-s">Учебный сценарий:</span> <span id="b-name"></span> · <span id="b-run"></span></div>
+  <!-- buttons right under the title: the text below grows and shrinks with every refresh, the buttons stay put -->
+  <div class="b-btns" id="b-btns"><button type="button" id="b-stop">Остановить сценарий…</button></div>
+  <div class="b-btns" id="b-confirm" hidden><span>Остановить? Фабрика сразу вернётся в состояние, как если бы сценария не было, на то же время модели. Прогон продолжится.</span>
+    <button type="button" class="primary" id="b-yes">Да, остановить</button><button type="button" id="b-no">Нет</button></div>
   <div class="watch" id="b-watch"></div>
   <div id="b-before"></div>
   <div id="b-expect" class="b-expect"></div>
   <div id="b-chain" class="b-chain" hidden></div>
-  <div class="b-btns" id="b-btns"><button type="button" id="b-stop">Остановить сценарий…</button></div>
-  <div class="b-btns" id="b-confirm" hidden><span>Остановить? Фабрика сразу вернётся в состояние, как если бы сценария не было, на то же время модели. Прогон продолжится.</span>
-    <button type="button" class="primary" id="b-yes">Да, остановить</button><button type="button" id="b-no">Нет</button></div>
 </div>
 <div id="p-lever" class="banner" hidden><div class="b-h"><span class="tag-s">Рычаги модели:</span> <span id="lv-b-t"></span></div>
   <div class="p-sub">управление моделью, не фабрикой · ниже плитки и карта показывают ход с рычагами; «база» — копия без них</div>
@@ -1907,8 +1908,8 @@ AKT.start = async function () {
   document.getElementById('btn-ask').addEventListener('click', () => AKT.ask && AKT.ask.open(''));
   document.getElementById('btn-tour').addEventListener('click', () => AKT.tour && AKT.tour.start());
   document.getElementById('btn-gloss').addEventListener('click', () => AKT.glossary && AKT.glossary.open());
-  try { await AKT.loadPlan(); } catch (e) { console.error(e); }
-  await AKT.poll();
+  /* the plan and the first state at the same time: the page has data as soon as both answer */
+  await Promise.all([AKT.loadPlan().catch(e => console.error(e)), AKT.poll()]);
   AKT.pollJournal();
   await AKT.route();
   setInterval(AKT.poll, AKT.POLL_MS);
@@ -1924,6 +1925,7 @@ AKT.start = async function () {
     history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p.toString() : ''));
     if (preset === 'fork') Panel.scenario('fork');
     else if (scen) Panel.scenario(scen);
+    else if (AKT.params.get('cancel') === '1') Panel.cmd('/api/cancel', {}, 'остановка сценария').then(ok => { if (ok) AKT.toast(`Сценарий остановлен в ${AKT.clock(AKT.simTime)}. Фабрика идёт как без сценария.`); });
     else if (AKT.params.get('speed')) Panel.cmd('/api/speed', { value: Number(AKT.params.get('speed')) }, 'скорость');
   }
 };
