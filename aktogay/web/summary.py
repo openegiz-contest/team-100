@@ -207,6 +207,13 @@ def build(state: dict, static: str) -> dict:
           ("catstore-1", "Склад катода", "stock_t", "т катода на складе", ("in_tph", "т/ч приход"))]
     out["oxide"] = [{"thing": n, "name": nm, "state": _v(th.get(n), "state_ru") or _v(th.get(n), "state", ""), "value": _v(th.get(n), f), "unit": u,
                      "extra": _v(th.get(n), xf), "extra_unit": xu} for n, nm, f, u, (xf, xu) in ox if n in th]
+    # contribution of each module: the paired 100-shift experiment (exp23.json, VALIDATION 8.17), a model estimate
+    try:
+        sym = json.load(open(os.path.join(static, "exp23.json"), encoding="utf-8")).get("sym") or {}
+        main = json.load(open(os.path.join(static, "exp23.json"), encoding="utf-8")).get("main") or {}
+        out["module_effect"] = {"total": main.get("cu"), "mod-losses": sym.get("detection"), "mod-priority": sym.get("order")}
+    except (OSError, ValueError):
+        out["module_effect"] = None
     # issues of this run
     issues = []
     for n, t in th.items():
@@ -354,6 +361,16 @@ def render_html(d: dict) -> str:
     for t in d["credibility"]["limits"]:
         a("<li>%s</li>" % _e(t))
     a("</ul>")
+    me = d.get("module_effect")
+    if me and me.get("mod-losses") and me.get("mod-priority") and me.get("total"):
+        iv = lambda c: "%s [%s; %s]" % (_sg(c["mean"]), _sg(c["ci95"][0]), _sg(c["ci95"][1]))  # noqa: E731
+        a("<h2>Модули: вклад каждого (опыт на 100 парных сменах, оценка на модели)</h2><table><tr><th>Модуль</th><th>Сравнение</th><th>т Cu за смену [95 %% ДИ]</th></tr>"
+          "<tr><td>все вместе</td><td>двойник − «как сейчас»</td><td>%s</td></tr>"
+          "<tr><td>«Где теряется медь» (mod-losses)</td><td>находка тихой потери есть / нет, порядок тот же</td><td>%s</td></tr>"
+          "<tr><td>«Очередь бед» (mod-priority)</td><td>порядок «по $» / «по громкости», находка та же</td><td>%s (почти целиком одна смена-выброс)</td></tr>"
+          "<tr><td>«Какая руда идёт» (mod-ore)</td><td>без двойника твёрдость узнают при выемке / только на SAG</td><td>0 / +0,58 [+0,40; +0,82]</td></tr></table>"
+          "<p>Разложение одного парного опыта (VALIDATION 8.17, п. 4), а не три отдельных опыта. Страница с таблицей: "
+          '<a href="/?view=modules">/?view=modules</a>.</p>' % (_e(iv(me["total"])), _e(iv(me["mod-losses"])), _e(iv(me["mod-priority"]))))
     a("<h2>Беда № 1</h2>")
     f = d["first_trouble"]
     if f:

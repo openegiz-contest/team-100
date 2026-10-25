@@ -22,12 +22,24 @@
 <p class="lead">Каждый сценарий запускается одной кнопкой и описан двумя строками: что должно произойти и как это проверить. Сценарий начинает смену заново с 08:00 по номеру прогона: тот же сценарий и тот же номер дают те же числа. Идущий сценарий виден по синей штриховке рамки и плашке «Учебный сценарий» вверху панели; остановить его можно там же.</p>
 <div class="sc-bar"><label>Номер прогона (seed) <input type="number" id="scn-seed" min="1" max="99999" step="1" value="42"></label>
 <a href="${AKT.href('?view=plan')}" id="scn-go">к обзору →</a><span class="note" id="scn-state"></span></div>
+<h3>Все сценарии каталога, прогнанные на этом стенде: запуск → беда № 1 → отмена</h3><div id="scn-check"><p class="empty dash">Загружаю итог проверки…</p></div>
 <div id="scn-cat"><p class="empty dash">Загружаю каталог…</p></div>
 <h2 id="constructor">Конструктор беды</h2>
 <p class="lead">Выберите узел, время и величину — беда запустится без кода тем же путём, что кнопки каталога: команда записывается в вещь <code>control</code> в Ditto. Диапазон величины — диапазон правдоподобия параметра модели, метка рядом с ним (допущение, аналог…) говорит, на чём он стоит. До трёх бед в одной смене.</p>
 <div id="scn-ctor"></div>`;
+      fetch('/scenario_stand_check.json', { cache: 'no-store' }).then(r => r.json()).then(j => this.check(j))
+        .catch(() => { const c = document.getElementById('scn-check'); if (c) c.innerHTML = '<p class="empty dash">Файл проверки не найден.</p>'; });
       fetch('/scenarios.json', { cache: 'no-store' }).then(r => r.json()).then(j => { this.data = j; this.render(); this.update(); })
         .catch(() => { const c = document.getElementById('scn-cat'); if (c) c.innerHTML = '<p class="empty dash">Каталог не загрузился.</p>'; });
+    },
+    /* scenario_stand_check.json: every catalog scenario started through /api/scenario on the running stand, the first trouble
+       awaited, then /api/cancel and the wait for the free run without a scenario (written by the stand sweep, the date inside) */
+    check(j) {
+      const c = document.getElementById('scn-check'); if (!c) return;
+      const rows = j.rows || [], ok = rows.filter(r => r.ok).length;
+      const yes = v => v ? 'да' : 'нет';
+      c.innerHTML = `<p>${esc(j.when)}: <b>${ok} из ${rows.length}</b> прошли целиком — команда принята, беда № 1 появилась (или не должна появиться), страница без ошибок, отмена вернула фабрику в ход без сценария. Сид ${esc(String(j.seed))}, ход ×60.</p>
+<details><summary>Таблица по каждому сценарию</summary><table class="kv"><tr><th>Сценарий</th><th>Беда № 1 появилась</th><th>через, мин модели</th><th>Отмена принята</th><th>Без сценария через, с</th><th>Итог</th></tr>${rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.expected_model_min == null ? 'не должна' : yes(r.trouble_appeared)}</td><td class="n">${r.model_min == null ? '—' : AKT.fmt(r.model_min)}</td><td>${yes(r.cancel_status === 200)}</td><td class="n">${r.back_to_free_run_s == null ? '—' : AKT.fmt(r.back_to_free_run_s)}</td><td>${r.ok ? 'прошёл' : '<b>не прошёл</b>'}</td></tr>`).join('')}</table></details>`;
     },
     seed() { return Math.max(1, Math.round(Number((document.getElementById('scn-seed') || {}).value) || 42)); },
     render() {

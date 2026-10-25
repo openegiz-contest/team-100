@@ -493,7 +493,7 @@ python3 -I -c "import sys; sys.path.insert(0, 'aktogay'); from sim import modloo
 
 ## Presentation
 
-`presentation.pdf` in the repository root. Video (optional): нет.
+`presentation.pdf` in the repository root (the text of the slides: `presentation.md`). Video (optional): нет.
 
 Слайды: замысел; план площадки и спутник; 3D; линия 1 и карточка SAG-1; люди и очередь бед; «Два сразу» и итог трёх копий при `kip=1` и `kip=2`; сценарии С1–С4, «Вода», «Пожар HPGR»; руда и «сбылось ли»; калибровка (отклонения, промах 2024 г., балансы) и опыт «вкл/выкл» на 100 сменах; что не работает и главные допущения. Снимки — реального стенда; под каждым — адрес, который его повторяет; числа — с метками [оценка на модели] или [факт].
 
