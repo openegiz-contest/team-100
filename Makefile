@@ -25,7 +25,10 @@ up:
 	@for i in 1 2 3; do $(COMPOSE) build && break; \
 	  if [ $$i = 3 ]; then echo "ERROR: build failed 3 times"; exit 1; fi; \
 	  echo "build failed (attempt $$i of 3), retrying in 15 s"; sleep 15; done
-	$(COMPOSE) up -d --wait --wait-timeout 900
+	@# `up` can build what `build` left (sources fetched from GitHub again): retry it the same way.
+	@for i in 1 2 3; do $(COMPOSE) up -d --wait --wait-timeout 900 && break; \
+	  if [ $$i = 3 ]; then echo "ERROR: up failed 3 times"; exit 1; fi; \
+	  echo "up failed (attempt $$i of 3), retrying in 15 s"; sleep 15; done
 	@# `--wait` does not wait for one-shot jobs to finish: a running init counts
 	@# as up. Wait for it to exit, then check how.
 	@test "$$(docker wait $$($(COMPOSE) ps -a -q init))" = 0 || { \
