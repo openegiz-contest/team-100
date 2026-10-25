@@ -47,7 +47,7 @@ CSV_2026 = os.path.join(HERE, "data", "kaz_quarterly_2026.csv")
 SEED = 42
 PCT = 100.0
 G0 = 0.41
-# design availabilities, Ausenco (facts_round2 «Раунд 4», D7 and D8)
+# design availabilities, Ausenco (source check of 24.10.2026, items D7 and D8)
 LIT_AVAIL = {"crusher": (70.0, 75.0), "grinding": (91.0, 92.0), "flotation": (91.0, 92.0)}
 DESIGN_CRUSH_H = 285 * 2 * 10.0               # OVOS p. 26: coarse crushing 285 days a year, two shifts of 10 h = 5 700 h (65.1 % of the hours of a year)
 HOURS_YEAR = 8760.0

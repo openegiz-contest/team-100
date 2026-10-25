@@ -125,13 +125,13 @@ CHAIN_BY_KIND = {
     "exc_down": ("person-pit-mech", "person-dispatcher", "person-mine-head"),
 }
 # Excavators with a confirmed on-machine oil contamination sensor: the EX3600-6 brochure (p. 11); the other models' lists are not
-# confirmed in the sources, so the twin publishes -1 for them (S1 of facts_round2).
+# confirmed in the sources, so the twin publishes -1 for them (source check of 23.10.2026).
 OIL_SENSOR = ("exc-1",)
 # Truck of the fatigue alert (scenario fatigue): bort number of the equipment list of 29.02.2024 (CAT 793D).
 FATIGUE_BORT = "HT141"
 # Who goes when a decision without a crew is called (issue kind -> person).
 DECISION_PERSON = {
-    "grid": "person-power", "hard": "person-geologist", "pit": "person-dispatcher",
+    "grid": "person-power", "hard": "person-geologist", "pit": "person-dispatcher", "piezo": "person-water",
     "reline": "person-dispatcher", "water": "person-water", "hpgr_fire": "person-power",
     "road": "person-dispatcher", "found": "person-metallurgist",
     # SAG kWh/t above the ore: the metallurgist checks load, feed size and liner (mechanics for a liner)

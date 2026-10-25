@@ -1,4 +1,4 @@
-"""Readiness card of every new trouble and forecast (the nine points of FEATURES_22.md, «ОПРЕДЕЛЕНИЕ ГОТОВНОСТИ»,
+"""Readiness card of every new trouble and forecast (the nine points of the readiness definition,
 decision of 23.10.2026): problem and source, signal on a real plant and in the twin, rule and its parameters, price,
 who is called and the backup, short checklist, closure, check (scenario, test, row of «Как проверить»), limits.
 

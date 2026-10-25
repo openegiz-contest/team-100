@@ -55,7 +55,7 @@ class EffectTest(unittest.TestCase):
         self.assertIn("колебание руды вычтено", e["text"])
 
     def test_site_total_when_the_scenario_names_no_line(self):
-        self.assertIn("Медь станции", self.o["site"]["text"])
+        self.assertIn("Медь фабрики", self.o["site"]["text"])
 
     def test_no_base_copy_keeps_the_old_pair(self):
         self.assertIsNone(self.o["nobase"])

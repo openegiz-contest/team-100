@@ -12,7 +12,7 @@
    "reads": [
     "MQTT-события Ditto `control.*` (сценарий, скорость, сброс, отмена)",
     "`journal.last` (вызов, напоминание)",
-    "`mod-priority.issue_map`, `mod-priority.auto_call` (вызов беды как бригады на узле)"
+    "`mod-priority.issue_map`, `mod-priority.auto_call` (вызов беды как бригады на узле; в «Два сразу» по ним идёт копия «по $», `AKT_FACT_POLICY=module`)"
    ],
    "influx": "не читает",
    "writes": [

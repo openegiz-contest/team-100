@@ -17,7 +17,7 @@ from .text import ANALOG, ASSUME, EST, cu_tph, dur, num
 LINES = (1, 2)
 ORE_EXC = ("exc-1", "exc-2", "exc-3")
 
-# Where a signal can be seen (sensor verification of 23.10.2026, facts_round2): one wording for the whole stand.
+# Where a signal can be seen (sensor verification of 23.10.2026): one wording for the whole stand.
 W_MACHINE = "на машине (видит водитель / оператор)"
 W_SENT = "передаётся, если подключена опция"
 W_ANALOG = "аналог другой модели"

@@ -13,7 +13,7 @@ the general state. Every signal says where it is seen:
   model       a calculation of the twin, not a measurement
   assumption  no source confirms it
 
-Only items marked confirmed in facts_round2.md («Проверка 23.10.2026», «Датчики — проверка 23.10.2026», part C) are given as facts;
+Only items confirmed in the source checks of 23.10.2026 (sensors, part C) are given as facts;
 items with a stated caveat carry it; an unconfirmed item is an assumption. Nothing here is a number of the model: the live numbers of the page
 come from Ditto.
 

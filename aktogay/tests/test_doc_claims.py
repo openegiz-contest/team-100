@@ -2,7 +2,7 @@
 against the output of its script (sim/verify.py).
 
 Each scenario of the table is run here: CopySet(None, 42, scenario).run_to_end() to 20:00; the fork with one and two
-instrument engineers the same way. A number in the documents must equal the computed one at the precision it is printed.
+instrument engineers through sim/modloop.py (the module code calls for the copy «по $»). A number in the documents must equal the computed one at the precision it is printed.
 Nothing here edits a document: a mismatch fails the test and the document is corrected by hand.
 """
 import json
@@ -17,12 +17,13 @@ if ROOT not in sys.path:
 
 from sim import verify  # noqa: E402
 from sim.params import default  # noqa: E402
+from sim import modloop  # noqa: E402
 from sim.plant import CopySet  # noqa: E402
 
 DOCS = os.path.normpath(os.path.join(ROOT, "..", "final_docs"))
-if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root
     DOCS = os.path.dirname(ROOT)
-README = "README_aktogay.md" if os.path.basename(DOCS) == "final_docs" else "README.md"
+README = "README.md"
 STATIC = os.path.join(ROOT, "web", "static")
 SINGLE = ("crusher:1", "grid", "hard:1", "reline:1", "water", "hpgr_fire")
 _CACHE: dict = {}
@@ -47,7 +48,7 @@ def runs():
         for sid in SINGLE:
             _CACHE[sid] = CopySet(None, verify.SEED, sid).run_to_end()
         for kip in (1, 2):
-            _CACHE["fork%d" % kip] = CopySet(None, verify.SEED, "", preset="fork", kip=kip).run_to_end()
+            _CACHE["fork%d" % kip] = modloop.run_fork(None, verify.SEED, kip)      # the copy «по $» follows the module code
     return _CACHE
 
 

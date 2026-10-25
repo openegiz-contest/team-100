@@ -274,7 +274,7 @@ PARAMS: tuple[Param, ...] = (
     _p("remind_eta_min", 10, 5, 20, "min", S_D5, "assumption", "expected arrival after a reminder (as the model)"),
     _p("handover_am_h", 7.5, 7.0, 8.0, "h", S_D5 + "; " + S_PLOCHER, "assumption", "handover sheet before the 08:00 shift"),
     _p("handover_pm_h", 19.5, 19.0, 20.0, "h", S_D5 + "; " + S_PLOCHER, "assumption", "handover sheet before the 20:00 shift"),
-    _p("handover_btn_lead_min", 60, 30, 90, "min", "UI rules of the stand (UI_RULES_28.md, item 1: about 60 min before the end of the shift)",
+    _p("handover_btn_lead_min", 60, 30, 90, "min", "UI rule of the stand (the button appears about 60 min before the end of the shift)",
        "assumption", "the button «Сдать смену» appears this many minutes before the end of the shift, and only then"),
     # ---- features 1-9, 14, 15 (22.10.2026): hourly tariff, winter, grind, concentrate grade, grinding media, dust
     _p("tariff_kzt_kwh_mean", 16.0, 16.0, 27.0, "KZT/kWh", S_TARIFF, "fact", "mean price (same row as the model)"),

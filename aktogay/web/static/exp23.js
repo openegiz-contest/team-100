@@ -8,12 +8,16 @@
   const sg = (v, d = 2) => (v > 0 ? '+' : v < 0 ? '−' : '') + fmt(Math.abs(v), d);
   const ci = (a, d = 2) => `[${sg(a[0], d)}; ${sg(a[1], d)}]`;
   const X = AKT.exp23 = {
-    data: null, pending: null,
+    data: null, pending: null, failed: false,
     /* loads exp23.json once; cb runs when the data is there (or never, if the file is missing) */
     load(cb) {
       if (X.data) { cb(X.data); return; }
-      if (!X.pending) X.pending = fetch('/exp23.json', { cache: 'no-store' }).then(r => r.json()).then(j => { X.data = j; return j; }).catch(() => null);
+      if (!X.pending) X.pending = fetch('/exp23.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { X.data = j; return j; }).catch(() => { X.failed = true; return null; });
       X.pending.then(j => { if (j) cb(j); });
+    },
+    /* what a page shows where the result of the experiment goes while it is not there: a loading line first, the failure only after a failed load */
+    missing() {
+      return X.failed ? '<p class="empty dash">Итог опыта недоступен: файл exp23.json не открылся.</p>' : '<p class="empty dash">Загружаю итог опыта…</p>';
     },
     /* the main comparison in the form the pages used for the old trial summary */
     twin() {

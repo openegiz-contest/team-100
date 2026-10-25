@@ -1,6 +1,6 @@
 """Rows of the what-if levers (control of the MODEL, not of the plant): feed rate of each SAG line, grind P80 target,
 collector dose. Imported at the end of the row list of sim/params.py. Levers are off by default; a neutral lever leaves
-the model unchanged. Sources: gaps/facts_round2.md, sections "Пороги" (R5), "Реагенты — проверка 24.10.2026" (RG1-RG6).
+the model unchanged. Sources: the source column of the rows (opened and checked on 24.10.2026).
 """
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Tier S of 23.10.2026 (FEATURES_22.md): winter road and tired driver in the pit, cyclone roping with ball mill overload,
+"""Tier S of 23.10.2026 (design notes of 22.10.2026): winter road and tired driver in the pit, cyclone roping with ball mill overload,
 pH sensor under suspicion with the age of every measurement, uneven feed of the line 2 HPGR, ore changed / regime old,
 mantle change of the primary crusher, oil contamination and failure of an excavator, the page «Изнутри» and the opt-in trial
 library. Each trouble is checked on the nine points of the readiness card: the signal in the twin, the rule, the price, who is

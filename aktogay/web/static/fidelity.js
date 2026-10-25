@@ -22,7 +22,7 @@
     Promise.all([
       fetch('/fidelity.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
       fetch('/influence.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
-    ]).then(([d, i]) => { F.data = d; F.infl = i; F.loading = false; if (cb) cb(); });
+    ]).then(([d, i]) => { F.data = d; F.infl = i; F.loading = false; F.done = true; if (cb) cb(); });
   };
 
   const UNIT_RU = { crusher: 'Дробилка (ЦПД)', grinding: 'Измельчение (SAG и шаровые)', flotation: 'Флотация' };
@@ -87,7 +87,7 @@
   }
 
   function influence(i) {
-    if (!i) return '<p class="empty dash">Итог классификации (influence.json) не загружен.</p>';
+    if (!i) return `<p class="empty dash">${F.loading || !F.done ? 'Загружаю итог классификации…' : 'Итог классификации недоступен: файл influence.json не открылся.'}</p>`;
     const s = i.summary;
     const NAME = { assumption: 'допущение', fact: 'факт', vendor: 'вендор', analog: 'аналог', project: 'проект', calc: 'расчёт' };
     const read = (s.matters || 0) + (s.read_small || 0) + (s.read || 0) + (s.read_fixed || 0);
@@ -112,7 +112,7 @@ ${top ? `<details><summary>Числа, сильнее всего сдвигаю�
 
   F.renderFidelity = function () {
     const d = F.data;
-    if (!d) return '<p class="empty dash">Итоги прогонов (fidelity.json) не загружены.</p>';
+    if (!d) return `<p class="empty dash">${F.loading || !F.done ? 'Загружаю итоги прогонов…' : 'Итоги прогонов недоступны: файл fidelity.json не открылся.'}</p>`;
     return `<p class="note">Прогоны модели на код ${esc(d.generated)}, зерно ${esc(d.seed)}; подгонка 2025 г.: готовность ${fmt(d.fit.cal_avail, 4)}, коэффициент SAG ${fmt(d.fit.sag_k, 4)}, предельное извлечение ${fmt(d.fit.flot_rinf0_pct, 2)} %.</p>
 ${availability(d.availability)}${relines(d.relines)}${forward(d.forward_2026)}${recovery(d.recovery)}${spread(d.spread)}`;
   };

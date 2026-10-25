@@ -839,6 +839,13 @@ AKT.hoursLeft = sp => {
   if (lvl != null && lvl >= 0 && out != null && out > 100 && inn != null && inn < 0.1 * out && (h == null || h < 0 || h > lvl / out + 0.5)) return lvl / out;
   return h;
 };
+/* the note under the ore stockpile: how long it lasts, or that it does not shrink; "2 days" only when the hours left really are above 48 */
+AKT.stockNote = sp => {
+  const h = AKT.hoursLeft(sp), inn = AKT.num(sp, 'in_tph'), out = AKT.num(sp, 'out_tph');
+  if (h != null && h >= 0) return h <= 48 ? { h, text: `кончится через ${AKT.durH(h)}`, short: `хватит на ${AKT.durH(h)}` } : { h, text: 'хватит больше чем на 2 суток', short: 'запас > 2 суток' };
+  if (inn != null && out != null && inn >= out) return { h: null, text: 'запас не убывает (приход не меньше расхода)', short: 'запас не убывает' };
+  return { h: null, text: 'срок запаса не определён', short: 'срок не определён' };
+};
 AKT.staleSec = () => AKT.polled ? Date.now() / 1000 - AKT.polled : null;
 AKT.isStale = () => {
   const age = AKT.staleSec();
@@ -1130,7 +1137,7 @@ AKT.scenWatch = scen => {
     const cr = AKT.st(`crusher-${n}`);
     const tail = cr && AKT.stopped(cr) ? `дробилка ${n} стоит` : `дробилка ${n} снова работает`;
     if (h != null && h <= 48) return Object.assign(left(h * 60, `Следите: склад ${n} кончится`, t != null ? t + h * 60 : null), { text: `Следите: склад ${n} кончится через ${AKT.durH(h)}${t != null ? ` (в ${AKT.clockDay(t + h * 60)})` : ''} · ${tail}` });
-    return { text: `Следите: склад ${n} — ${AKT.fmt(lvl)} т, хватит больше чем на 2 суток · ${tail}`, lv: 0 };
+    return { text: `Следите: склад ${n} — ${AKT.fmt(lvl)} т, ${AKT.stockNote(sp).text} · ${tail}`, lv: 0 };
   }
   if (kind === 'grid') {
     const mw = AKT.num('power', 'site_mw'), lim = AKT.num('power', 'grid_limit_mw');
@@ -1284,15 +1291,17 @@ const Panel = AKT.panel = {
 <ul class="journal" id="p-journal"></ul>
 <details id="sim"${simOpen ? ' open' : ''}><summary>Пульт модели <span class="h-sub">— учебная модель фабрики, не диспетчерская</span></summary>
   <div class="sim-row"><span class="sim-lbl">Скорость</span>
-    <button type="button" data-speed="0">⏸ Пауза</button><button type="button" data-speed="60">×60</button><button type="button" data-speed="300">×300</button><button type="button" data-speed="1200">×1200 (быстро до 20:00)</button>
-    <span id="sim-lag" class="p-sub"></span></div>
+    <button type="button" data-speed="0">⏸ Пауза</button><button type="button" data-speed="60">×60</button><button type="button" data-speed="300" title="запрос ×300; фактический ход ограничен потоком 20 сообщений/с в Ditto">×300 (запрос)</button><button type="button" data-speed="1200" title="запрос ×1200; фактический ход ограничен потоком 20 сообщений/с в Ditto">×1200 (запрос)</button>
+    <span id="sim-lag" class="p-sub"></span>
+    <span class="p-sub" id="sim-cap">Потолок хода на этом стенде ≈ ×60–×90 (поток 20 сообщений/с в Ditto): смена с 08:00 до 20:00 идёт ≈ 8–12 мин.</span></div>
   <div class="sim-row"><span class="sim-lbl">Рычаги модели</span><span class="p-sub">подача SAG, помол P80, доза собирателя — управление моделью, не фабрикой</span> <a href="${AKT.href('?view=levers')}">открыть →</a></div>
   <div class="sim-row"><span class="sim-lbl">Учебные сценарии</span><span class="p-sub" id="sim-warm"></span><a href="${AKT.href('?view=scenarios')}">каталог и конструктор беды →</a></div>
   <div class="sc-list" id="sc-list">${AKT.SCENARIOS.map(s => `<div class="sc" data-sc="${s.id}"><span class="sc-n">${AKT.esc(s.name)}</span><span class="sc-d">${AKT.esc(s.what)}</span><button type="button" data-run="${s.id}">Запустить…</button>
     <div class="sc-confirm" hidden><p><b>Что случится:</b> ${AKT.esc(s.what)}</p><p><b>За чем следить:</b> ${AKT.esc(s.watch)} Обратный отсчёт появится вверху панели.</p><p><b>Как отменить:</b> «Остановить сценарий…» в синей рамке вверху панели — фабрика вернётся в состояние без сценария, на то же время модели.</p><p class="p-sub">Скорость: ×60 (минута = час).</p>
     <div class="b"><button type="button" class="primary" data-go="${s.id}">Запустить</button><button type="button" data-no>Отмена</button></div></div></div>`).join('')}</div>
-  <div class="sim-row"><span class="sim-lbl">Смена заново</span><label>номер прогона <input type="number" id="sim-seed" min="1" max="99999" step="1" value="42"></label>
-    <button type="button" id="sim-reset">Начать смену заново (08:00)</button></div>
+  <div class="sim-row"><span class="sim-lbl">Смена заново</span><label>номер прогона (seed) <input type="number" id="sim-seed" min="1" max="99999" step="1" value="42"></label>
+    <button type="button" id="sim-reset">Сбросить 08:00</button>
+    <span id="sim-reset-ask" hidden><span class="p-sub">Текущий прогон закончится, смена начнётся с 08:00.</span> <button type="button" class="primary" id="sim-reset-yes">Да, сбросить</button> <button type="button" id="sim-reset-no">Отмена</button></span></div>
   <div class="sim-row"><label class="chk"><input type="checkbox" id="chk"${AKT.check ? ' checked' : ''}> Режим проверки модели</label><span class="p-sub">— показывает скрытые причины прогона и ход без сценария (диспетчеру недоступно)</span></div>
   <div class="sim-row runid" id="sim-run"></div>
   <div class="sim-row" id="p-msg" role="status" aria-live="polite"></div>
@@ -1311,13 +1320,14 @@ const Panel = AKT.panel = {
     }));
     p.querySelectorAll('[data-no]').forEach(b => b.addEventListener('click', () => { const card = b.closest('.sc'); card.querySelector('.sc-confirm').hidden = true; card.classList.remove('open'); card.querySelector('[data-run]').focus(); }));
 
-    let resetArm = null;
-    $('sim-reset').addEventListener('click', () => {
-      const b = $('sim-reset');
-      if (!resetArm) { b.textContent = 'Да, начать заново — текущий прогон закончится'; b.classList.add('primary'); resetArm = setTimeout(() => { resetArm = null; b.textContent = 'Начать смену заново (08:00)'; b.classList.remove('primary'); }, 6000); return; }
-      clearTimeout(resetArm); resetArm = null; b.textContent = 'Начать смену заново (08:00)'; b.classList.remove('primary');
+    const resetAsk = on => { $('sim-reset').hidden = on; $('sim-reset-ask').hidden = !on; $(on ? 'sim-reset-yes' : 'sim-reset').focus(); };
+    $('sim-reset').addEventListener('click', () => resetAsk(true));
+    $('sim-reset-no').addEventListener('click', () => resetAsk(false));
+    $('sim-reset-yes').addEventListener('click', async () => {
       const seed = Math.max(1, Math.round(Number($('sim-seed').value) || 42));
-      Panel.cmd('/api/reset', { seed }, `смена заново, прогон ${seed}`);
+      resetAsk(false);
+      const ok = await Panel.cmd('/api/reset', { seed }, `сброс на 08:00, прогон ${seed}`);
+      if (ok) AKT.toast(`Сброс на 08:00: прогон № ${seed} начался заново, идёт прогрев модели.`);
     });
     $('chk').addEventListener('change', ev => {
       const q = new URLSearchParams(location.search);
@@ -1728,7 +1738,7 @@ AKT.scenEffect = scen => {
   const b = AKT.base(th, 'cu_tph'), n = AKT.num(th, 'cu_tph');
   if (b == null || n == null || b < 0 || n < 0) return null;
   const d = n - b, sg = d > 0.04 ? '+' : d < -0.04 ? '−' : '±';
-  return { base: b, fact: n, effect: d, text: `Медь ${m ? 'линии ' + m[1] : 'станции'}: база ${AKT.f1(b)} → факт ${AKT.f1(n)} т Cu/ч, эффект ${sg}${AKT.f1(Math.abs(d))} (разница с копией без сценария в ту же минуту модели; колебание руды вычтено)` };
+  return { base: b, fact: n, effect: d, text: `Медь ${m ? 'линии ' + m[1] : 'фабрики'}: база ${AKT.f1(b)} → факт ${AKT.f1(n)} т Cu/ч, эффект ${sg}${AKT.f1(Math.abs(d))} (разница с копией без сценария в ту же минуту модели; колебание руды вычтено)` };
 };
 /* Expected result of a scenario, computed beforehand by the same code as the stand: web/static/verify.json, written by
    `python -I aktogay/run.py verify` (sim/verify.py); a test keeps the file equal to the script output. */
@@ -1785,7 +1795,7 @@ AKT.verify = {
     if (!run) return '';
     const seed = AKT.num('site', 'seed');
     const lab = `посчитано заранее тем же кодом, seed ${this.data.seed}, оценка на модели`;
-    if (seed != null && seed !== this.data.seed) return `<div class="b-ex"><b>Ожидаемый итог к 20:00</b> заранее посчитан для прогона № ${this.data.seed}, а идёт № ${AKT.fmt(seed)}: сверять нечего. Прогон № ${this.data.seed} — «Начать смену заново» в «Пульте модели».</div>`;
+    if (seed != null && seed !== this.data.seed) return `<div class="b-ex"><b>Ожидаемый итог к 20:00</b> заранее посчитан для прогона № ${this.data.seed}, а идёт № ${AKT.fmt(seed)}: сверять нечего. Прогон № ${this.data.seed} — «Сбросить 08:00» в «Пульте модели».</div>`;
     const start = AKT.scenStart();
     const mom = Object.keys(run.moments).map(k => `<li>${AKT.esc(this.momentRu(k))} ≈ ${run.moments[k].clock} · <span class="p-sub">на стенде: ${AKT.esc(this.status(run, k, start))}</span></li>`).join('');
     return `<div class="b-ex"><b>Ожидаемый итог к 20:00</b> — ${lab}: ${AKT.esc(this.text(run))}.${mom ? `<ul class="b-ex-l">${mom}</ul>` : ' Склад руды и SAG из-за сценария за смену не останавливаются.'}</div>`;
@@ -1820,7 +1830,7 @@ AKT.verify = {
       return `<tr><td><b>${AKT.esc(lab)}</b> <span class="p-sub"><code>${AKT.esc(r.id)}</code></span><br><span class="p-sub">${AKT.esc(mom === '—' ? 'склад и SAG из-за сценария не останавливаются' : mom)}</span></td><td>${copies}</td><td class="n">${r.fork ? this.sg(c.fact.cu_t - c.no_twin.cu_t, AKT.f2) : this.sg(x.cu_t, AKT.f2)}</td><td>${usd}</td><td>${AKT.esc(live)}</td></tr>`;
     }).join('');
     return `<div style="overflow-x:auto"><table class="kv" id="ht-verify-t"><tr><th>Сценарий и ключевые моменты</th><th>Медь к 20:00, т Cu (копии)</th><th>Разница, т Cu</th><th>Разница, $</th><th>На стенде сейчас</th></tr>${rows}</table></div>
-<p class="note">Ожидаемый итог — посчитано заранее тем же кодом, seed ${d.seed}, оценка на модели; код ${AKT.esc(d.code_hash)}. Команда: <code>${AKT.esc(d.command)}</code>. Копия «факт» без нажатий в интерфейсе. У «Две беды сразу» разница считается с копией «без двойника». Окно сверки моментов на стенде — ±10 мин модели (модуль считает каждые 5–10 мин). В первой колонке — когда склад руды кончится или SAG останется без руды, если это происходит из-за сценария.</p>`;
+<p class="note">Ожидаемый итог — посчитано заранее тем же кодом, seed ${d.seed}, оценка на модели; код ${AKT.esc(d.code_hash)}. Команда: <code>${AKT.esc(d.command)}</code>. Копия «факт» без нажатий в интерфейсе. У «Две беды сразу» разница считается с копией «без двойника», а копия «по $» идёт по вызовам кода модуля «Очередь бед» (<code>sim/modloop.py</code>, лаг модуля 10 мин), как на стенде. Окно сверки моментов на стенде — ±10 мин модели (модуль считает каждые 5–10 мин). В первой колонке — когда склад руды кончится или SAG останется без руды, если это происходит из-за сценария.</p>`;
   },
 };
 AKT.planRu = s => String(s || '').replace(/L(\d)\s*:/g, 'линия $1:').replace(/\b0*(\d+)\s+([MST])\b/g,

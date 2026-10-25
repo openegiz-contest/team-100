@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /akt
-COPY web/server.py web/
+COPY web/server.py web/summary.py web/
 COPY web/static/ web/static/
 
 USER nobody

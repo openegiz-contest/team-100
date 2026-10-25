@@ -20,9 +20,9 @@ if WEB not in sys.path:
     sys.path.insert(0, WEB)
 STATIC = os.path.join(WEB, "static")
 FINAL = os.path.join(os.path.dirname(ROOT), "final_docs")
-if not os.path.isdir(FINAL):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+if not os.path.isdir(FINAL):                 # repository layout: the documents sit in the root
     FINAL = os.path.dirname(ROOT)
-README = "README_aktogay.md" if os.path.basename(FINAL) == "final_docs" else "README.md"
+README = "README.md"
 
 from tests import mod_support as ms  # noqa: E402
 from tests.test_mod_priority import T0, fork_ov, fork_store, modules, run_fork  # noqa: E402
@@ -480,7 +480,7 @@ class HandoverButtonTest(unittest.TestCase):
     def test_it_is_a_feature_of_the_module_and_a_parameter_with_a_label(self):
         row = next(p for p in MPARAMS if p.key == "handover_btn_lead_min")
         self.assertEqual((row.label, row.unit), ("assumption", "min"))
-        self.assertIn("UI_RULES_28", row.source)
+        self.assertIn("UI rule of the stand", row.source)
         st, prm = ms.make_store(T0, {})
         lm, om, pm = modules(st, prm)
         lm.compute(T0)

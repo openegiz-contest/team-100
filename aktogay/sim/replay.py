@@ -1,4 +1,4 @@
-"""Replay of a shift «с двойником / без» (FEATURES_22.md, В2): two timelines of the same shift side by side,
+"""Replay of a shift «с двойником / без» (design notes of 22.10.2026, item V2): two timelines of the same shift side by side,
 started -> noticed -> called -> arrived -> resolved, the difference in hours and in t Cu.
 
 Built only from the rows of the on/off trial that are already stored (`sim/data/trial_n100.json`, `shifts[*]`):

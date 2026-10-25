@@ -1,6 +1,6 @@
 """Readiness cards of tier T (24.10.2026): the nine points of eight slow equipment troubles (see readiness.py).
 
-Sources are the ones confirmed in gaps/facts_round2.md and gaps/SOURCES_thresholds.md (opened 24.10.2026). The table of the CAT
+Sources are the ones opened and checked on 24.10.2026 (the source column of the rows). The table of the CAT
 797F/793F 'Data & System Events' (a confidential copy) is not used: only the principle of a threshold with a time delay. Where the
 source names the risk and not the number, the number is marked as an example or an assumption.
 """

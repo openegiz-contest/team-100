@@ -394,7 +394,7 @@ writes `control.lever` into Ditto, `akt-sim` applies it to the fact copy only; t
 the same minute without levers, so «база / с рычагами / разница» is the usual copy difference. The advice button
 (`modules/lever_advice.py`, `web/static/lever.js`) only posts the same call; the modules never write levers.
 P80 slope: lab 1.2 pp per 10 um (Bozshakol composite), plant regression 1.95 pp (both shown); reagent price is an assumption
-(`lev_reagent_usd_t`); the Volza / ITB / ScienceDirect pages did not open (`gaps/facts_round2.md`, «Реагенты»).
+(`lev_reagent_usd_t`); the Volza / ITB / ScienceDirect pages did not open.
 Troubles of tier T are scenario tokens (never drawn in free run, so the N = 100 summary is unchanged): signal ramps from normal to
 alert, the consequence follows unless the called role fixes it; thresholds are examples or assumptions as labelled in the cards.
 

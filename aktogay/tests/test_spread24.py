@@ -14,9 +14,9 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC = os.path.join(ROOT, "web", "static")
 DOCS = os.path.join(os.path.dirname(ROOT), "final_docs")
-if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root, README_aktogay.md is README.md
+if not os.path.isdir(DOCS):                 # repository layout: the documents sit in the root
     DOCS = os.path.dirname(ROOT)
-README = "README_aktogay.md" if os.path.basename(DOCS) == "final_docs" else "README.md"
+README = "README.md"
 SETUP = os.path.join(ROOT, "setup")
 for p in (ROOT, SETUP):
     if p not in sys.path:

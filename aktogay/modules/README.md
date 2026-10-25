@@ -114,7 +114,7 @@ CUSUM срабатывает на 3–4-м показании (45–60 мин), 
   (действия `late`, `remind`, `next`, `arrived`; последние 20). Журнал `remind` / `next` даёт новое ETA (+10 мин,
   `remind_eta_min`, или +40 мин) и убирает «не прибыл».
 - Зачем лист по разделам: Plocher и др. 2011 (тренажёр НПЗ) — 76 % нужных сведений в журнале против 57 %
-  [литература]; проверка источников — `gaps/facts_savings.md`.
+  [литература].
 
 ## Какая руда идёт (`mod-ore`)
 
@@ -162,7 +162,7 @@ SNOOZED), `node`, `kind`, `safety_class`, `loss_usd_h` (темп потерь, �
 `responsible.person` узла, у решений — человек роли), `status_ru` (статус словами), `text`.
 `mod-priority`: `queue_text` (строки анализа и совета, устойчивость), `order_text`, `alarm_order_text`
 (порядок русскими именами узлов), `auto_call` (пусто; при `AKT_AUTO_CALL=1` или
-`control.scenario.auto` — один вызов на беду: {seq, issue, role, sim_time, node}), `issue_map`
+`control.scenario.auto`, а у «Два сразу» без этого поля — тоже: один вызов на беду: {seq, issue, role, sim_time, node}; по нему идёт копия «по $», sim/modloop.py), `issue_map`
 ({issue-N: {node, kind}}: по нему akt-sim превращает вызов беды из журнала в вызов на узле).
 
 Решения в очереди (кроме ремонтов):

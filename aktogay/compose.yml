@@ -215,7 +215,7 @@ services:
       AKT_RAMP_S: ${AKT_RAMP_S:-120}
       AKT_BARRIER: ${AKT_BARRIER:-}
       AKT_BARRIER_TIMEOUT_S: ${AKT_BARRIER_TIMEOUT_S:-60}
-      AKT_FACT_POLICY: ${AKT_FACT_POLICY:-offline}
+      AKT_FACT_POLICY: ${AKT_FACT_POLICY:-module}
     networks:
       - simnet
     depends_on:

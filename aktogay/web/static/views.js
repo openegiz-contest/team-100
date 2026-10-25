@@ -192,10 +192,10 @@
       setHtml('cb-state', `Расчёт: ${esc(AKT.stRu(st, 'validation-calib'))}${st === 'DONE' ? `, записан ${esc(when ? new Date(when).toLocaleString('ru-RU') : '—')}${rep && rep.seconds ? `, счёт ${fmt(rep.seconds)} с` : ''}` : st === 'RUNNING' ? ' (≈ 2 мин), таблицы появятся сами' : ''}.`, false);
       const tr = rep && rep.trial, s = tr && tr.summary || {};
       const d = s.d_cu_t_2000, tw = s.twin_cu_t_2000;
-      let lead = 'Итог опыта не загружен (файл exp23.json).';
+      let lead = AKT.exp23.failed ? 'Итог опыта недоступен: файл exp23.json не открылся.' : 'Загружаю итог опыта…';
       if (AKT.exp23.data) lead = AKT.exp23.sentence();
       setHtml('cb-lead', esc(lead));
-      setHtml('cb-exp', AKT.exp23.data ? `${AKT.exp23.mainTable()}<h4>От чего зависит (торнадо)</h4>${AKT.exp23.tornado()}<h4>Цена задержки вызова</h4>${AKT.exp23.delay()}` : '<p class="empty dash">Итог опыта не загружен.</p>', false);
+      setHtml('cb-exp', AKT.exp23.data ? `${AKT.exp23.mainTable()}<h4>От чего зависит (торнадо)</h4>${AKT.exp23.tornado()}<h4>Цена задержки вызова</h4>${AKT.exp23.delay()}` : AKT.exp23.missing(), false);
       setHtml('cb-chart', d ? ciChart(s) : '', false);
       setHtml('cb-trial', tr ? renderTrial(tr) : `<p class="empty dash">${st === 'RUNNING' ? 'Считается.' : 'Итог проверки ещё не записан.'}</p>`);
       let body = '<p class="empty dash">Отчёт ещё не записан.</p>';
@@ -409,7 +409,11 @@ ${en ? `<p class="note">Двойник в опыте: ${fmt(Math.abs(en.d_kwh_pe
 <td class="n">${devCell}</td><td class="n">${tolCell}</td><td>${okh}</td></tr>`;
     }).join('');
     const notes = r.rows.filter(x => x.note).map(x => `<li>${esc(ru(x.group || '', GROUP_RU))} · ${esc(ru(x.name || '', NAME_RU))}: ${esc(noteRu(x.note))}</li>`).join('');
-    const errs = (r.errors || []).length ? `<p class="bad">Ошибки счёта: ${esc(r.errors.join('; '))}</p>` : '';
+    /* the wall-time line of the calculation is not an error of the calculation: it is shown as a plain note */
+    const TOOK = /^calibration took (\d+) s, limit (\d+) s/;
+    const hard = (r.errors || []).filter(e => !TOOK.test(e)), took = (r.errors || []).map(e => TOOK.exec(e)).find(Boolean);
+    const errs = (hard.length ? `<p class="bad">Ошибки счёта: ${esc(hard.join('; '))}</p>` : '')
+      + (took ? `<p class="note">Расчёт занял ${esc(took[1])} с; на медленной или занятой машине он идёт дольше ориентира ${esc(took[2])} с — на числа это не влияет.</p>` : '');
     return `<p class="note">Модель подогнана к отчётам 2025 года (3 числа) и проверена на 2023–2024 без подгонки. Строк ${fmt(r.rows.length)}: в допуске ${fmt(nOk)}, вне допуска ${fmt(nNo)}, без допуска ${fmt(nInfo)}${r.quick ? ' (быстрый режим, без 7 суток)' : ''}. Числа модели — расчёт (≈).</p>${errs}
 <table class="kv"><tr><th>группа</th><th>величина</th><th>модель</th><th>отчёт</th><th>ед.</th><th>отклонение</th><th>допуск</th><th>в допуске</th></tr>${rows}</table>
 ${notes ? `<details><summary>Пояснения к строкам</summary><ul class="note">${notes}</ul></details>` : ''}`;

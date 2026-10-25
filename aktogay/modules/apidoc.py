@@ -1,5 +1,5 @@
 """API.md of the stand: the HTTP interface of akt-web and, for every module, what it reads (Ditto things, InfluxDB), what it
-writes, which test keeps it (FEATURES_22.md, «Модули (5)»). The text and `web/static/modules.json` (the live table on the
+writes, which test keeps it (design notes of 22.10.2026). The text and `web/static/modules.json` (the live table on the
 page «Как проверить») are written from the code: the lists of things come from the READS of the modules and the features
 from `setup/things.json`, so they cannot drift; a test keeps both files equal to this module.
 
@@ -55,7 +55,7 @@ MODULES = (
     {"id": "akt-sim", "title": "Симулятор фабрики", "rs": "команды `control`, `journal`", "ws": "все физические вещи, `site`", "code": "aktogay/sim/service.py", "thing": "site", "live": "heartbeat",
      "what": "Модель Актогая в модельном времени: считает фабрику, карьер и людей смены, публикует в Ditto каждую вещь и партию.",
      "reads": ["MQTT-события Ditto `control.*` (сценарий, скорость, сброс, отмена)", "`journal.last` (вызов, напоминание)",
-               "`mod-priority.issue_map`, `mod-priority.auto_call` (вызов беды как бригады на узле)"],
+               "`mod-priority.issue_map`, `mod-priority.auto_call` (вызов беды как бригады на узле; в «Два сразу» по ним идёт копия «по $», `AKT_FACT_POLICY=module`)"],
      "influx": "не читает",
      "writes": ["все физические вещи (`crusher-N`, `sag-N`, `line-N`, `water`, `power`, людей, технику) и партии",
                 "`site` (`sim_time`, `speed_fact`, `scenario`, `heartbeat`)", "`baseline`, `validation-sim` (для режима проверки)"],

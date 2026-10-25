@@ -148,7 +148,7 @@ S_KEGOC = ("KEGOC via Zakon.kz, line outage 14.08.2026 (event only): "
 S_ME58 = ("Order of the Ministry of Energy of Kazakhstan No. 58 (emergency control in the grid), items 21-23, 34, 40: "
           "https://zakon.uchet.kz/rus/docs/V1500010552")
 S_OSM = ("OpenStreetMap way/773805065, main conveyor crushing -> plant, 2.45 km (Overpass 18.10.2026, "
-         "stage/osm/core.geojson), (c) OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/way/773805065")
+         "geometry in aktogay/web/static/plan.json), (c) OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/way/773805065")
 S_STOCK = ("911metallurgist, calculating stockpile capacity (live share of a conical pile with bottom reclaim; the 26.5 % is "
            "one geometry with three outlets, an example): "
            "https://www.911metallurgist.com/blog/calculating-stockpile-capacity/; Ferreira and Luz 2022, RSD 11(6), table 2 "
@@ -438,7 +438,7 @@ _ROWS = [
        "17 x 240 + 6 x 136 = 4 896 t, the former aggregate of 36 x 136 t"),
     _p("fleet_ore_793", 17, 0, 17, "-", S_D4, "assumption", "all CAT 793 on ore (9 line 1, 8 line 2)"),
     _p("fleet_load_min", 3, 2, 5, "min", S_D4, "assumption", "truck cycle: loading at the face"),
-    _p("fleet_queue_min", 2, 0, 5, "min", S_D4, "assumption", "truck cycle: queue at the crusher or dump"),
+    _p("fleet_queue_min", 2, 0, 5, "min", S_D4, "assumption", "truck cycle: queue at the crusher or dump; Bozshakol (neighbour mine of KAZ Minerals, Hexagon, im-mining.com 28.03.2025): waiting at the shovel 3-5 min fell to 1-1.5 min, below 2: label kept"),
     _p("fleet_body_raise_s", 20.25, 20.25, 20.25, "s", S_SPECALOG, "vendor", "793D body raise, high idle, p. 20"),
     _p("fleet_body_lower_s", 17.51, 17.51, 17.51, "s", S_SPECALOG, "vendor",
        "793D body power down, high idle, p. 20 (float lower 19.26 s)"),
@@ -451,7 +451,7 @@ _ROWS = [
     _p("fleet_eta_drive", 0.85, 0.75, 0.90, "-", S_793F, "assumption",
        "share of the gross engine power at the wheels on a ramp; 0.89 reproduces 12.9 km/h on 10 % of the 793F brochure "
        "(rolling resistance 3 %), 0.85 kept for the lower net power"),
-    _p("fleet_rr", 0.03, 0.02, 0.05, "-", S_D4, "assumption", "rolling resistance of the haul road, fraction of the weight"),
+    _p("fleet_rr", 0.03, 0.02, 0.05, "-", S_D4, "assumption", "rolling resistance of the haul road, fraction of the weight; the 793D Specalog p. 29 rule (total resistance = grade % + 1 % per 10 kg/t) fixes the form, not the 3 % of the Aktogay road: label kept"),
     _p("fleet_v_empty_kmh", 35.0, 25.0, 45.0, "km/h", S_SPECALOG, "assumption",
        "empty return speed down the ramp (retarder and speed limit); the 793D top speed is 54.3 km/h"),
     _p("fleet_speed_eff", 0.516, 0.35, 1.0, "-", S_D4, "assumption",
@@ -647,9 +647,10 @@ _ROWS = [
        "no Aktogay F80: between Touro 128 and Josemaria 137 mm (section 17.2.2 p. 140)"),
     _p("sag_morrell_a", 0.2, 0.07, 0.2, "-", S_MORRELL, "assumption",
        "F80 exponent of Morrell eq. 2 (constants not published); GMG-2021 puts the F80 influence at about "
-       "0.07-0.13, so 0.2 is the strong end; sensitivity 0.1-0.2"),
+       "0.07-0.13, so 0.2 is the strong end; sensitivity 0.1-0.2. Cadia Hill JKMRC (p. I-45) A*b 32.1-37.8 and Briggs 2025 (p. 4) A*b 30-40 "
+       "agree with the model's A*b 35 and 27, but they say nothing on the exponents: label kept"),
     _p("sag_morrell_b", 0.8, 0.7, 1.0, "-", S_MORRELL, "assumption",
-       "DWi exponent of Morrell eq. 2 (constants not published); by Mia it would be 1.0"),
+       "DWi exponent of Morrell eq. 2 (constants not published); by Mia it would be 1.0; Cadia and Briggs A*b values do not fix it: label kept"),
     _p("sag_k", _SAG_K, 0.40, 0.60, "-", S_D4, "calc",
        "E_SAG = K F80^a DWi^b = 6.75 kWh/t at 26.0 MW and 3853 t/h (A*b 35, rho 2.66, F80 130 mm)", fit=True),
     _p("sag_e_base_kwh_t", _SAG_E, 6.0, 7.5, "kWh/t", S_D4, "calc", "26.0 MW / 3853 t/h"),
@@ -685,9 +686,11 @@ _ROWS = [
 
     # ---------------- pebble crushing ----------------
     _p("peb_frac_base", 0.15, 0.10, 0.23, "-", S_D4 + "; " + S_LI24, "assumption",
-       "pebbles per t SAG feed at A*b 35; analog 16-23 % for soft ore"),
-    _p("peb_frac_hard", 0.25, 0.20, 0.40, "-", S_D4 + "; " + S_LI24, "assumption",
-       "at A*b 27, linear in A*b; analog 22-40 % for hard ore"),
+       "pebbles per t SAG feed at A*b 35; analog 16-23 % for soft ore. Cadia Hill industrial survey 23.07.1998 (JKMRC, p. I-50 table 3): "
+       "23 % of new feed (design 35 %): the top of the range, above 0.15, so the label stays"),
+    _p("peb_frac_hard", 0.25, 0.20, 0.40, "-", S_D4 + "; " + S_LI24 + "; Cadia Hill JKMRC report (smctesting.com publication id 175), p. I-50 table 3: "
+       "pebbles 23 % of new feed in the industrial survey, 35 % in the design", "analog",
+       "at A*b 27, linear in A*b; analog 22-40 % for hard ore; Cadia 23-35 % lies inside the range 0.20-0.40 (the slope in A*b is ours)"),
     _p("peb_limit_tph", 740, 682, 792, "t/h", S_OVOS + ", p. 26; " + S_RAPTOR, "assumption",
        "node 682-792 t/h (OVOS); for scale: a cone crusher of the Raptor 1100 class does 549-798 t/h (FLSmidth p. 9); "
        "the cone crusher type of Aktogay is not confirmed by any source"),
@@ -753,7 +756,8 @@ _ROWS = [
     _p("flot_pull0_pct", 7, 5, 13, "%", S_D3 + "; " + S_AKHM, "assumption",
        "rougher mass pull at g0; Aktogay lab rougher + scavenger 7-13 %"),
     _p("clean_r0_pct", 97, 95, 98.5, "%", S_D3 + "; " + S_FREEPORT, "assumption",
-       "cleaner stage recovery; 96-98 % at a column cleaner circuit (analog)"),
+       "cleaner stage recovery; 96-98 % at a column cleaner circuit (analog). Copper World PFS 2023 (laboratory, p. 1-5): cleaner 93 %, rougher 97 %: "
+       "below the range 95-98.5, so the label stays"),
     _p("clean_pp_10pp", 1.0, 0.5, 2.0, "pp", S_D4, "assumption",
        "per 10 pp of rougher mass pull above flot_pull0_pct; no source for the slope"),
     _p("flot_conc0_pct", 24.3, 24.3, 24.3, "% Cu", S_OVOS + ", table 1.5.1 p. 26; " + S_OVOS_RK + ", p. 57", "project",
@@ -1105,7 +1109,8 @@ _ROWS = [
     _p("sens_dose_sigma", 0.02, 0.01, 0.04, "-", S_D4, "assumption", "dose flowmeter, relative"),
     _p("acs_tail_sp_pct", 0.075, 0.065, 0.090, "% Cu", S_D4 + "; " + S_OVOS_RK + ", p. 57", "assumption",
        "constant tails alarm setpoint; base tails 0.052-0.053 % (2024 balance), design 0.059 %; calib tunes to "
-       "<= 1 false alarm per week"),
+       "<= 1 false alarm per week. Philex (industrial, Jameson, 1996): tails 0.046-0.055 % Cu, in line with our 0.053 % for Aktogay 2025 [calc]; "
+       "the source gives normal tails, not an alarm setpoint: label kept"),
     _p("acs_cycles", 2, 2, 2, "-", S_D4 + "; " + S_NIST, "assumption",
        "consecutive analyser cycles above setpoint; stricter than the WECO 2-of-3 rule"),
 

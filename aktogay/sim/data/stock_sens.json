@@ -153,15 +153,15 @@
   "fork": {
    "A": {
     "d_cu_t": {
-     "max": 9.459,
-     "mean": 0.742,
-     "min": -3.859,
+     "max": 9.195,
+     "mean": 0.556,
+     "min": -4.777,
      "n": 10
     },
     "d_usd": {
-     "max": 131818.0,
-     "mean": 10935.8,
-     "min": -52911.0,
+     "max": 128323.0,
+     "mean": 8499.1,
+     "min": -65478.0,
      "n": 10
     },
     "detection_cu_t": {
@@ -171,30 +171,30 @@
      "n": 10
     },
     "order_cu_t": {
-     "max": 4.029,
-     "mean": 2.449,
-     "min": 0.661,
+     "max": 3.876,
+     "mean": 2.263,
+     "min": -0.34,
      "n": 10
     },
     "stock_or_sag_moment_min": {},
     "twin_total_cu_t": {
-     "max": 4.029,
-     "mean": 2.974,
-     "min": 1.79,
+     "max": 3.963,
+     "mean": 2.788,
+     "min": 0.79,
      "n": 10
     }
    },
    "B": {
     "d_cu_t": {
-     "max": 3.696,
-     "mean": 0.222,
-     "min": -2.196,
+     "max": 3.174,
+     "mean": 0.509,
+     "min": -2.572,
      "n": 10
     },
     "d_usd": {
-     "max": 51920.0,
-     "mean": 3714.9,
-     "min": -29822.0,
+     "max": 45490.0,
+     "mean": 8528.3,
+     "min": -34120.0,
      "n": 10
     },
     "detection_cu_t": {
@@ -204,30 +204,30 @@
      "n": 10
     },
     "order_cu_t": {
-     "max": 3.603,
-     "mean": 2.317,
-     "min": 1.575,
+     "max": 4.67,
+     "mean": 2.604,
+     "min": 0.707,
      "n": 10
     },
     "stock_or_sag_moment_min": {},
     "twin_total_cu_t": {
-     "max": 3.603,
-     "mean": 2.866,
-     "min": 2.543,
+     "max": 5.773,
+     "mean": 3.153,
+     "min": 1.463,
      "n": 10
     }
    },
    "C": {
     "d_cu_t": {
-     "max": 6.599,
-     "mean": 0.2,
-     "min": -2.915,
+     "max": 7.204,
+     "mean": 0.182,
+     "min": -4.081,
      "n": 10
     },
     "d_usd": {
-     "max": 92168.0,
-     "mean": 3412.5,
-     "min": -39840.0,
+     "max": 100867.0,
+     "mean": 3370.6,
+     "min": -55837.0,
      "n": 10
     },
     "detection_cu_t": {
@@ -237,16 +237,16 @@
      "n": 10
     },
     "order_cu_t": {
-     "max": 3.797,
-     "mean": 2.415,
-     "min": 0.622,
+     "max": 4.327,
+     "mean": 2.397,
+     "min": -0.992,
      "n": 10
     },
     "stock_or_sag_moment_min": {},
     "twin_total_cu_t": {
-     "max": 3.797,
-     "mean": 2.945,
-     "min": 1.764,
+     "max": 4.388,
+     "mean": 2.927,
+     "min": 0.15,
      "n": 10
     }
    }
@@ -679,5 +679,5 @@
   1001,
   1010
  ],
- "trial_command": "python -I aktogay/run.py trial --library tier_s --n 100 --seed0 1001 --jobs 4 --copies base,by_value,by_loud,no_twin --set stock_live_t=163000 --set stock1_t0=47270 --set stock2_t0=122250 --out stock_B.json"
+ "trial_command": "python -I aktogay/run.py trial --library tier_s --n 100 --seed0 1001 --jobs 4 --copies base,by_value,by_loud,no_twin --set stock_live_t=163000 --set stock1_t0=47270 --set stock2_t0=122250 --out B.json"
 }

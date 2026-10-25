@@ -128,7 +128,7 @@ SHORT_RU = {"crusher_stop": "останов", "lube_trip": "защита по м
             "sensor_ph": "pH-метр под подозрением", "hpgr_uneven": "неравномерное питание ВВД",
             "crusher_mantle": "замена брони", "oil_contam": "загрязнение масла", "exc_down": "отказ",
             "leach_cold": "холодное выщелачивание"}
-# trouble kind -> card of readiness (checklist and closure shown on the issue card, FEATURES_22 «ОПРЕДЕЛЕНИЕ ГОТОВНОСТИ»)
+# trouble kind -> card of readiness (checklist and closure shown on the issue card)
 KIND_READY = {"pit_stop": "pit_stop", "conveyor_stop": "conveyor_stop", "reline": "fc_liner",
               "road_winter": "winter_road", "driver_fatigue": "driver_fatigue", "roping": "cyclone_roping",
               "sensor_ph": "sensor_suspect", "hpgr_uneven": "hpgr_uneven", "crusher_mantle": "crusher_mantle",
@@ -1308,6 +1308,15 @@ class PriorityModule:
         return names.get(kind, node).format(n=n.upper())
 
     # ------------------------------------------------------------------ tact
+    def _scenario_auto(self) -> bool:
+        """control.scenario.auto of the running scenario; without the field «Два сразу» (fork) is auto, as in akt-sim."""
+        ctl = self.store.get("control")
+        sc = ctl.o("scenario") if ctl else {}
+        raw = sc.get("auto", "")
+        if raw in ("", None):
+            return str(sc.get("preset", "")).lower() == "fork" or str(sc.get("id", "")).lower() == "fork"
+        return str(raw).lower() in ("1", "1.0", "true")
+
     def compute(self, t: float, seed: int = 0) -> tuple[dict, dict[str, dict]]:
         """One tact; returns (mod-priority features, {issue name: features})."""
         prm = self.prm
@@ -1323,8 +1332,7 @@ class PriorityModule:
         choice = self._choice_texts(active, t, seed * 7919 + int(t) + 1)
         lines = []
         issue_feats: dict[str, dict] = {}
-        auto = self.auto_env or bool(self.store.get("control") and
-                                     str(self.store.get("control").o("scenario").get("auto", "")).lower() in ("1", "true"))
+        auto = self.auto_env or self._scenario_auto()
         self.auto_call_value = {}
         for iss in sorted(self.issues.values(), key=lambda i: (by_id[i.key].rank if i.key in by_id else 999, i.seq)):
             tr = iss.trouble

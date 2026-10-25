@@ -688,6 +688,7 @@ class PlannedCall:
     crew: str                 # "crew-kip" | "crew-cpd" | "crew-mill" | "crew-water"
     issue: str                # issue key, e.g. "trip:2", "dose:1", "crusher:1"
     work_h: float = NO_VALUE  # repair time after arrival, h (NO_VALUE: drawn by events)
+    src: str = ""             # who called, for Plant.call_log ("" = the way it is booked: plan, alarm)
 
 
 @dataclass

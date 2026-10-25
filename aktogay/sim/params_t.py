@@ -1,8 +1,8 @@
 """Parameter rows and feature rules of tier T (24.10.2026): eight slow equipment troubles of the plant and the pit.
 
 The rows are plain tuples (key, value, min, max, unit, source, label, note); sim/params.py turns them into the table rows
-before it builds TABLE, and merges FEATURES into FEATURE_RULES. Sources are those marked confirmed in
-gaps/facts_round2.md and gaps/SOURCES_thresholds.md; where a source names the risk and not the number, the number is an
+before it builds TABLE, and merges FEATURES into FEATURE_RULES. Sources are those opened and
+checked on 24.10.2026 (the source column of the rows); where a source names the risk and not the number, the number is an
 assumption and the label says so. The table of the CAT 797F/793F 'Data & System Events' (Scribd, confidential) is NOT used.
 """
 from __future__ import annotations

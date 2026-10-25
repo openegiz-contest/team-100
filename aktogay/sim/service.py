@@ -56,7 +56,7 @@ lever    {seq, feed_1, feed_2 (% of the nominal line rate), p80_um (grind target
 
 Environment: MQTT_HOST, MQTT_PORT, DITTO_URL (optional), DITTO_USER,
 DITTO_PASSWORD, AKT_SEED, AKT_SPEED, AKT_MAX_RATE, AKT_RAMP_S, AKT_QOS,
-AKT_BARRIER, AKT_BARRIER_TIMEOUT_S, AKT_FACT_POLICY (offline | module),
+AKT_BARRIER, AKT_BARRIER_TIMEOUT_S, AKT_FACT_POLICY (module, the default: the fact copy of «Два сразу» follows mod-priority.auto_call; offline: the order fixed beforehand),
 AKT_WARMUP_PUBLISH_MIN, AKT_PUBLISH_MIN, AKT_HEARTBEAT_S, AKT_POLL_S.
 
   python -I aktogay/run.py service                       # service (needs MQTT)
@@ -92,7 +92,7 @@ import twins  # noqa: E402  (setup/twins.py: Ditto bodies of things from things.
 from sim import publish  # noqa: E402
 from sim import sensors as se  # noqa: E402
 from sim.params import ParamSet, default  # noqa: E402
-from sim.plant import CopySet, Plant  # noqa: E402
+from sim.plant import MODULE_MISSING_MIN, CopySet, Plant  # noqa: E402
 from sim.state import MIN_PER_H, NO_VALUE, PlantHooks, PlantState  # noqa: E402
 
 log = logging.getLogger("service")
@@ -157,14 +157,35 @@ CHECKPOINT_TYPES = ("person", "analyzer", "weigher", "flowmeter", "piezometer", 
 FULL_REASONS = ("start", "cancel", "pause", "auto-pause")   # points that carry every thing
 
 
-def shift_object(run: str, kind: str, t_min: float, copies: dict | None = None) -> dict:
-    """baseline.shift_result: {run, kind, t_min, copies{fact, base, loud, no_twin}{cu_t, ...}, diff, fork}.
+POLICY_KEYS = ("mode", "n_calls", "n_module", "share_module", "same_order", "fallback_at")
+
+
+def policy_object(policy: dict | None = None) -> dict:
+    """baseline.shift_result.policy, one fixed shape: who called for the fact copy of «Два сразу».
+
+    mode "module" (the calls of akt-priority), "fallback" (the module was missing, the order fixed beforehand took over at
+    fallback_at) or "" (not that scenario); n_calls / n_module: bookings for the two troubles of the scenario and how many
+    of them came from the module; share_module = n_module / n_calls; same_order 1 when the call order equals the order
+    «по $» fixed beforehand; calls [{t, node, src}] in time order (a list is replaced whole by a Ditto merge).
+    """
+    policy = policy or {}
+    out = {"mode": str(policy.get("mode", "")), "n_calls": float(policy.get("n_calls", NO_VALUE)),
+           "n_module": float(policy.get("n_module", NO_VALUE)), "share_module": float(policy.get("share_module", NO_VALUE)),
+           "same_order": float(policy.get("same_order", NO_VALUE)), "fallback_at": float(policy.get("fallback_at", NO_VALUE)),
+           "calls": [{"t": float(c["t"]), "node": str(c["node"]), "src": str(c["src"])} for c in policy.get("calls", [])][:8],
+           "order": [str(x) for x in policy.get("order", [])][:8]}
+    return out
+
+
+def shift_object(run: str, kind: str, t_min: float, copies: dict | None = None, policy: dict | None = None) -> dict:
+    """baseline.shift_result: {run, kind, t_min, copies{fact, base, loud, no_twin}{cu_t, ...}, diff, fork, policy}.
 
     kind "none" (no result yet in this run), "shift" (free run: summary of the last shift in copies.fact)
     or "scenario" (copies at t_min). Missing copies and values are NO_VALUE; diff = copy - base.
+    policy: see policy_object().
     """
     copies = copies or {}
-    out = {"run": run, "kind": kind, "t_min": float(t_min), "copies": {}, "diff": {}, "fork": {}}
+    out = {"run": run, "kind": kind, "t_min": float(t_min), "copies": {}, "diff": {}, "fork": {}, "policy": policy_object(policy)}
     for name in SHIFT_COPIES:
         c = copies.get(name) or {}
         out["copies"][name] = {k: float(c[k]) if k in c else NO_VALUE for k in SHIFT_KEYS}
@@ -211,7 +232,7 @@ class Config:
     qos: int = 1
     barrier: tuple[str, ...] = ()
     barrier_timeout_s: float = 60.0
-    fact_policy: str = "offline"     # offline: fork fact copy follows events.fork_policies; module: calls only
+    fact_policy: str = "module"      # module: the fork fact copy follows the calls of akt-priority (Ditto); offline: events.fork_policies
     warmup_publish_min: float = 20.0
     publish_min: float = 1.0         # model minutes between live snapshots at x60 and below
     min_publish_gap_s: float = 1.0   # wall seconds between live snapshots
@@ -640,8 +661,7 @@ class Runner:
         self.warming = True
         try:
             self.copies = CopySet(self.prm, self.seed, text, preset=preset, kip=kip_n, safety=safety,
-                                  auto=auto_b, hooks=self.hooks,
-                                  fact_policy=(self.cfg.fact_policy != "module"))
+                                  auto=auto_b, hooks=self.hooks, fact_policy=self.cfg.fact_policy)
         except ValueError as e:
             self.warming = False
             log.warning("scenario rejected: %s; back to free run", e)
@@ -762,14 +782,17 @@ class Runner:
         issue = str(issue or "").strip()
         node = str(node or "").strip()
         if issue.startswith("issue-"):
-            node = node or str((self.issue_nodes.get(issue) or {}).get("node", ""))
+            info = self.issue_nodes.get(issue) or {}
+            node = node or str(info.get("node", ""))
+            if info.get("kind") == "dam_alarm":
+                return "piezo", node or "water"      # S0 of the dam: a decision of the water technologist, not a crew job
             return "", node
         if issue and ":" not in issue and issue in self.cat.things:
             return "", issue                    # a thing name, not an issue key
         return issue, node
 
-    def call(self, issue: str, node: str = "", via: str = "") -> None:
-        """Book a crew for `issue` on the fact copy (journal call or module auto_call)."""
+    def call(self, issue: str, node: str = "", via: str = "", src: str = "button") -> None:
+        """Book a crew for `issue` on the fact copy (journal call: src "button"; module auto_call: src "module")."""
         if self.plant is None or not (issue or node):
             return
         issue, node = self.plant_call(issue, node)
@@ -777,17 +800,39 @@ class Runner:
             log.info("call: issue not known to the simulator, nothing booked")
             return
         if self.copies is not None:
-            job = self.copies.copies["fact"].call(node, issue=issue, via=via)
+            job = self.copies.copies["fact"].call(node, issue=issue, via=via, src=src)
             if self.copies.lever_only:                   # the base copy of the levers is the same shift: same decisions
-                self.copies.copies["base"].call(node, issue=issue, via=via)
+                self.copies.copies["base"].call(node, issue=issue, via=via, src=src)
         else:
-            job = self.plant.call(node, issue=issue, via=via)
+            job = self.plant.call(node, issue=issue, via=via, src=src)
         self.stats.calls += 1
         if job is None:
             log.info("call %s at %s: no crew job (decision or nothing to fix)", issue, self.plant.state.clock.hhmm())
         else:
             log.info("call %s at %s: %s arrives %.0f, done %.0f", issue, self.plant.state.clock.hhmm(), job.node,
                      job.t_arrive_min, job.t_done_min)
+
+    def module_missing(self) -> bool:
+        """True when the fact copy of «Два сразу» follows the module and the module has given no answer for too long.
+
+        The answer is mod-priority.processed_sim_time of this run (the module repeats it while the model stands and writes it
+        with every tact). Missing: none seen MODULE_MISSING_MIN model minutes after the start of the scenario, or the last
+        one is that far behind the model clock. A value older than the start of the scenario belongs to an earlier run."""
+        cs = self.copies
+        if cs is None or cs.fact_mode != "module" or self.paused or self.plant is None:
+            return False
+        t = self.t_min
+        proc = self.processed.get("mod-priority")
+        if proc is None or proc < cs.t0_min - EPS or proc > t + EPS:
+            return t - cs.t0_min > MODULE_MISSING_MIN
+        return t - proc > MODULE_MISSING_MIN
+
+    def check_module(self) -> None:
+        """Fallback of the fact copy to the offline order (CopySet.fallback_to_offline) when the module is missing."""
+        if self.module_missing() and self.copies.fallback_to_offline():
+            log.warning("run %s: akt-priority gave no answer for %.0f model min; the fact copy of «Два сразу» "
+                        "follows the order fixed beforehand from %s (shift_result.policy.mode = fallback)",
+                        self.run_id, MODULE_MISSING_MIN, self.plant.state.clock.hhmm())
 
     def remind(self, issue: str, node: str = "", action: str = "remind") -> None:
         """'Not arrived' on the fact copy: remind the called person or call the next one (Plant.remind)."""
@@ -830,7 +875,8 @@ class Runner:
             for _f, obj in self.cmds.take("journal", {"last": feats.get("last")}, act):
                 action = str(obj.get("action", "")).lower()
                 if action in CALL_ACTIONS:
-                    self.call(str(obj.get("issue", "")), str(obj.get("node", "") or ""), str(obj.get("via", "") or ""))
+                    self.call(str(obj.get("issue", "")), str(obj.get("node", "") or ""), str(obj.get("via", "") or ""),
+                              src="module" if action == "auto_call" else "button")
                 elif action in REMIND_ACTIONS:
                     self.remind(str(obj.get("issue", "")), str(obj.get("node", "") or ""), action)
         elif name.startswith("mod-"):
@@ -844,7 +890,7 @@ class Runner:
                 if isinstance(imap, dict):
                     self.issue_nodes.update({k: v for k, v in imap.items() if isinstance(v, dict)})
                 for _f, obj in self.cmds.take(name, {"auto_call": feats.get("auto_call")}, act):
-                    self.call(str(obj.get("issue", "")), str(obj.get("node", "") or ""))
+                    self.call(str(obj.get("issue", "")), str(obj.get("node", "") or ""), src="module")
 
     def _apply_control(self, f: str, obj: dict) -> None:
         if f == "scenario":
@@ -988,7 +1034,7 @@ class Runner:
             out[f"alt_{alt}_cum_cu_t"] = float(sum(ln.cum_cu_t for ln in c.state.lines)) if c else NO_VALUE
             out[f"alt_{alt}_cum_usd"] = float(sum(ln.cum_usd for ln in c.state.lines)) if c else NO_VALUE
         sr = self.copies.shift_result()
-        out["shift_result"] = shift_object(self.run_id, "scenario", sr["t_min"], sr["copies"])
+        out["shift_result"] = shift_object(self.run_id, "scenario", sr["t_min"], sr["copies"], self.copies.policy_report())
         return out
 
     def _thin(self, snap: dict, reason: str, t: float) -> None:
@@ -1171,6 +1217,7 @@ class Runner:
                 self.heartbeat()
             return 0.1
         self._pause_published = False
+        self.check_module()
         now = self.clock()
         due = self._anchor_t + (now - self._anchor_wall) * self.speed / 60.0
         t = self.t_min

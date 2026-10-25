@@ -17,8 +17,8 @@
  "summary": {
   "total": 764,
   "assumption": {
-   "n": 534,
-   "matters": 20,
+   "n": 533,
+   "matters": 19,
    "read_small": 164,
    "read": 6,
    "read_fixed": 23,
@@ -41,8 +41,8 @@
    "not_read": 18
   },
   "analog": {
-   "n": 63,
-   "matters": 2,
+   "n": 64,
+   "matters": 3,
    "read_small": 4,
    "read": 3,
    "read_fixed": 7,
@@ -69,7 +69,7 @@
   "read": 12,
   "read_fixed": 57,
   "not_read": 469,
-  "assumptions_total": 534,
+  "assumptions_total": 533,
   "screened": 226,
   "refit_removes": [
    "blk_ascu_mean_pct",
@@ -192,7 +192,7 @@
   {
    "table": "model",
    "key": "peb_frac_hard",
-   "label": "assumption",
+   "label": "analog",
    "cls": "matters",
    "dev": 0.19631722183409012
   },
@@ -1803,7 +1803,7 @@
   {
    "table": "model",
    "key": "peb_frac_hard",
-   "label": "assumption",
+   "label": "analog",
    "cls": "matters",
    "dev": 0.19631722183409012
   },

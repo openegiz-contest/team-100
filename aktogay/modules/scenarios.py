@@ -1,4 +1,4 @@
-"""Catalog of scenarios and the constructor of a trouble (FEATURES_22.md: С2, С3 and feature 24).
+"""Catalog of scenarios and the constructor of a trouble (design notes of 22.10.2026: С2, С3 and feature 24).
 
 One table for two readers: the page «Сценарии» (`web/static/scenarios.json`) shows every scenario with «что должно
 произойти» and «как проверить» and starts it in one click by its seed, and the constructor builds a token
@@ -156,7 +156,7 @@ SCENARIOS: tuple[dict, ...] = (
                "В «Как проверить» стоит метка «не подтверждено»."],
      "card": "driver_fatigue", "who": "", "test": "tests/test_tier_s.py::DriverFatigueTest"},
     {"id": "pitstop", "name": "Остановка карьера", "group": "pit",
-     "what": "Все экскаваторы руды встают на 8 ч (диапазон 2–24 ч, допущение; причина не названа). Склад линий (163 кт ≈ 2 суток по ПЭК) держит фабрику.",
+     "what": "Все экскаваторы руды встают на 8 ч (диапазон 2–24 ч, допущение; причина не названа). Склад держит линию: в модели живая часть 40 кт на линию (≈ 3 ч полной загрузки, допущение); по ПЭК рабочий объём 163 кт ≈ 2 суток, и если он весь живой, склад держит дольше (VALIDATION 8.16).",
      "first": "Беда «Карьер (останов)» по линиям: часы до остановки SAG, звать горного диспетчера.",
      "steps": ["Прогнозы → «Руда на складе»: часы по линиям.",
                "Обзор: беда ① «Карьер» с ценой после конца склада.",

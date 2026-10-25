@@ -85,7 +85,7 @@
   };
   const stockTitle = n => {
     const h = AKT.hoursLeft(n);
-    return `Склад руды ${n.slice(-1)} (место — схема): ${AKT.stOf(n)} · ${fmt(AKT.num(n, 'level_t'))} т · приход ${fmt(AKT.num(n, 'in_tph'))} · расход ${fmt(AKT.num(n, 'out_tph'))} т/ч · ${h != null && h <= 48 ? 'кончится через ' + AKT.durH(h) : 'хватит больше чем на 2 суток'}`;
+    return `Склад руды ${n.slice(-1)} (место — схема): ${AKT.stOf(n)} · ${fmt(AKT.num(n, 'level_t'))} т · приход ${fmt(AKT.num(n, 'in_tph'))} · расход ${fmt(AKT.num(n, 'out_tph'))} т/ч · ${h != null && h >= 0 && h <= 48 ? 'кончится через ' + AKT.durH(h) : AKT.stockNote(n).text}`;
   };
   const powerText = () => {
     const lim = AKT.num('power', 'grid_limit_mw'), shed = AKT.num('power', 'shed_mw');

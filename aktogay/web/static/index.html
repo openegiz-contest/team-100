@@ -17,12 +17,14 @@
     <button type="button" id="btn-ask" title="Ответы на вопросы диспетчера по данным двойника">Спросить двойник</button>
     <button type="button" id="btn-tour" title="Короткий тур: что здесь и что нажимать (клавиша ?)">Как пользоваться</button>
     <button type="button" id="btn-gloss" title="Словарь терминов (клавиша /)">Словарь</button>
+    <a id="lnk-summary" href="/summary" title="То же состояние текстом, без JavaScript">Сводка текстом</a>
   </div>
 </header>
 <section id="now" aria-live="polite" aria-atomic="true" aria-label="Что сейчас и что делать">
   <div class="act"><span class="now-text" id="now-line">Загружаю состояние фабрики…</span></div>
   <div class="ctx"><span class="ctx-t" id="now-ctx">Медный рудник в Казахстане, фабрика в 2 линии · загружаю состояние фабрики…</span><span id="now-chip"></span><span id="now-eff"></span><span id="now-offer"></span></div>
 </section>
+<noscript><section id="no-js"><h2>Нужен JavaScript или текстовая сводка</h2><p>Интерфейс рисует карту и панель в браузере. Без JavaScript то же состояние рудника, очередь бед, модули, сценарии и список страниц — на странице <a href="/summary">/summary</a> (данные: <a href="/summary.json">/summary.json</a>, <a href="/api/state">/api/state</a>).</p></section></noscript>
 <main id="layout">
   <section id="stage"></section>
   <aside id="panel" aria-label="Панель диспетчера"></aside>

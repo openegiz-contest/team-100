@@ -22,10 +22,10 @@
    "key": "analog",
    "ru": "аналог",
    "meaning": "число другой фабрики или рудника, взято как ориентир",
-   "sim": 32,
+   "sim": 33,
    "modules": 31,
-   "total": 63,
-   "pct": 8.2
+   "total": 64,
+   "pct": 8.4
   },
   {
    "key": "project",
@@ -49,16 +49,16 @@
    "key": "assumption",
    "ru": "допущение",
    "meaning": "источника нет: число выбрано нами, диапазон правдоподобия записан в таблице",
-   "sim": 358,
+   "sim": 357,
    "modules": 176,
-   "total": 534,
-   "pct": 69.9
+   "total": 533,
+   "pct": 69.8
   }
  ],
  "sim_rows": 518,
  "modules_rows": 246,
  "rows": 764,
- "assumption_pct": 69.9,
+ "assumption_pct": 69.8,
  "fitted_rows": 5,
  "tier_s": {
   "rows": 78,

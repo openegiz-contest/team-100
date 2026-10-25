@@ -980,7 +980,7 @@
   },
   {
    "id": "fork_order_k1",
-   "text": "+2,18",
+   "text": "+2,54",
    "experiment": "scen_seed42",
    "check": "auto",
    "meaning": "то же: порядок вызова",
@@ -991,7 +991,7 @@
   },
   {
    "id": "fork_all_k1",
-   "text": "+3,02",
+   "text": "+3,38",
    "experiment": "scen_seed42",
    "check": "auto",
    "meaning": "то же: двойник целиком",
@@ -1002,7 +1002,7 @@
   },
   {
    "id": "fork_find_k2",
-   "text": "+2,22",
+   "text": "+2,07",
    "experiment": "scen_seed42",
    "check": "auto",
    "meaning": "две бригады: находка",
@@ -1013,7 +1013,7 @@
   },
   {
    "id": "fork_order_k2",
-   "text": "+0,11",
+   "text": "+1,32",
    "experiment": "scen_seed42",
    "check": "auto",
    "meaning": "две бригады: порядок",
@@ -1024,7 +1024,7 @@
   },
   {
    "id": "fork_all_k2",
-   "text": "+2,33",
+   "text": "+3,38",
    "experiment": "scen_seed42",
    "check": "auto",
    "meaning": "две бригады: целиком",

@@ -96,7 +96,7 @@ ACS_SHOWS = ("dose", "oxide", "cyclone")   # causes behind a tails alarm
 SUMMARY_KEYS = ("cu_t", "ore_t", "energy_mwh", "water_m3", "usd")
 
 # issue kind -> thing where the work is ("{}" = line number)
-ISSUE_NODE = {"crusher": "crusher-{}", "trip": "crusher-{}", "dose": "flot-{}", "oxide": "flot-{}",
+ISSUE_NODE = {"piezo": "water", "crusher": "crusher-{}", "trip": "crusher-{}", "dose": "flot-{}", "oxide": "flot-{}",
               "cyclone": "cyclones-{}", "liner": "sag-{}", "grid": "power", "hard": "pit",
               "reline": "sag-{}", "water": "water", "hpgr_fire": "pebble-{}", "road": "ramp-{}", "pit": "pit",
               "conveyor": "conveyor-{}", "pitstop": "pit",
@@ -105,7 +105,7 @@ ISSUE_NODE = {"crusher": "crusher-{}", "trip": "crusher-{}", "dose": "flot-{}", 
               "phdrift": "ph-{}", "hpgr": "pebble-{}", "mantle": "crusher-{}", "sample": "analyzer-{}",
               "gmd": "sag-{}", "idler": "conveyor-{}", "froth": "flot-{}", "rake": "thick-{}", "cloth": "filter-{}",
               "slurry": "cyclones-{}", "brake": "fleet", "track": "exc-1"}
-SITE_ISSUES = ("grid", "water", "hpgr_fire", "leak", "pitstop", "icy", "fatigue", "oil", "leachcold", "brake", "track")   # issue keys without a line number
+SITE_ISSUES = ("grid", "water", "piezo", "hpgr_fire", "leak", "pitstop", "icy", "fatigue", "oil", "leachcold", "brake", "track")   # issue keys without a line number
 _CREW_KEY = {"trip": "lube_trip", "cyclones": "cyclone"}   # issue / node kind -> state.CREW_FOR key
 # Russian words of the truth log (validation-sim.truth_log is shown in the interface)
 CAUSE_RU = {"dose": "дрейф расходомера собирателя", "cyclone": "засор циклона", "liner": "износ футеровки SAG",
@@ -207,6 +207,7 @@ class Plant:
         self._ball_repair: set[int] = set()             # lines whose ball mill "a" stands for the repair with people inside
         self._water_scale = 1.0                         # ore share the water allows (1 = no cut)
         self._fire_until = NO_VALUE                     # scenario hpgr_fire: S0 flag until this minute
+        self._piezo_until = NO_VALUE                    # scenario safety: the dam alarm ends at this minute (the technologist called)
         self._pitstop_until = NO_VALUE                  # scenario pitstop: ore excavators stand until this minute
         self._icy_until = NO_VALUE                      # scenario icy: ice and snowstorm on the haul roads until this minute
         self._fatigue_until = NO_VALUE                  # scenario fatigue: alert of a tired driver until this minute
@@ -223,6 +224,9 @@ class Plant:
         self._jobs: dict[str, CrewJob] = {}             # open crew job per issue
         self._work_set: dict[str, float] = {}           # median repair time (h) set by the constructor, per issue key
         self._loud: dict[str, float] = {}               # issue -> minute it is noticed by alarm
+        self.follow_module = False                      # the dispatcher follows the module's calls: an alarm alone books no crew
+        self._held_loud: dict[str, float] = {}          # loud issues held back while follow_module is on (minute noticed)
+        self.call_log: list[dict] = []                  # every crew booking: {t, issue, node, src}; src: module, alarm, plan, button, fallback
         self._crew_t = t0
         thick0 = sum(ln.thick.inventory_t for ln in st.lines)
         self._acc = {"cu_feed": 0.0, "cu_conc": 0.0, "cu_tails": 0.0, "clean_t": 0.0, "filt_dry_t": 0.0,
@@ -468,6 +472,7 @@ class Plant:
                 ln.pebble.state = "RUN"
                 ln.pebble.stop_until_min = NO_VALUE
         self._fire_until = NO_VALUE
+        self._piezo_until = NO_VALUE
         if self._pitstop_until != NO_VALUE:
             for ex in st.excavators:
                 if ex.state == "DOWN":
@@ -506,13 +511,14 @@ class Plant:
             person.off_until_min = NO_VALUE
             person.duty_node, person.duty_until_min = "", NO_VALUE
         self._loud.clear()
+        self._held_loud.clear()
         self._calls.clear()
         self._jobs.clear()
         self._work_set.clear()
         st.scenario = None
 
     def call(self, node: str, crew: str | None = None, issue: str = "",
-             work_h: float | None = None, via: str = "") -> CrewJob | None:
+             work_h: float | None = None, via: str = "", src: str = "button") -> CrewJob | None:
         """Button "Call" or module auto_call now: book the crew for the issue at `node`.
 
         crew defaults from state.CREW_FOR by issue kind, then by node kind;
@@ -550,6 +556,9 @@ class Plant:
         if kind in wear.KINDS:
             wear.call(self, kind, n, t)       # tier T: the person comes, the unit is fixed after the work
             return None
+        if kind == "piezo":
+            self._piezo_call(t)               # S0 of the dam: the water technologist goes to the dam and checks it
+            return None
         if kind in ("hpgr_fire", "road", "pitstop", "leachcold"):
             return None                       # decisions of a person: de-energise, evacuate, reroute, plan the stock
         if kind in DECISION_CAUSES:
@@ -574,12 +583,22 @@ class Plant:
                 self._set_crew_count(cn, cr.count + 1)
                 self._extra_teams.append(cn)
         try:
-            job = self._book(PlannedCall(t, node or "", crew or "", issue, wh))
+            job = self._book(PlannedCall(t, node or "", crew or "", issue, wh), src)
             if job is not None and self._extra_teams:
                 self._extra_until[issue] = job.t_done_min
             return job
         finally:
             self._late_ok = False
+
+    def _piezo_call(self, t: float) -> None:
+        """Dam piezometer above its setpoint (scenario safety): the technologist comes (arrival) and checks the dam
+        (crew_person_decision_h); the alarm ends then. A second call while he is on the way changes nothing."""
+        if self.state.flags.get("piezo") and self._piezo_until == NO_VALUE:
+            p = self.prm
+            way = ev.arrival_min(self.state.seed, "piezo", p)
+            self._piezo_until = t + way + p["crew_person_decision_h"] * MIN_PER_H
+            pp.assign_duty(self.state, site().DECISION_PERSON["piezo"], ISSUE_NODE["piezo"], t, p,
+                           hours=(self._piezo_until - t) / MIN_PER_H)       # on the way and at the dam until the alarm ends
 
     def _energy_call(self, n: int, t: float, kind: str = "energy") -> None:
         """SAG energy overspend: the metallurgist comes (arrival) and corrects the load / feed size
@@ -923,6 +942,9 @@ class Plant:
         if self._fire_until != NO_VALUE and t >= self._fire_until - EPS:
             st.flags.pop("fire", None)
             self._fire_until = NO_VALUE
+        if self._piezo_until != NO_VALUE and t >= self._piezo_until - EPS:
+            st.flags.pop("piezo", None)                 # the technologist checked the dam: the reading is back below the setpoint
+            self._piezo_until = NO_VALUE
         if self._dust_until != NO_VALUE and t >= self._dust_until - EPS:
             self._dust_until = NO_VALUE
         if self._leach_until != NO_VALUE and t >= self._leach_until - EPS:
@@ -1238,9 +1260,26 @@ class Plant:
 
     def _register_loud(self, issue: str, t_start: float) -> None:
         """Loud issue: noticed by alarm notice_delay_min after it starts, unless called before."""
-        if issue in self._loud or issue in self._jobs:
+        if issue in self._loud or issue in self._held_loud or issue in self._jobs:
             return
-        self._loud[issue] = t_start + ev.notice_delay_min(self.state.seed, issue, self.prm)
+        t_notice = t_start + ev.notice_delay_min(self.state.seed, issue, self.prm)
+        if self.follow_module:
+            self._held_loud[issue] = t_notice   # seen on the alarm panel, called when the module says so
+        else:
+            self._loud[issue] = t_notice
+
+    def set_follow_module(self, on: bool) -> None:
+        """The dispatcher of this copy follows the calls of the module (on) or the alarm panel (off).
+
+        On: a loud issue is kept in _held_loud, no crew is booked for it by the alarm. Off (the module
+        is missing, fallback): the held issues go back to the alarm list and are called at once if the
+        notice time has passed.
+        """
+        self.follow_module = bool(on)
+        if not on:
+            for issue, t_notice in list(self._held_loud.items()):
+                self._loud[issue] = t_notice
+            self._held_loud.clear()
 
     def _call_pending(self, issue: str) -> bool:
         return any(c.issue == issue for c in self._calls)
@@ -1255,11 +1294,15 @@ class Plant:
             del self._jobs[issue]
             self._finish(issue, job)
         while self._calls and self._calls[0].t_min <= t + EPS:
-            self._book(self._calls.pop(0))
+            pc = self._calls.pop(0)
+            self._book(pc, pc.src or "plan")
         for issue, t_notice in list(self._loud.items()):
             if t >= t_notice - EPS and issue not in self._jobs and not self._call_pending(issue):
-                if self._book(PlannedCall(t, "", "", issue)) is None and not self._issue_active(issue, t):
+                if self._book(PlannedCall(t, "", "", issue), "alarm") is None and not self._issue_active(issue, t):
                     del self._loud[issue]
+        for issue in list(self._held_loud):
+            if issue in self._jobs or not self._issue_active(issue, t):
+                del self._held_loud[issue]           # called by the module, or over by itself
 
     def _crew_for(self, kind: str, node: str) -> str | None:
         name = CREW_FOR.get(_CREW_KEY.get(kind, kind))
@@ -1310,8 +1353,13 @@ class Plant:
     def _active(c: HiddenCause, t: float) -> bool:
         return c.t_start_min <= t + EPS and (c.t_end_min == NO_VALUE or t < c.t_end_min - EPS)
 
-    def _book(self, pc: PlannedCall) -> CrewJob | None:
-        """Book a crew for an issue (one open job per issue); None when nothing to fix."""
+    def _book(self, pc: PlannedCall, src: str = "") -> CrewJob | None:
+        """Book a crew for an issue (one open job per issue); None when nothing to fix.
+
+        src says who called (call_log): "module" (auto_call of akt-priority), "button" (the dispatcher),
+        "alarm" (the alarm panel after the notice delay), "plan" (a call of the copy policy), "fallback"
+        (the offline order, used when the module is missing).
+        """
         st, p = self.state, self.prm
         issue = pc.issue
         if issue in self._jobs:
@@ -1334,6 +1382,7 @@ class Plant:
         job = ev.crew_call(st.crews[crew_name], PlannedCall(pc.t_min, node, crew_name, issue, work_h),
                            travel, work_h)
         self._jobs[issue] = job
+        self.call_log.append({"t": float(t), "issue": issue, "node": node, "src": src or "other"})
         if kind in ("crusher", "trip"):
             st.line(n).crusher.fault_until_min = job.t_done_min
         elif kind == "conveyor":
@@ -1417,6 +1466,8 @@ class Plant:
                 return hit
         if nk == "power":
             return "grid", 0
+        if nk in ("water", "piezometer", "piezo") and st.flags.get("piezo"):
+            return "piezo", 0
         if nk in ("water", "piezometer", "piezo") and self._leak_frac > 0.0:
             return "water", 0
         if nk == "water" and any(c.kind == "leak" and self._active(c, t) for c in st.causes):
@@ -1737,7 +1788,7 @@ class Plant:
         if person:
             pp.assign_duty(self.state, person, ISSUE_NODE.get(c.kind, "flot-{}").format(c.line), t, self.prm)
         if issue not in self._jobs and not self._call_pending(issue):
-            self._book(PlannedCall(t, "", "", issue))
+            self._book(PlannedCall(t, "", "", issue), "lab" if by == "lab" else "alarm")
 
     # ================================================= internals: counters
     def _count(self, flows: list[dict], dt: float, wet: float, shipped: float) -> None:
@@ -1794,6 +1845,9 @@ class Plant:
         a["ship_t"] += shipped or 0.0
 
 
+MODULE_MISSING_MIN = 90.0        # model minutes without an answer of akt-priority: the fact copy of «Два сразу» falls back to the offline order
+
+
 class CopySet:
     """Scenario copies stepped in lockstep from the same 08:00 snapshot.
 
@@ -1803,16 +1857,24 @@ class CopySet:
       copies "fact" and "base" always; for preset "fork" also "loud" and
       "no_twin" with events.fork_policies; the scenario is applied to every
       copy except "base". kip overrides crew_kip in every copy.
-      fact_policy=True: with preset "fork" and auto, the fact copy follows
-      fork_policies()["by_value"] (offline runs and tests); the service passes
-      False and drives the fact copy with call() from the priority module.
+      fact_policy sets who calls for the fact copy of "Two at once" (preset "fork" with auto):
+        True / "offline": the fact copy follows fork_policies()["by_value"], the order "by $"
+          fixed beforehand (tests, the quick command of the old tables, the fallback);
+        False / "module": the dispatcher of the fact copy follows the calls of the module
+          akt-priority (auto_call, read from Ditto; Plant.call(src="module")). An alarm alone
+          books no crew in this copy (Plant.follow_module); the laboratory call of 14:00
+          stays as the net under a silent issue the module does not find. The "loud" copy
+          calls the silent issue at the minute the fact copy found it (the module's finding
+          time), but after the alarm call of the loud issue: so "detection" and "order" are
+          measured against the module's own finding time. If the module is missing,
+          fallback_to_offline() hands the fact copy to the offline order (fact_mode "fallback").
       Same seed and step keys -> visible random events (trucks, cloth change)
       equal in all copies.
     """
 
     def __init__(self, prm: ParamSet | None, seed: int | None, text: str, preset: str = "",
                  kip: int | None = None, safety: bool = False, auto: bool | None = None,
-                 hooks: PlantHooks | None = None, fact_policy: bool = True):
+                 hooks: PlantHooks | None = None, fact_policy: bool | str = True):
         prm = default() if prm is None else prm
         fact = Plant(prm, seed, mode="scenario", hooks=hooks)
         fact.warmup()
@@ -1825,12 +1887,37 @@ class CopySet:
         for name, c in copies.items():
             if name != "base":
                 c.apply_scenario(spec)
+        offline = fact_policy is True or fact_policy == "offline"
+        self.fact_mode = "alarm"            # alarm: the plain copy (no fork policy); offline | module | fallback
+        self.fallback_at = NO_VALUE
+        self.t0_min = float(fact.t_min)
+        self._by_value: list[PlannedCall] = []
+        self._dose_tpl: PlannedCall | None = None      # module mode: the silent call the loud copy gets when the fact copy finds it
+        self._trip_call_t = -INF
+        self._loud_dose_set = True
         if preset == "fork":
             pol = ev.fork_policies(spec, prm, fact.state.seed)
             copies["loud"].schedule(pol["loud"])
             copies["no_twin"].schedule(pol["no_twin"])
-            if fact_policy and spec.auto:
+            self._by_value = [copy.copy(c) for c in pol["by_value"]]
+            if spec.auto and offline:
                 fact.schedule(pol["by_value"])
+                self.fact_mode = "offline"
+            elif spec.auto:
+                self.fact_mode = "module"
+                fact.set_follow_module(True)
+                lab = [c for c in pol["no_twin"] if parse_issue(c.issue)[0] == "dose"]
+                for c in lab:
+                    fact.schedule([PlannedCall(c.t_min, c.node, c.crew, c.issue, c.work_h, "lab")])
+                dose = [c for c in pol["by_value"] if parse_issue(c.issue)[0] == "dose"]
+                trips = [c for c in pol["loud"] if parse_issue(c.issue)[0] == "trip"]
+                if dose:
+                    # the loud copy: only the alarm call of the trip now; the silent call comes when the module finds it
+                    copies["loud"]._calls = [c for c in copies["loud"]._calls if parse_issue(c.issue)[0] != "dose"]
+                    self._dose_tpl = dose[0]
+                    self._loud_dose_set = False
+                if trips:
+                    self._trip_call_t = min(c.t_min for c in trips)
         self.prm = prm
         self.copies: dict[str, Plant] = copies
         self.spec: ScenarioSpec = spec
@@ -1839,6 +1926,13 @@ class CopySet:
     copies: dict[str, Plant]
     spec: ScenarioSpec
     lever_only = False          # True: made from a free run by the first lever (no scenario); fact + base only
+    fact_mode = "alarm"         # alarm | offline | module | fallback (see __init__)
+    fallback_at = NO_VALUE
+    t0_min = 0.0
+    _by_value: list = []
+    _dose_tpl = None
+    _trip_call_t = -INF
+    _loud_dose_set = True
 
     @classmethod
     def from_plant(cls, fact: "Plant") -> "CopySet":
@@ -1856,6 +1950,64 @@ class CopySet:
         """Step every copy once."""
         for c in self.copies.values():
             c.step(dt_min)
+        if not self._loud_dose_set:
+            self._sync_loud()
+
+    def _sync_loud(self) -> None:
+        """Module mode: the loud copy calls the silent issue when the fact copy found it (the module's finding
+        time), after the alarm call of the loud issue; if the fact copy has not found it, nothing is added
+        (the laboratory call of the loud copy is the same as in the no-twin copy, see __init__)."""
+        fact, loud = self.copies["fact"], self.copies.get("loud")
+        tpl = self._dose_tpl
+        if loud is None or tpl is None:
+            self._loud_dose_set = True
+            return
+        kind, n = parse_issue(tpl.issue)
+        found = [c.t_found_min for c in fact.state.causes if c.kind == kind and c.line == n and c.t_found_min != NO_VALUE]
+        if not found:
+            return
+        t_call = max(min(found), self._trip_call_t)
+        loud.schedule([PlannedCall(t_call, tpl.node, tpl.crew, tpl.issue, tpl.work_h, "plan")])
+        self._loud_dose_set = True
+
+    def fallback_to_offline(self) -> bool:
+        """The module's output is missing: the fact copy goes back to the order fixed beforehand
+        (fork_policies()["by_value"]), the calls not yet booked at the current minute; the alarm panel
+        works again. False when nothing changed (not in module mode, or already done)."""
+        if self.fact_mode != "module" or self.cancelled:
+            return False
+        fact = self.copies["fact"]
+        t = fact.t_min
+        fact.set_follow_module(False)
+        booked = {e["issue"] for e in fact.call_log}
+        for c in self._by_value:
+            if c.issue not in booked and c.issue not in fact._jobs:
+                fact.schedule([PlannedCall(max(c.t_min, t), c.node, c.crew, c.issue, c.work_h, "fallback")])
+        self.fact_mode = "fallback"
+        self.fallback_at = float(t)
+        return True
+
+    def policy_report(self) -> dict:
+        """Who called for the fact copy of "Two at once": {} outside that scenario.
+
+        {mode: module | fallback | offline, n_calls, n_module, share_module, calls [{t, node, src}],
+         order, order_by_value, same_order, fallback_at}. The calls are the bookings for the two
+         troubles of the scenario (the silent dose and the loud trip); share_module = n_module / n_calls;
+         same_order: the call order of the fact copy equals the order by $ fixed beforehand."""
+        if self.spec.preset != "fork" or self.fact_mode == "alarm" or self.cancelled:
+            return {}
+        fact = self.copies["fact"]
+        rows = [e for e in fact.call_log if parse_issue(e["issue"])[0] in ("dose", "trip")]
+        rows.sort(key=lambda e: e["t"])
+        ref = [c.issue for c in sorted(self._by_value, key=lambda c: c.t_min)]
+        order = [e["issue"] for e in rows]
+        n_mod = sum(1 for e in rows if e["src"] == "module")
+        return {"mode": self.fact_mode, "n_calls": len(rows), "n_module": n_mod,
+                "share_module": (n_mod / len(rows)) if rows else NO_VALUE,
+                "calls": [{"t": float(e["t"]), "node": e["node"], "src": e["src"]} for e in rows],
+                "order": order, "order_by_value": ref,
+                "same_order": (1.0 if order == ref[:len(order)] and len(order) > 0 else 0.0) if order else NO_VALUE,
+                "fallback_at": float(self.fallback_at)}
 
     def end_min(self) -> float:
         """Model minute of the auto pause (scen_end_h of the run day)."""
@@ -1872,9 +2024,9 @@ class CopySet:
             self.step(min(dt, end - fact.t_min))
         return self.shift_result()
 
-    def call(self, node: str, crew: str | None = None, issue: str = "") -> CrewJob | None:
-        """Call on the fact copy (button or module auto_call)."""
-        return self.copies["fact"].call(node, crew, issue)
+    def call(self, node: str, crew: str | None = None, issue: str = "", src: str = "button") -> CrewJob | None:
+        """Call on the fact copy (button, or src="module" for the auto_call of akt-priority)."""
+        return self.copies["fact"].call(node, crew, issue, src=src)
 
     def cancel(self) -> None:
         """"Cancel": the fact copy becomes a clone of the base copy; scenario removed."""

@@ -1,7 +1,7 @@
 {
  "seed": 42,
  "mode": "model",
- "code_hash": "8c5de3472dfd",
+ "code_hash": "d389d50d5b31",
  "command": "python -I aktogay/scripts/measure_scenarios.py --model --out aktogay/web/static/scenario_timing.json",
  "tact_min": 5,
  "note": "минуты модели после 08:00 до первой беды сценария в очереди (шаг модулей 5 мин); беды, которые есть и без сценария, не считаются; оценка на модели",

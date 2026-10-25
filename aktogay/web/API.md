@@ -38,7 +38,7 @@
 
 Модель Актогая в модельном времени: считает фабрику, карьер и людей смены, публикует в Ditto каждую вещь и партию. Код: `aktogay/sim/service.py`.
 
-- **Вход из Ditto:** MQTT-события Ditto `control.*` (сценарий, скорость, сброс, отмена); `journal.last` (вызов, напоминание); `mod-priority.issue_map`, `mod-priority.auto_call` (вызов беды как бригады на узле)
+- **Вход из Ditto:** MQTT-события Ditto `control.*` (сценарий, скорость, сброс, отмена); `journal.last` (вызов, напоминание); `mod-priority.issue_map`, `mod-priority.auto_call` (вызов беды как бригады на узле; в «Два сразу» по ним идёт копия «по $», `AKT_FACT_POLICY=module`)
 - **Вход из InfluxDB:** не читает
 - **Выход:** все физические вещи (`crusher-N`, `sag-N`, `line-N`, `water`, `power`, людей, технику) и партии; `site` (`sim_time`, `speed_fact`, `scenario`, `heartbeat`); `baseline`, `validation-sim` (для режима проверки)
 - **Тест:** `tests/test_service.py`, `tests/test_plant.py`, `tests/test_publish.py`, `tests/test_events.py`

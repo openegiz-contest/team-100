@@ -2,7 +2,7 @@
 
 For each scenario of the catalog (modules/scenarios.py) and the two fork runs (one and two instrument engineers) the
 copies of the model are run from 08:00 to 20:00 with the scenario seed: «база» (no scenario), «факт» (the scenario,
-no clicks in the interface; with the fork preset the copy follows the order «по $»), and for the fork «по громкости»
+no clicks in the interface; with the fork preset the copy follows the calls of the module code, sim/modloop.py), and for the fork «по громкости»
 and «без двойника». Written per copy: copper in the concentrate (t) and money (USD) by 20:00, plus key moments of the
 «факт» copy (the ore stockpile of a line runs out, the SAG of a line stops being fed) that the base copy does not have
 at that minute. Nothing is read from the stand. Every number is a model estimate.
@@ -28,7 +28,7 @@ SEED = 42
 KEYS = ("cu_t", "ore_t", "energy_mwh", "water_m3", "usd")
 ROUND = {"cu_t": 4, "ore_t": 2, "energy_mwh": 3, "water_m3": 1, "usd": 0}
 # files of the model: the hash of these tells whether the numbers were computed by the same code
-MODEL_FILES = ("comminution.py", "events.py", "flotation.py", "haul.py", "ore.py", "oxide.py", "params.py",
+MODEL_FILES = ("comminution.py", "events.py", "flotation.py", "haul.py", "modloop.py", "ore.py", "oxide.py", "params.py",
                "params_lev.py", "params_t.py", "people.py", "pit.py", "plant.py", "sensors.py",
                "site_aktogay.py", "state.py", "utilities.py", "wear.py")
 COMMAND = "python -I aktogay/run.py verify --write aktogay/web/static/verify.json"
@@ -79,19 +79,30 @@ def run_one(spec: dict) -> dict:
     if spec.get("set"):
         from sim.params import default
         prm = default().copy(**spec["set"])                # sensitivity runs (sim/stock_sens.py); the stand file has none
-    cs = CopySet(prm, spec.get("seed", SEED), spec["text"], preset=spec["preset"], kip=spec["kip"])
-    fact, base = cs.copies["fact"], cs.copies["base"]
-    dt = cs.prm["cal_step_live_min"]
-    end = cs.end_min()
-    t0 = fact.t_min
     first_f: dict[str, float] = {}
     first_b: dict[str, float] = {}
-    while fact.t_min < end - EPS and fact.state.site_state != "PAUSED":
-        cs.step(min(dt, end - fact.t_min))
-        for k in _first_times(fact):
-            first_f.setdefault(k, fact.t_min)
-        for k in _first_times(base):
-            first_b.setdefault(k, base.t_min)
+
+    def note(cs_) -> None:
+        for k in _first_times(cs_.copies["fact"]):
+            first_f.setdefault(k, cs_.copies["fact"].t_min)
+        for k in _first_times(cs_.copies["base"]):
+            first_b.setdefault(k, cs_.copies["base"].t_min)
+
+    if spec["preset"] == "fork":
+        # «Два сразу»: the fact copy follows the calls of the module code (sim/modloop.py), as the stand does
+        from sim import modloop
+        cs = modloop.run_copies(prm, spec.get("seed", SEED), spec["text"], preset=spec["preset"], kip=spec["kip"], on_step=note)
+        fact, base = cs.copies["fact"], cs.copies["base"]
+        t0 = cs.t0_min
+    else:
+        cs = CopySet(prm, spec.get("seed", SEED), spec["text"], preset=spec["preset"], kip=spec["kip"])
+        fact, base = cs.copies["fact"], cs.copies["base"]
+        dt = cs.prm["cal_step_live_min"]
+        end = cs.end_min()
+        t0 = fact.t_min
+        while fact.t_min < end - EPS and fact.state.site_state != "PAUSED":
+            cs.step(min(dt, end - fact.t_min))
+            note(cs)
     res = cs.shift_result()
     copies = {name: {k: round(v[k], ROUND[k]) for k in KEYS} for name, v in res["copies"].items()}
     diff = {name: {k: round(v[k], ROUND[k]) for k in KEYS} for name, v in res["diff"].items()}
@@ -105,6 +116,11 @@ def run_one(spec: dict) -> dict:
     if res["fork"]:
         out["fork_cu_t"] = {k: round(v, 6) for k, v in res["fork"].items()}
         out["fork_cu_t"]["total_cu_t"] = round(res["copies"]["fact"]["cu_t"] - res["copies"]["no_twin"]["cu_t"], 6)
+        pol = cs.policy_report()
+        out["fork_policy"] = {"mode": pol.get("mode", ""), "n_calls": pol.get("n_calls", 0), "n_module": pol.get("n_module", 0),
+                              "order": pol.get("order", []), "order_by_value": pol.get("order_by_value", []),
+                              "same_order": pol.get("same_order"),
+                              "calls": [{"clock": _clock(c["t"]), "node": c["node"], "src": c["src"]} for c in pol.get("calls", [])]}
     if spec["id"] == "hard:1":
         # the hard batch reaches the SAG about 20:00: the loss shows in the night shift, so run on to 08:00 next day
         day = cs.prm["cal_step_live_min"]

@@ -1,5 +1,5 @@
 {
- "code_hash": "8c5de3472dfd",
+ "code_hash": "d389d50d5b31",
  "command": "python -I aktogay/run.py verify --write aktogay/web/static/verify.json",
  "copy_ru": {
   "base": "база",
@@ -354,11 +354,11 @@
      "water_m3": 49022.3
     },
     "fact": {
-     "cu_t": 305.4037,
-     "energy_mwh": 3095.177,
-     "ore_t": 85129.52,
-     "usd": 4126607.0,
-     "water_m3": 49333.6
+     "cu_t": 305.7654,
+     "energy_mwh": 3088.959,
+     "ore_t": 85454.44,
+     "usd": 4131797.0,
+     "water_m3": 49436.0
     },
     "loud": {
      "cu_t": 303.2286,
@@ -377,11 +377,11 @@
    },
    "diff": {
     "fact": {
-     "cu_t": 0.645,
-     "energy_mwh": -17.395,
-     "ore_t": 989.93,
-     "usd": 9419.0,
-     "water_m3": 311.3
+     "cu_t": 1.0067,
+     "energy_mwh": -23.612,
+     "ore_t": 1314.85,
+     "usd": 14609.0,
+     "water_m3": 413.7
     },
     "loud": {
      "cu_t": -1.5301,
@@ -401,8 +401,34 @@
    "fork": true,
    "fork_cu_t": {
     "detection_cu_t": 0.847265,
-    "order_cu_t": 2.175096,
-    "total_cu_t": 3.022362
+    "order_cu_t": 2.536784,
+    "total_cu_t": 3.38405
+   },
+   "fork_policy": {
+    "calls": [
+     {
+      "clock": "09:45",
+      "node": "flot-1",
+      "src": "module"
+     },
+     {
+      "clock": "11:55",
+      "node": "crusher-2",
+      "src": "module"
+     }
+    ],
+    "mode": "module",
+    "n_calls": 2,
+    "n_module": 2,
+    "order": [
+     "dose:1",
+     "trip:2"
+    ],
+    "order_by_value": [
+     "dose:1",
+     "trip:2"
+    ],
+    "same_order": 1.0
    },
    "id": "fork",
    "kip": 1,
@@ -1147,18 +1173,18 @@
      "water_m3": 49022.3
     },
     "fact": {
-     "cu_t": 304.7135,
-     "energy_mwh": 3099.699,
-     "ore_t": 84837.91,
-     "usd": 4116906.0,
-     "water_m3": 49242.7
+     "cu_t": 305.7654,
+     "energy_mwh": 3088.959,
+     "ore_t": 85454.44,
+     "usd": 4131797.0,
+     "water_m3": 49436.0
     },
     "loud": {
-     "cu_t": 304.5985,
+     "cu_t": 304.4501,
      "energy_mwh": 3099.699,
      "ore_t": 84837.91,
-     "usd": 4115310.0,
-     "water_m3": 49243.0
+     "usd": 4113249.0,
+     "water_m3": 49243.4
     },
     "no_twin": {
      "cu_t": 302.3814,
@@ -1170,18 +1196,18 @@
    },
    "diff": {
     "fact": {
-     "cu_t": -0.0452,
-     "energy_mwh": -12.872,
-     "ore_t": 698.33,
-     "usd": -282.0,
-     "water_m3": 220.4
+     "cu_t": 1.0067,
+     "energy_mwh": -23.612,
+     "ore_t": 1314.85,
+     "usd": 14609.0,
+     "water_m3": 413.7
     },
     "loud": {
-     "cu_t": -0.1602,
+     "cu_t": -0.3086,
      "energy_mwh": -12.872,
      "ore_t": 698.33,
-     "usd": -1879.0,
-     "water_m3": 220.7
+     "usd": -3940.0,
+     "water_m3": 221.1
     },
     "no_twin": {
      "cu_t": -2.3774,
@@ -1193,9 +1219,35 @@
    },
    "fork": true,
    "fork_cu_t": {
-    "detection_cu_t": 2.217161,
-    "order_cu_t": 0.114976,
-    "total_cu_t": 2.332137
+    "detection_cu_t": 2.068741,
+    "order_cu_t": 1.315309,
+    "total_cu_t": 3.38405
+   },
+   "fork_policy": {
+    "calls": [
+     {
+      "clock": "09:45",
+      "node": "flot-1",
+      "src": "module"
+     },
+     {
+      "clock": "11:55",
+      "node": "crusher-2",
+      "src": "module"
+     }
+    ],
+    "mode": "module",
+    "n_calls": 2,
+    "n_module": 2,
+    "order": [
+     "dose:1",
+     "trip:2"
+    ],
+    "order_by_value": [
+     "dose:1",
+     "trip:2"
+    ],
+    "same_order": 1.0
    },
    "id": "fork",
    "kip": 2,

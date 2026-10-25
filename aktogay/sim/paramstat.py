@@ -1,4 +1,4 @@
-"""Honest summary of the labels of the parameter tables (FEATURES_22.md, Д4): how many numbers of the model and of the
+"""Honest summary of the labels of the parameter tables (design notes of 22.10.2026, item D4): how many numbers of the model and of the
 modules are a fact, a vendor figure, an analog, a project figure, a calculation or an assumption. The page «Калибровка»
 shows it (`web/static/params_summary.json`), VALIDATION.md quotes it in «Чего модель не умеет», a test keeps both equal
 to the tables.

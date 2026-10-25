@@ -12,13 +12,13 @@ of the registry that points to a computation or a stored result is recomputed he
   python -I aktogay/scripts/check_numbers.py            # exit 1 when a number is unmarked or an automatic claim fails
   python -I aktogay/scripts/check_numbers.py --list     # all numbers found with the claim that holds them
 
-Files scanned: final_docs/SUBMISSION.md (outside the «Concept» section, which is the participant's text: it is read, its numbers are
-compared with the registry and mismatches are reported, nothing is edited), final_docs/README_aktogay.md and the presentation
+Files scanned: SUBMISSION.md (outside the «Concept» section, which is the participant's text: it is read, its numbers are
+compared with the registry and mismatches are reported, nothing is edited), README.md and the presentation
 index.html (path in the environment variable AKT_PRES, or pres/index.html inside or next to the repository when present; a checkout
 without the presentation source skips it).
 
 Stop-list (FORBIDDEN): statements the evidence of 24.10.2026 does not carry, kept as regular expressions. The same files and
-final_docs/VALIDATION.md are scanned sentence by sentence (a table row is one sentence); a sentence that negates the statement
+VALIDATION.md are scanned sentence by sentence (a table row is one sentence); a sentence that negates the statement
 («нельзя», «не пишем», «не значит», «неверно») or marks it as history of an earlier base is skipped. A hit in the files outside the
 Concept gives exit code 1; a hit in the Concept is only reported to the owner of the text.
 """
@@ -34,12 +34,12 @@ ROOT = os.path.dirname(HERE)                                  # aktogay/
 STAGE = os.path.dirname(ROOT)
 CLAIMS = os.path.join(ROOT, "web", "static", "claims.json")
 def _doc(name: str) -> str:
-    """final_docs/<name> in the working tree of the team, or the repository root (README_aktogay.md is README.md there)."""
+    """<name> in the repository root, or in final_docs/ of the team's working tree."""
     p = os.path.join(STAGE, "final_docs", name)
-    return p if os.path.exists(p) else os.path.join(STAGE, "README.md" if name == "README_aktogay.md" else name)
+    return p if os.path.exists(p) else os.path.join(STAGE, name)
 
 
-DOCS = {"SUBMISSION": _doc("SUBMISSION.md"), "README": _doc("README_aktogay.md")}
+DOCS = {"SUBMISSION": _doc("SUBMISSION.md"), "README": _doc("README.md")}
 STOP_DOCS = dict(DOCS, VALIDATION=_doc("VALIDATION.md"))
 PRES_DEFAULTS = (os.path.join(STAGE, "pres", "index.html"), os.path.join(os.path.dirname(STAGE), "pres", "index.html"))
 CONCEPT = ("## Concept", "## Почему это важно")

@@ -1,4 +1,4 @@
-"""Readiness cards (FEATURES_22.md, «ОПРЕДЕЛЕНИЕ ГОТОВНОСТИ», 23.10.2026): every new trouble and forecast has the nine
+"""Readiness cards (readiness definition of 23.10.2026): every new trouble and forecast has the nine
 points, they agree with the code (WHO table, parameters, scenarios, tests, the page «Как проверить»), the checklist and the
 closure reach the issue card, and a closed trouble is written to the journal and the handover sheet."""
 import os

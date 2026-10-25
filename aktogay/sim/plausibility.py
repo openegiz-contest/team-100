@@ -35,15 +35,15 @@ GROUP_RU = {"balance": "баланс", "limit": "предел", "range": "диа
 LINES = SITE.LINES
 EPS = 1e-9
 
-# sources (short; the long form is in PARAMETERS.md and facts_round2.md)
+# sources (short; the long form is in PARAMETERS.md)
 SRC_OVOS = "ОВОС Актогай 2018 (минедокс, таблицы 1.5.1–1.5.2)"
 SRC_KAZ_Q = "отчёты KAZ Minerals 2018–2025 (kaz_quarterly.csv, 32 квартала)"
-SRC_KAZ_EN = "KAZ Minerals, энергия 2024: 2 033 ГВт·ч на 58,3 Мт руды = 34,9 кВт·ч/т (facts_round2 R7)"
+SRC_KAZ_EN = "KAZ Minerals, энергия 2024: 2 033 ГВт·ч на 58,3 Мт руды = 34,9 кВт·ч/т"
 SRC_KAZ_W = "KAZ Minerals, вода 2024: 34,852 млн м³ на 58,3 Мт = 0,60 м³/т; проект 0,63–0,99 (ОВОС)"
-SRC_SAG28 = "mining-technology.com 02.2018: SAG 28 МВт, шаровые 2 × 22 МВт (facts_pit_line2)"
-SRC_BRAD = "Bradken + KAZ Minerals 2021, таблица 1 (с. 3) и с. 12: 6,6 проект, 7,25 измерено в сентябре 2017 – марте 2019 (facts_round2, Раунд 5, E1)"
+SRC_SAG28 = "mining-technology.com 02.2018: SAG 28 МВт, шаровые 2 × 22 МВт"
+SRC_BRAD = "Bradken + KAZ Minerals 2021, таблица 1 (с. 3) и с. 12: 6,6 проект, 7,25 измерено в сентябре 2017 – марте 2019"
 SRC_PEK = "ПЭК ТОО «KAZ Minerals Aktogay» 2023–2024, с. 10: рабочий объём склада 163 000 т"
-SRC_AR20 = "KAZ Minerals, годовой отчёт 2020, с. 61: Aktogay 793D, 236 т (facts_round2 H1)"
+SRC_AR20 = "KAZ Minerals, годовой отчёт 2020, с. 61: Aktogay 793D, 236 т"
 SRC_CAT785 = "Caterpillar, паспорт 785: 136 т (данные производителя)"
 SRC_CAT777 = "Caterpillar, паспорт 777: около 90 т (данные производителя, не открыт)"
 
@@ -165,7 +165,7 @@ def build(prm: P.ParamSet | None = None) -> dict:
     out.append(_chk(
         "r_p80", "range", "Крупность слива циклонов P80", "мкм",
         [_item([_t(1.0, f"cyclones-{n}.p80_um")], name=f"линия {n}") for n in LINES], 110.0, 230.0,
-        "Bradken 2021: 180 мкм; суточные P80 фабрики 120–180 мкм (Satbayev 2025, facts_round2 R5/R6)", "vendor"))
+        "Bradken 2021: 180 мкм; суточные P80 фабрики 120–180 мкм (Satbayev 2025)", "vendor"))
     return {"kind": "akt-plausibility", "version": 1, "checks": out,
             "n": len(out), "groups": {k: sum(1 for c in out if c["group"] == k) for k in GROUP_RU}}
 

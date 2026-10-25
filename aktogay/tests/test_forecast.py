@@ -49,7 +49,7 @@ def store_of(plant, things_only=None):
 
 
 class FactsTest(unittest.TestCase):
-    """Passports and parameters carry what the sources say (INVENTORY, FEATURES_22 step 0)."""
+    """Passports and parameters carry what the sources say (design notes of 22.10.2026, step 0)."""
 
     def test_conveyor_sag_pebble_and_dam_passports(self):
         c2 = passport("conveyor-2")

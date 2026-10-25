@@ -6,6 +6,8 @@ this process holds them and forwards a fixed list of requests.
   GET  /healthz                       process alive (no platform call)
   GET  /api/state                     all kz.aktogay things (Ditto search, size 200); read once per STATE_REFRESH_S
                                       for all browsers together (a tab never starts a read of its own)
+  GET  /summary                       the state as plain HTML without JavaScript (queue, tiles, modules, scenarios, pages);
+                                      /summary.json is the same as data; both are built from the cached /api/state
   GET  /api/thing?id=<thingId>        one thing, raw JSON with _modified and _revision
   GET  /api/history?thing=<name>&field=<f1,f2>&range=2h[&run=<idSimulationRun>]
                                       InfluxDB points of the features, by sim_time
@@ -52,6 +54,8 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 log = logging.getLogger("akt-web")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import summary  # noqa: E402  (web/summary.py, next to this file)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.environ.get("AKT_STATIC") or os.path.join(HERE, "static")
@@ -272,6 +276,21 @@ STATE = StateCache(lambda: search_things(fast_filter()), STATE_REFRESH_S, STATE_
 
 def state_bytes() -> bytes:
     return STATE.get()
+
+
+_summary_cache: dict = {"t": None, "json": b"", "html": b""}
+_summary_lock = threading.Lock()
+
+
+def summary_bytes(kind: str) -> bytes:
+    """/summary (kind "html") or /summary.json: built once per read of the state, answered from memory in between."""
+    body = state_bytes()
+    with _summary_lock:
+        if _summary_cache["t"] != STATE.t or not _summary_cache["html"]:
+            data = summary.build(json.loads(body), STATIC)
+            _summary_cache.update(t=STATE.t, json=json.dumps(data, ensure_ascii=False, indent=1).encode("utf-8"),
+                                  html=summary.render_html(data).encode("utf-8"))
+        return _summary_cache[kind]
 
 
 class TtlCache:
@@ -588,6 +607,10 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, b"ok\n", "text/plain; charset=utf-8")
             elif url.path == "/api/state":
                 self._send(200, state_bytes())
+            elif url.path in ("/summary", "/summary/"):
+                self._send(200, summary_bytes("html"), "text/html; charset=utf-8")
+            elif url.path == "/summary.json":
+                self._send(200, summary_bytes("json"))
             elif url.path == "/api/thing":
                 self.api_thing(qs)
             elif url.path == "/api/history":
@@ -622,6 +645,8 @@ class Handler(BaseHTTPRequestHandler):
                 for k in ("kip", "safety", "auto", "speed", "seed"):
                     if body.get(k) not in (None, ""):
                         payload[k] = float(body[k])
+                if (payload.get("preset") == "fork" or sid == "fork") and "auto" not in payload:
+                    payload["auto"] = 1.0       # «Два сразу»: the dispatcher of the fact copy follows the module (as the button does)
                 self._json(200, {"ok": True, "control": "scenario", "value": write_control("scenario", payload)})
             elif name == "cancel":
                 self._json(200, {"ok": True, "control": "cancel", "value": write_control("cancel", {})})

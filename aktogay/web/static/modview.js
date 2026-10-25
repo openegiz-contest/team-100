@@ -57,6 +57,20 @@
 </dl><p class="p-sub">Подробнее: <a href="${AKT.href('?view=levers')}">Рычаги модели</a></p></section>`;
   }
 
+  /* who called for the copy «с двойником» of «Два сразу»: shift_result.policy, written by akt-sim (CopySet.policy_report) */
+  const SRC_RU = { module: 'вызов модуля', lab: 'проба лаборатории', alarm: 'тревога', plan: 'запасной порядок', fallback: 'запасной порядок', button: 'кнопка' };
+  function policyHtml(r) {
+    const p = r && r.policy;
+    if (!p || (p.mode !== 'module' && p.mode !== 'fallback') || !(p.n_calls >= 0)) return '';
+    const calls = (p.calls || []).map(c => `${esc(AKT.placeRu(c.node))} в ${esc(AKT.clock(c.t))} <span class="p-sub">(${esc(SRC_RU[c.src] || c.src)})</span>`).join(' → ');
+    const share = p.share_module >= 0 ? `${AKT.fmt(100 * p.share_module, 0)} %` : '—';
+    if (p.mode === 'fallback') {
+      return `<p class="note"><b>Модуль не ответил, копия «с двойником» шла по запасному порядку.</b> С ${esc(AKT.clock(p.fallback_at))} модели «Очередь бед» молчала дольше 90 мин, и симулятор вернулся к порядку «по $», посчитанному заранее. Вызовов модуля: ${AKT.fmt(p.n_module)} из ${AKT.fmt(p.n_calls)} (${share}).${calls ? ` Вызовы: ${calls}.` : ''} Эффект ниже — запасного порядка, а не модуля.</p>`;
+    }
+    const same = p.same_order === 1 ? 'совпал с порядком «по $», посчитанным заранее' : p.same_order === 0 ? 'отличается от порядка «по $», посчитанного заранее' : 'сравнить с порядком «по $» пока не с чем';
+    return `<p class="note"><b>Копия «с двойником» шла по вызовам модуля «Очередь бед».</b> Вызовов по бедам сценария: ${AKT.fmt(p.n_calls)}, из них модуля — ${AKT.fmt(p.n_module)} (${share}); тревога сама вызова не запускает.${calls ? ` Порядок: ${calls}.` : ''} Он ${same}. Эти вызовы модуль публикует в двойнике (<code>mod-priority.auto_call</code>), симулятор читает их оттуда — то же, что видит диспетчер в очереди.</p>`;
+  }
+
   function effectHtml() {
     const e = AKT.effect(), r = AKT.shiftResult();
     const run = AKT.scenario();
@@ -64,7 +78,7 @@
     if (e && e.kind === 'twin') big = `<p class="mod-eff">${esc(e.text)} <span class="p-sub">к ${esc(AKT.clockDay(e.t))}, оценка на модели</span></p>`;
     else if (e) big = `<p class="mod-eff">${esc(e.text)}</p><p class="p-sub">Копии «без двойника» в этом сценарии нет: она есть у «Двух бед сразу».</p>`;
     else big = '<p class="mod-eff dash">Сейчас идёт обычная смена без копий модели, сравнивать не с чем. Запустите «Две беды сразу»: счётчик пойдёт через минуту-две.</p>';
-    return `${big}${r ? `<div class="mod-tab">${AKT.shiftTable ? AKT.shiftTable(r) : ''}</div>` : ''}
+    return `${big}${r ? `<div class="mod-tab">${AKT.shiftTable ? AKT.shiftTable(r) : ''}</div>` : ''}${policyHtml(r)}
 <p><button type="button" class="primary" id="mod-run"${run === 'fork' ? ' disabled' : ''}>${run === 'fork' ? 'Сценарий идёт' : 'Запустить «Две беды сразу»'}</button>
  <span class="p-sub">Откроются две копии одной смены с 08:00: с очередью двойника и без него (модуль выключен); разница копится на глазах.</span></p>
 <p class="p-sub">Те же сравнения на 100 парных сменах: <a href="${AKT.href('?view=economics')}">Экономика</a>, <a href="${AKT.href('?view=replay')}">Повтор смены</a>.</p>`;
